@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+    "terms": "https://open.fda.gov/terms/",
+    "license": "https://open.fda.gov/license/",
+    "last_updated": "2026-10-14",
+    "results": {
+      "skip": 0,
+      "limit": 2,
+      "total": 12983
+    }
+  },
+  "results": [
+    {
+      "status": "Ongoing",
+      "city": "Clermont",
+      "state": "FL",
+      "country": "United States",
+      "classification": "Class I",
+      "openfda": {},
+      "product_type": "Food",
+      "event_id": "99872",
+      "recalling_firm": "A&P CREATIONS",
+      "address_1": "2725 Armstrong Ave",
+      "address_2": "N/A",
+      "postal_code": "34714-8117",
+      "voluntary_mandated": "Voluntary: Firm initiated",
+      "initial_firm_notification": "Press Release",
+      "distribution_pattern": "Distributed nationwide (US).",
+      "recall_number": "H-0016-2027",
+      "product_description": "X10 Natural Enhancement Supplement, 0.5 fl oz/sachet (15 mL), 7 sachets/box, UPC: 7708075247094, Manufactured by FutuPro S.A.S., Colombian Industry; Distributed by Natur Fuel, 2725 Armstrong Avenue, Clermont, FL 34714.",
+      "product_quantity": "1,283 retail units",
+      "reason_for_recall": "Product contains undeclared Sildenafil and Tadalafil.",
+      "recall_initiation_date": "20260914",
+      "center_classification_date": "20261007",
+      "report_date": "20261014",
+      "code_info": "Lot # F090824LN16, Expiry: 8/2026; Lot # F170325LN19, Expiry: 03/2027; Lot # 300326LN28, Expiry: 03/2028."
+    },
+    {
+      "status": "Ongoing",
+      "city": "Miami",
+      "state": "FL",
+      "country": "United States",
+      "classification": "Class I",
+      "openfda": {},
+      "product_type": "Food",
+      "event_id": "99951",
+      "recalling_firm": "LEASA  Industries Co., Inc.",
+      "address_1": "2450 NW 76th St",
+      "address_2": "N/A",
+      "postal_code": "33147-6044",
+      "voluntary_mandated": "Voluntary: Firm initiated",
+      "initial_firm_notification": "E-Mail",
+      "distribution_pattern": "FL and NH",
+      "recall_number": "H-0003-2027",
+      "product_description": "LEASA Alfalfa Sprouts; packaged in plastic clamshell containers; KEEP REFRIGERATED; NET WT. 6 OZ. (170g); Grown & Packaged by: LEASA Industries Co., Inc., Mami FL 33147; Product of USA; UPC: 0 75465 11111 0",
+      "product_quantity": "1,416 cups",
+      "reason_for_recall": "Seeds may have been contaminated with E.coli",
+      "recall_initiation_date": "20260904",
+      "center_classification_date": "20261002",
+      "report_date": "20261014",
+      "code_info": "Expiration Date (s): 9/4/26, 9/8/26, 9/10/26, 9/15/26, 9/17/26, 9/18/26"
+    }
+  ]
+}

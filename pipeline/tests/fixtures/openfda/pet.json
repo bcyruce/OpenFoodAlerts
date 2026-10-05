@@ -1,0 +1,67 @@
+{
+  "meta": {
+    "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+    "terms": "https://open.fda.gov/terms/",
+    "license": "https://open.fda.gov/license/",
+    "last_updated": "2026-10-14",
+    "results": {
+      "skip": 0,
+      "limit": 2,
+      "total": 2
+    }
+  },
+  "results": [
+    {
+      "country": "United States",
+      "city": "Westfield",
+      "address_1": "53 Summit Lock Road",
+      "reason_for_recall": "Products were not held at an appropriate temperature due to a mechanical malfunction during transportation.",
+      "address_2": "53 Medieros Way",
+      "product_quantity": "unknown",
+      "code_info": "Exact codes are unknown. The product being recalled was sold on June 17, 2019 at Target Stores in Commack, NY and Central Islip, NY.",
+      "center_classification_date": "20190724",
+      "distribution_pattern": "Two Target Stores 1. 98 Veterans Memorial Highway in Commack, New York 2. 160 North Research Place in Central Islip, New York",
+      "state": "MA",
+      "product_description": "FRESHPET SELECT FRESH FROM THE KITCHEN - REFRIGERATED DOG FOOD - 1.75LB, UPC:2797501110",
+      "report_date": "20190731",
+      "classification": "Class II",
+      "openfda": {},
+      "recalling_firm": "C & S Wholesale Grocers, Inc.",
+      "recall_number": "F-1753-2019",
+      "initial_firm_notification": "Telephone",
+      "product_type": "Food",
+      "event_id": "83178",
+      "termination_date": "20190731",
+      "recall_initiation_date": "20190617",
+      "postal_code": "01085-9777",
+      "voluntary_mandated": "Voluntary: Firm initiated",
+      "status": "Terminated"
+    },
+    {
+      "country": "United States",
+      "city": "Westfield",
+      "address_1": "53 Summit Lock Road",
+      "reason_for_recall": "Products were not held at an appropriate temperature due to a mechanical malfunction during transportation.",
+      "address_2": "53 Medieros Way",
+      "product_quantity": "unknown",
+      "code_info": "Exact codes are unknown. The product being recalled was sold on June 17, 2019 at Target Stores in Commack, NY and Central Islip, NY.",
+      "center_classification_date": "20190724",
+      "distribution_pattern": "Two Target Stores 1. 98 Veterans Memorial Highway in Commack, New York 2. 160 North Research Place in Central Islip, New York",
+      "state": "MA",
+      "product_description": "FRESHPET SELECT GRAIN FREE SMALL - REFRIGERATED DOG FOOD - 1LB, UPC: 2797501204",
+      "report_date": "20190731",
+      "classification": "Class II",
+      "openfda": {},
+      "recalling_firm": "C & S Wholesale Grocers, Inc.",
+      "recall_number": "F-1754-2019",
+      "initial_firm_notification": "Telephone",
+      "product_type": "Food",
+      "event_id": "83178",
+      "termination_date": "20190731",
+      "recall_initiation_date": "20190617",
+      "postal_code": "01085-9777",
+      "voluntary_mandated": "Voluntary: Firm initiated",
+      "status": "Terminated"
+    }
+  ]
+}

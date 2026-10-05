@@ -16,7 +16,7 @@ from openfoodalerts.db.connection import Connection, connect
 DEFAULT_TEST_DATABASE_URL = "postgres://ofa:ofa@localhost:5432/ofa_test?sslmode=disable"
 FIXTURES = Path(__file__).parent / "fixtures"
 
-KEEP_TABLES = {"schema_migrations"}
+KEEP_TABLES = {"schema_migrations", "sources"}
 
 
 def get_test_database_url() -> str:
@@ -39,6 +39,10 @@ def db(monkeypatch: pytest.MonkeyPatch) -> Iterator[Connection]:
     if to_truncate:
         conn.execute(
             "TRUNCATE " + ", ".join(f'"{t}"' for t in to_truncate) + " RESTART IDENTITY CASCADE"
+        )
+    if any(r["tablename"] == "sources" for r in rows):
+        conn.execute(
+            "UPDATE sources SET last_success_at = NULL, last_error = NULL, last_error_at = NULL"
         )
     conn.commit()
     try:

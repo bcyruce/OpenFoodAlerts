@@ -1,0 +1,69 @@
+{
+  "meta": {
+    "disclaimer": "Do not rely on openFDA to make decisions regarding medical care. While we make every effort to ensure that data is accurate, you should assume all results are unvalidated. We may limit or otherwise restrict your access to the API in line with our Terms of Service.",
+    "terms": "https://open.fda.gov/terms/",
+    "license": "https://open.fda.gov/license/",
+    "last_updated": "2026-10-14",
+    "results": {
+      "skip": 0,
+      "limit": 2,
+      "total": 27959
+    }
+  },
+  "results": [
+    {
+      "status": "Terminated",
+      "city": "Laval",
+      "state": "N/A",
+      "country": "Canada",
+      "classification": "Class I",
+      "openfda": {},
+      "product_type": "Food",
+      "event_id": "99615",
+      "recalling_firm": "Marina Del Rey Foods inc.",
+      "address_1": "2060 Michelin St",
+      "address_2": "N/A",
+      "postal_code": "N/A",
+      "voluntary_mandated": "Voluntary: Firm initiated",
+      "initial_firm_notification": "E-Mail",
+      "distribution_pattern": "The product can be found at PCC Markets in WA and Earth Fare Stores in FL & SC, as well as select independent retailers in these regions. Frankie's Organic is working with 3 distribution centers that any remaining inventory is removed from distribution (GA, OR).",
+      "recall_number": "H-1328-2026",
+      "product_description": "Frankie's Organic Plant-Based Puffs Vegan Cheddar, NET WT. 4 oz. (113 g). Product is packaged into flexible plastic bag, UPC 816929000119. Sold wholesale: 12 retail units/ case",
+      "product_quantity": "322 cases (12-4oz units/case)",
+      "reason_for_recall": "Product tested positive for undeclared milk.",
+      "recall_initiation_date": "20260805",
+      "center_classification_date": "20260902",
+      "termination_date": "20260915",
+      "report_date": "20260909",
+      "code_info": "Best If Used By: 05 16 2027 and Best If Used By: 07 03 2027",
+      "more_code_info": ""
+    },
+    {
+      "status": "Terminated",
+      "city": "Houston",
+      "state": "TX",
+      "country": "United States",
+      "classification": "Class I",
+      "openfda": {},
+      "product_type": "Food",
+      "event_id": "99587",
+      "recalling_firm": "Ron's Home Style Foods, Inc.",
+      "address_1": "12530 Burdine St",
+      "address_2": "N/A",
+      "postal_code": "77085-1429",
+      "voluntary_mandated": "Voluntary: Firm initiated",
+      "initial_firm_notification": "E-Mail",
+      "distribution_pattern": "AR, OK, TX",
+      "recall_number": "H-1303-2026",
+      "product_description": "Item #DIPSAU0205RFS Salsa Autentica 5 lb. packaged in round plastic container.",
+      "product_quantity": "2270 lbs. (total)",
+      "reason_for_recall": "Products were manufactured with jalapenos that have the potential to be contaminated with Salmonella",
+      "recall_initiation_date": "20260806",
+      "center_classification_date": "20260828",
+      "termination_date": "20260918",
+      "report_date": "20260909",
+      "code_info": "61890047, Use-By Date 8/27/2026; 61960049, Use-By Date 9/3/2026; 62030033, Use-By Date 9/10/2026; 61900075, Use-By Date 8/28/2026; 61970088, Use-By Date 9/4/2026; 62110071, Use-By Date 9/18/2026",
+      "more_code_info": ""
+    }
+  ]
+}
