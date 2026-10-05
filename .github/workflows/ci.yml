@@ -1,0 +1,76 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ofa
+          POSTGRES_PASSWORD: ofa
+          POSTGRES_DB: ofa
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ofa -d ofa"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://ofa:ofa@localhost:5432/ofa?sslmode=disable
+      TEST_DATABASE_URL: postgres://ofa:ofa@localhost:5432/ofa_test?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dbmate
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v2.21.0/dbmate-linux-amd64
+          sudo chmod +x /usr/local/bin/dbmate
+      - run: uv --directory pipeline sync --locked
+      - run: make migrate test-db
+      - run: uv --directory pipeline run ruff check .
+      - run: uv --directory pipeline run ruff format --check .
+      - run: uv --directory pipeline run mypy
+      - run: uv --directory pipeline run pytest
+      - name: make eval (cached mode)
+        # Enabled by ticket 15.
+        if: ${{ false }}
+        run: make eval
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm --dir web install --frozen-lockfile
+      - run: pnpm --dir web lint
+      - run: pnpm --dir web typecheck
+      - name: Playwright smoke tests
+        # Enabled by ticket 04.
+        if: ${{ false }}
+        run: make smoke
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
