@@ -1,0 +1,20 @@
+{
+ "notificationTypes": [
+  {
+   "id": 284,
+   "description": "animals"
+  },
+  {
+   "id": 283,
+   "description": "food"
+  },
+  {
+   "id": 282,
+   "description": "feed"
+  },
+  {
+   "id": 281,
+   "description": "food contact material"
+  }
+ ]
+}

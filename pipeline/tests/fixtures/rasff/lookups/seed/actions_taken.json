@@ -1,0 +1,11 @@
+{
+  "dictionary": "actions_taken",
+  "endpoint": "actionTaken/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 18380, "name": "informing authorities"},
+    {"id": 18383, "name": "informing recipient(s)"},
+    {"id": 18700, "name": "destruction"},
+    {"id": 18701, "name": "Special treatment"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "dictionary": "risk_decisions",
+  "endpoint": "riskDecision/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 18761, "name": "serious"},
+    {"id": 18762, "name": "not serious"},
+    {"id": 18763, "name": "no risk"},
+    {"id": 20042, "name": "potential risk"}
+  ]
+}

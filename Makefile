@@ -12,7 +12,7 @@ DBMATE := dbmate --migrations-dir db/migrations --no-dump-schema
 UV := uv --directory pipeline
 PNPM := pnpm --dir web
 
-.PHONY: help setup db-up migrate test-db lint typecheck test check dev eval smoke
+.PHONY: help setup db-up migrate seed test-db lint typecheck test check dev eval smoke
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -21,6 +21,7 @@ setup: db-up ## Install dependencies, migrate and seed the local database
 	$(UV) sync
 	$(PNPM) install
 	$(MAKE) migrate
+	$(MAKE) seed
 	uv run --project pipeline pre-commit install
 
 db-up: ## Start local Postgres 16 and wait until it is healthy
@@ -29,8 +30,12 @@ db-up: ## Start local Postgres 16 and wait until it is healthy
 migrate: ## Apply migrations to DATABASE_URL
 	$(DBMATE) --url "$(DATABASE_URL)" --wait up
 
-test-db: ## Create and migrate the database used by DB-backed tests
+seed: ## Upsert db/seed/ into DATABASE_URL (idempotent)
+	$(UV) run ofa load-seeds
+
+test-db: ## Create, migrate and seed the database used by DB-backed tests
 	$(DBMATE) --url "$(TEST_DATABASE_URL)" --wait up
+	DATABASE_URL="$(TEST_DATABASE_URL)" $(UV) run ofa load-seeds
 
 lint: ## ruff + eslint
 	$(UV) run ruff check .

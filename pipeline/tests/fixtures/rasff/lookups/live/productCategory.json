@@ -1,0 +1,20 @@
+{
+ "productCategories": [
+  {
+   "id": 18429,
+   "description": "pet food"
+  },
+  {
+   "id": 18428,
+   "description": "other food product / mixed"
+  },
+  {
+   "id": 18427,
+   "description": "nuts, nut products and seeds"
+  },
+  {
+   "id": 18426,
+   "description": "non-alcoholic beverages"
+  }
+ ]
+}

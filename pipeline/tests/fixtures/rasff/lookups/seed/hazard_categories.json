@@ -1,0 +1,12 @@
+{
+  "dictionary": "hazard_categories",
+  "endpoint": "hazardCategory/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 21782, "name": "biocontaminants"},
+    {"id": 21783, "name": "heavy metals"},
+    {"id": 21784, "name": "migration"},
+    {"id": 21785, "name": "parasitic infestation"},
+    {"id": 99999, "name": "gone"}
+  ]
+}

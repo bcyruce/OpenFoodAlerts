@@ -1,0 +1,20 @@
+{
+ "notificationBasis": [
+  {
+   "id": 18423,
+   "description": "company's own check"
+  },
+  {
+   "id": 18422,
+   "description": "border control - consignment under customs"
+  },
+  {
+   "id": 18421,
+   "description": "border control - consignment released"
+  },
+  {
+   "id": 18420,
+   "description": "border control - consignment detained"
+  }
+ ]
+}

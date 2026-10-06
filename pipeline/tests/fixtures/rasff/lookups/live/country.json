@@ -1,0 +1,29 @@
+{
+ "countries": [
+  {
+   "id": 5014,
+   "englishShortName": "United Kingdom",
+   "alpha2Code": "UK"
+  },
+  {
+   "id": 5003,
+   "englishShortName": "Bulgaria",
+   "alpha2Code": "BG"
+  },
+  {
+   "id": 5002,
+   "englishShortName": "Belgium",
+   "alpha2Code": "BE"
+  },
+  {
+   "id": 5001,
+   "englishShortName": "Austria",
+   "alpha2Code": "AT"
+  },
+  {
+   "id": 5000,
+   "englishShortName": "United Kingdom (Northern Ireland)",
+   "alpha2Code": "XI"
+  }
+ ]
+}

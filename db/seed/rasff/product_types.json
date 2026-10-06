@@ -1,0 +1,12 @@
+{
+  "dictionary": "product_types",
+  "endpoint": "productType/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 281, "name": "food contact material"},
+    {"id": 282, "name": "feed"},
+    {"id": 283, "name": "food"},
+    {"id": 284, "name": "animals"},
+    {"id": 286, "name": "other"}
+  ]
+}

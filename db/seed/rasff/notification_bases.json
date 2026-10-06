@@ -1,0 +1,19 @@
+{
+  "dictionary": "notification_bases",
+  "endpoint": "notificationBasis/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 18420, "name": "border control - consignment detained"},
+    {"id": 18421, "name": "border control - consignment released"},
+    {"id": 18422, "name": "border control - consignment under customs"},
+    {"id": 18423, "name": "company's own check"},
+    {"id": 18424, "name": "food poisoning"},
+    {"id": 18682, "name": "monitoring of media"},
+    {"id": 18683, "name": "consumer complaint"},
+    {"id": 18684, "name": "official control on the market"},
+    {"id": 18685, "name": "official control in non-member country"},
+    {"id": 18948, "name": "whistleblower information"},
+    {"id": 18949, "name": "surveillance programme / monitoring sample"},
+    {"id": 18951, "name": "border control - forwarded to destination"}
+  ]
+}

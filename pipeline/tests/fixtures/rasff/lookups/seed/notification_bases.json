@@ -1,0 +1,11 @@
+{
+  "dictionary": "notification_bases",
+  "endpoint": "notificationBasis/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 18420, "name": "border control - consignment detained"},
+    {"id": 18421, "name": "border control - consignment released"},
+    {"id": 18422, "name": "border control - consignment under customs"},
+    {"id": 18423, "name": "company's own check"}
+  ]
+}
