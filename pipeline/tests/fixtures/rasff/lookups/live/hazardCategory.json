@@ -1,0 +1,24 @@
+{
+ "hazardCategories": [
+  {
+   "id": 26845,
+   "description": "environmental pollutants"
+  },
+  {
+   "id": 21785,
+   "description": "parasitic infestation"
+  },
+  {
+   "id": 21784,
+   "description": "migration"
+  },
+  {
+   "id": 21783,
+   "description": "heavy metals"
+  },
+  {
+   "id": 21782,
+   "description": "biological contaminants"
+  }
+ ]
+}

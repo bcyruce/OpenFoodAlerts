@@ -1,0 +1,20 @@
+{
+ "riskDecisions": [
+  {
+   "id": 20042,
+   "description": "potential risk"
+  },
+  {
+   "id": 18763,
+   "description": "no risk"
+  },
+  {
+   "id": 18762,
+   "description": "not serious"
+  },
+  {
+   "id": 18761,
+   "description": "serious"
+  }
+ ]
+}

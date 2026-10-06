@@ -1,0 +1,11 @@
+{
+  "dictionary": "product_categories",
+  "endpoint": "productCategory/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 18426, "name": "non-alcoholic beverages"},
+    {"id": 18427, "name": "nuts, nut products and seeds"},
+    {"id": 18428, "name": "other food product / mixed"},
+    {"id": 18429, "name": "pet food"}
+  ]
+}

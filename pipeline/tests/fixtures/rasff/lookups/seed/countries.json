@@ -1,0 +1,12 @@
+{
+  "dictionary": "countries",
+  "endpoint": "country/list/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 5000, "name": "United Kingdom (Northern Ireland)", "code": "XI"},
+    {"id": 5001, "name": "Austria", "code": "AT"},
+    {"id": 5002, "name": "Belgium", "code": "BE"},
+    {"id": 5003, "name": "Bulgaria", "code": "BG"},
+    {"id": 5014, "name": "United Kingdom", "code": "GB"}
+  ]
+}

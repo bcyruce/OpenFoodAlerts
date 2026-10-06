@@ -1,0 +1,20 @@
+{
+ "notificationClassifications": [
+  {
+   "id": 304,
+   "description": "information notification for attention"
+  },
+  {
+   "id": 303,
+   "description": "information notification for follow-up"
+  },
+  {
+   "id": 302,
+   "description": "news"
+  },
+  {
+   "id": 301,
+   "description": "non-compliance notification"
+  }
+ ]
+}

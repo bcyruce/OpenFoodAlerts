@@ -16,7 +16,7 @@ from openfoodalerts.db.connection import Connection, connect
 DEFAULT_TEST_DATABASE_URL = "postgres://ofa:ofa@localhost:5432/ofa_test?sslmode=disable"
 FIXTURES = Path(__file__).parent / "fixtures"
 
-KEEP_TABLES = {"schema_migrations"}
+KEEP_TABLES = {"schema_migrations", "countries", "hazard_categories", "product_categories"}
 
 
 def get_test_database_url() -> str:

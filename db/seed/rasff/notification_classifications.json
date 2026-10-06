@@ -1,0 +1,13 @@
+{
+  "dictionary": "notification_classifications",
+  "endpoint": "notificationClassification/list/en/",
+  "fetched_on": "2026-10-25",
+  "entries": [
+    {"id": 301, "name": "non-compliance notification"},
+    {"id": 302, "name": "news"},
+    {"id": 303, "name": "information notification for follow-up"},
+    {"id": 304, "name": "information notification for attention"},
+    {"id": 305, "name": "border rejection notification"},
+    {"id": 306, "name": "alert notification"}
+  ]
+}
