@@ -1,0 +1,1656 @@
+{
+ "notifications": [
+  {
+   "notifId": 881995,
+   "ecValidationDate": "23-10-2026 16:50:28",
+   "reference": "2026.9489",
+   "notifyingCountry": {
+    "organizationName": "Germany",
+    "isoCode": "DE"
+   },
+   "subject": "High levels of glycidol and 3-monochloro-1,2-propanediol (3-MCPD) in krupuk (prawn crackers) from China",
+   "productCategory": {
+    "id": 18456,
+    "description": "prepared dishes and snacks"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "China",
+     "isoCode": "CN"
+    }
+   ]
+  },
+  {
+   "notifId": 881539,
+   "ecValidationDate": "23-10-2026 16:11:13",
+   "reference": "2026.9487",
+   "notifyingCountry": {
+    "organizationName": "Poland",
+    "isoCode": "PL"
+   },
+   "subject": "presence of Salmonella spp. in fresh poultry meat",
+   "productCategory": {
+    "id": 18430,
+    "description": "poultry meat and poultry meat products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18762,
+    "description": "not serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Poland",
+     "isoCode": "PL"
+    }
+   ]
+  },
+  {
+   "notifId": 881929,
+   "ecValidationDate": "23-10-2026 16:04:28",
+   "reference": "2026.9486",
+   "notifyingCountry": {
+    "organizationName": "Spain",
+    "isoCode": "ES"
+   },
+   "subject": "Metribuzin in fresh asparagus from Peru // Metribucina en espárragos frescos de Perú",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Peru",
+     "isoCode": "PE"
+    }
+   ]
+  },
+  {
+   "notifId": 882036,
+   "ecValidationDate": "23-10-2026 15:53:44",
+   "reference": "2026.9485",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Chlorpyrifos in peppercorns",
+   "productCategory": {
+    "id": 18450,
+    "description": "herbs and spices"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Spain",
+     "isoCode": "ES"
+    }
+   ]
+  },
+  {
+   "notifId": 882077,
+   "ecValidationDate": "23-10-2026 15:41:29",
+   "reference": "2026.9484",
+   "notifyingCountry": {
+    "organizationName": "Sweden",
+    "isoCode": "SE"
+   },
+   "subject": "Aflatoxins in dried figs",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Türkiye",
+     "isoCode": "TR"
+    }
+   ]
+  },
+  {
+   "notifId": 882021,
+   "ecValidationDate": "23-10-2026 15:40:47",
+   "reference": "2026.9483",
+   "notifyingCountry": {
+    "organizationName": "Slovenia",
+    "isoCode": "SI"
+   },
+   "subject": "Salmonella Typhimurium  in frozen duck meat from Hyngary",
+   "productCategory": {
+    "id": 18430,
+    "description": "poultry meat and poultry meat products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": true,
+   "originCountries": [
+    {
+     "organizationName": "Hungary",
+     "isoCode": "HU"
+    }
+   ]
+  },
+  {
+   "notifId": 881931,
+   "ecValidationDate": "23-10-2026 15:33:51",
+   "reference": "2026.9482",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Foreign object: metal particles in grated cheese from the Netherlands",
+   "productCategory": {
+    "id": 18454,
+    "description": "milk and milk products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    }
+   ]
+  },
+  {
+   "notifId": 882046,
+   "ecValidationDate": "23-10-2026 15:33:09",
+   "reference": "2026.9481",
+   "notifyingCountry": {
+    "organizationName": "Sweden",
+    "isoCode": "SE"
+   },
+   "subject": "ochratoxin A in dried figs from Turkey",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Türkiye",
+     "isoCode": "TR"
+    }
+   ]
+  },
+  {
+   "notifId": 878696,
+   "ecValidationDate": "23-10-2026 14:54:50",
+   "reference": "2026.9479",
+   "notifyingCountry": {
+    "organizationName": "Italy",
+    "isoCode": "IT"
+   },
+   "subject": "Presenza di Listeria monocytogenes in veal with tuna sauce (Vitello tonnato) ",
+   "productCategory": {
+    "id": 18456,
+    "description": "prepared dishes and snacks"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Italy",
+     "isoCode": "IT"
+    }
+   ]
+  },
+  {
+   "notifId": 880167,
+   "ecValidationDate": "23-10-2026 14:36:47",
+   "reference": "2026.9478",
+   "notifyingCountry": {
+    "organizationName": "Spain",
+    "isoCode": "ES"
+   },
+   "subject": " High levels of okadaic acid in canned cockles (Cerastoderma edule) raw material from Portugal /Berberechos (Cerastoderma edule) en conserva con niveles de ac. okadaico superiores al limite establecido elaborados con materia prima procedente de Portugal",
+   "productCategory": {
+    "id": 18432,
+    "description": "bivalve molluscs and products thereof"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Spain",
+     "isoCode": "ES"
+    }
+   ]
+  },
+  {
+   "notifId": 881879,
+   "ecValidationDate": "23-10-2026 14:19:42",
+   "reference": "2026.9477",
+   "notifyingCountry": {
+    "organizationName": "Germany",
+    "isoCode": "DE"
+   },
+   "subject": "Aflatoxins in almond kernels (raw material) from the United States",
+   "productCategory": {
+    "id": 18427,
+    "description": "nuts, nut products and seeds"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "United States",
+     "isoCode": "US"
+    }
+   ]
+  },
+  {
+   "notifId": 881936,
+   "ecValidationDate": "23-10-2026 14:18:01",
+   "reference": "2026.9476",
+   "notifyingCountry": {
+    "organizationName": "Belgium",
+    "isoCode": "BE"
+   },
+   "subject": "Maximum permitted level for ragweed (Ambrosia spp.) in white millet from France",
+   "productCategory": {
+    "id": 18443,
+    "description": "feed materials"
+   },
+   "productType": {
+    "id": 282,
+    "description": "feed"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "France",
+     "isoCode": "FR"
+    }
+   ]
+  },
+  {
+   "notifId": 882016,
+   "ecValidationDate": "23-10-2026 14:12:37",
+   "reference": "2026.9475",
+   "notifyingCountry": {
+    "organizationName": "France",
+    "isoCode": "FR"
+   },
+   "subject": "Detection of monophasic Salmonella Typhimurium in poultry neck skins",
+   "productCategory": {
+    "id": 18430,
+    "description": "poultry meat and poultry meat products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "France",
+     "isoCode": "FR"
+    }
+   ]
+  },
+  {
+   "notifId": 881890,
+   "ecValidationDate": "23-10-2026 13:25:33",
+   "reference": "2026.9471",
+   "notifyingCountry": {
+    "organizationName": "Czechia",
+    "isoCode": "CZ"
+   },
+   "subject": "Salmonella Infantis in chilled chicken legs from Romania.",
+   "productCategory": {
+    "id": 18430,
+    "description": "poultry meat and poultry meat products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Romania",
+     "isoCode": "RO"
+    }
+   ]
+  },
+  {
+   "notifId": 881862,
+   "ecValidationDate": "23-10-2026 11:58:38",
+   "reference": "2026.9465",
+   "notifyingCountry": {
+    "organizationName": "Slovenia",
+    "isoCode": "SI"
+   },
+   "subject": "Moldy toast from Serbia",
+   "productCategory": {
+    "id": 18434,
+    "description": "cereals and bakery products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": true,
+   "originCountries": [
+    {
+     "organizationName": "Serbia",
+     "isoCode": "RS"
+    }
+   ]
+  },
+  {
+   "notifId": 880815,
+   "ecValidationDate": "23-10-2026 11:56:08",
+   "reference": "2026.9464",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Salmonella in mussels, from the Netherlands",
+   "productCategory": {
+    "id": 18432,
+    "description": "bivalve molluscs and products thereof"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    }
+   ]
+  },
+  {
+   "notifId": 881788,
+   "ecValidationDate": "23-10-2026 11:52:48",
+   "reference": "2026.9463",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "STEC in beef sausage deli meats, from the Netherlands",
+   "productCategory": {
+    "id": 18453,
+    "description": "meat and meat products (other than poultry)"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": true,
+   "originCountries": [
+    {
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    }
+   ]
+  },
+  {
+   "notifId": 881845,
+   "ecValidationDate": "23-10-2026 11:45:11",
+   "reference": "2026.9462",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Undeclared allergen sesam in stir-fry meat, from Belgium",
+   "productCategory": {
+    "id": 18453,
+    "description": "meat and meat products (other than poultry)"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Belgium",
+     "isoCode": "BE"
+    }
+   ]
+  },
+  {
+   "notifId": 881198,
+   "ecValidationDate": "23-10-2026 11:21:15",
+   "reference": "2026.9461",
+   "notifyingCountry": {
+    "organizationName": "Italy",
+    "isoCode": "IT"
+   },
+   "subject": "Salmonella enteritidis nel petto di pollo dalla Romania/ Salmonella enteritidis in chicken breast from Romania",
+   "productCategory": {
+    "id": 18430,
+    "description": "poultry meat and poultry meat products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Romania",
+     "isoCode": "RO"
+    }
+   ]
+  },
+  {
+   "notifId": 881658,
+   "ecValidationDate": "23-10-2026 10:53:17",
+   "reference": "2026.9458",
+   "notifyingCountry": {
+    "organizationName": "Bulgaria",
+    "isoCode": "BG"
+   },
+   "subject": "Aflatoxins B1 and Ochratoxin A in dried figs from Türkiye",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Türkiye",
+     "isoCode": "TR"
+    }
+   ]
+  },
+  {
+   "notifId": 881647,
+   "ecValidationDate": "23-10-2026 10:35:58",
+   "reference": "2026.9455",
+   "notifyingCountry": {
+    "organizationName": "Poland",
+    "isoCode": "PL"
+   },
+   "subject": "mold on the shells of table eggs from Ukraine",
+   "productCategory": {
+    "id": 18440,
+    "description": "eggs and egg products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Ukraine",
+     "isoCode": "UA"
+    }
+   ]
+  },
+  {
+   "notifId": 881807,
+   "ecValidationDate": "23-10-2026 09:53:35",
+   "reference": "2026.9454",
+   "notifyingCountry": {
+    "organizationName": "Belgium",
+    "isoCode": "BE"
+   },
+   "subject": "Ergot sclerotia in wheat from France",
+   "productCategory": {
+    "id": 18434,
+    "description": "cereals and bakery products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 18762,
+    "description": "not serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "France",
+     "isoCode": "FR"
+    }
+   ]
+  },
+  {
+   "notifId": 881503,
+   "ecValidationDate": "23-10-2026 09:36:17",
+   "reference": "2026.9451",
+   "notifyingCountry": {
+    "organizationName": "Poland",
+    "isoCode": "PL"
+   },
+   "subject": "Pesticides residue in apples from Ukraine",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Ukraine",
+     "isoCode": "UA"
+    }
+   ]
+  },
+  {
+   "notifId": 881603,
+   "ecValidationDate": "23-10-2026 09:31:09",
+   "reference": "2026.9450",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Presence of prohibited organs in food supplements, from the UK",
+   "productCategory": {
+    "id": 18439,
+    "description": "dietetic foods, food supplements and fortified foods"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "United Kingdom",
+     "isoCode": "GB"
+    }
+   ]
+  },
+  {
+   "notifId": 881660,
+   "ecValidationDate": "23-10-2026 09:27:34",
+   "reference": "2026.9449",
+   "notifyingCountry": {
+    "organizationName": "Czechia",
+    "isoCode": "CZ"
+   },
+   "subject": "Enterobacteriaceae in raw petfood from Germany.",
+   "productCategory": {
+    "id": 18443,
+    "description": "feed materials"
+   },
+   "productType": {
+    "id": 282,
+    "description": "feed"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 18762,
+    "description": "not serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Germany",
+     "isoCode": "DE"
+    }
+   ]
+  },
+  {
+   "notifId": 881740,
+   "ecValidationDate": "23-10-2026 08:38:16",
+   "reference": "2026.9447",
+   "notifyingCountry": {
+    "organizationName": "Italy",
+    "isoCode": "IT"
+   },
+   "subject": "Illegal import of composites product with milk eggs and E171 dioxide titatiun from Perù",
+   "productCategory": {
+    "id": 18456,
+    "description": "prepared dishes and snacks"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 18762,
+    "description": "not serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Peru",
+     "isoCode": "PE"
+    }
+   ]
+  },
+  {
+   "notifId": 881668,
+   "ecValidationDate": "22-10-2026 17:16:39",
+   "reference": "2026.9443",
+   "notifyingCountry": {
+    "organizationName": "Belgium",
+    "isoCode": "BE"
+   },
+   "subject": "Chlorpyrifos in organic chocolate from Belgium",
+   "productCategory": {
+    "id": 18435,
+    "description": "cocoa and cocoa preparations, coffee and tea"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Belgium",
+     "isoCode": "BE"
+    }
+   ]
+  },
+  {
+   "notifId": 881679,
+   "ecValidationDate": "22-10-2026 17:12:38",
+   "reference": "2026.9441",
+   "notifyingCountry": {
+    "organizationName": "Lithuania",
+    "isoCode": "LT"
+   },
+   "subject": "Salmonella spp. was detected in minced broiler chicken meat from Latvia.",
+   "productCategory": {
+    "id": 18430,
+    "description": "poultry meat and poultry meat products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18762,
+    "description": "not serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Latvia",
+     "isoCode": "LV"
+    }
+   ]
+  },
+  {
+   "notifId": 881550,
+   "ecValidationDate": "22-10-2026 17:08:37",
+   "reference": "2026.9440",
+   "notifyingCountry": {
+    "organizationName": "Latvia",
+    "isoCode": "LV"
+   },
+   "subject": "Salmonella Infantis (in 5 out of 5 units) in chilled chicken fillet.",
+   "productCategory": {
+    "id": 18453,
+    "description": "meat and meat products (other than poultry)"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 18762,
+    "description": "not serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Poland",
+     "isoCode": "PL"
+    }
+   ]
+  },
+  {
+   "notifId": 873517,
+   "ecValidationDate": "22-10-2026 17:05:22",
+   "reference": "2026.9438",
+   "notifyingCountry": {
+    "organizationName": "Malta",
+    "isoCode": "MT"
+   },
+   "subject": "Exceedance of MRL of pesticide in pears from Italy",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Italy",
+     "isoCode": "IT"
+    }
+   ]
+  },
+  {
+   "notifId": 881566,
+   "ecValidationDate": "22-10-2026 17:03:16",
+   "reference": "2026.9437",
+   "notifyingCountry": {
+    "organizationName": "Norway",
+    "isoCode": "NO"
+   },
+   "subject": "Various illegal animal products and products with animal ingredients from the Philippines, via Denmark",
+   "productCategory": {
+    "id": 18453,
+    "description": "meat and meat products (other than poultry)"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Philippines",
+     "isoCode": "PH"
+    }
+   ]
+  },
+  {
+   "notifId": 881302,
+   "ecValidationDate": "22-10-2026 17:02:44",
+   "reference": "2026.9436",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Acetamiprid in fresh red table grapes",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Brazil",
+     "isoCode": "BR"
+    }
+   ]
+  },
+  {
+   "notifId": 881677,
+   "ecValidationDate": "22-10-2026 17:02:34",
+   "reference": "2026.9435",
+   "notifyingCountry": {
+    "organizationName": "France",
+    "isoCode": "FR"
+   },
+   "subject": "Mold detected on the surface of bulk fruit jam/preserve containers",
+   "productCategory": {
+    "id": 18428,
+    "description": "other food product / mixed"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "France",
+     "isoCode": "FR"
+    }
+   ]
+  },
+  {
+   "notifId": 881693,
+   "ecValidationDate": "22-10-2026 17:01:30",
+   "reference": "2026.9434",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Ochratoxin A in rice from India",
+   "productCategory": {
+    "id": 18434,
+    "description": "cereals and bakery products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "India",
+     "isoCode": "IN"
+    }
+   ]
+  },
+  {
+   "notifId": 881732,
+   "ecValidationDate": "22-10-2026 16:43:55",
+   "reference": "2026.9433",
+   "notifyingCountry": {
+    "organizationName": "Belgium",
+    "isoCode": "BE"
+   },
+   "subject": "Chlorpyrifos in fennel seed powder from Egypt",
+   "productCategory": {
+    "id": 18450,
+    "description": "herbs and spices"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 306,
+    "description": "alert notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Egypt",
+     "isoCode": "EG"
+    }
+   ]
+  },
+  {
+   "notifId": 881120,
+   "ecValidationDate": "22-10-2026 15:09:09",
+   "reference": "2026.9429",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Allergen wheat not highlighted on children's chocolate bar, labeled in the Netherlands",
+   "productCategory": {
+    "id": 18437,
+    "description": "confectionery"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    }
+   ]
+  },
+  {
+   "notifId": 881473,
+   "ecValidationDate": "22-10-2026 14:18:12",
+   "reference": "2026.9428",
+   "notifyingCountry": {
+    "organizationName": "Switzerland",
+    "isoCode": "CH"
+   },
+   "subject": "Bromide residues in sator bean (Parkia speciosa) from Thailand",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": true,
+   "originCountries": [
+    {
+     "organizationName": "Thailand",
+     "isoCode": "TH"
+    }
+   ]
+  },
+  {
+   "notifId": 881301,
+   "ecValidationDate": "22-10-2026 14:16:41",
+   "reference": "2026.9427",
+   "notifyingCountry": {
+    "organizationName": "Romania",
+    "isoCode": "RO"
+   },
+   "subject": "Cannabidiol (CBD) in hrana complementara pentru animale de companie ///// Cannabidiol (CBD) in complementary feed for pets  from Lithuania",
+   "productCategory": {
+    "id": 18429,
+    "description": "pet food"
+   },
+   "productType": {
+    "id": 282,
+    "description": "feed"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": true,
+   "originCountries": [
+    {
+     "organizationName": "Lithuania",
+     "isoCode": "LT"
+    }
+   ]
+  },
+  {
+   "notifId": 880516,
+   "ecValidationDate": "22-10-2026 14:10:59",
+   "reference": "2026.9426",
+   "notifyingCountry": {
+    "organizationName": "Italy",
+    "isoCode": "IT"
+   },
+   "subject": "Mercurio in filone di pesce spada sotto vuoto /// Mercury in vacuum Swordfish Loin",
+   "productCategory": {
+    "id": 18445,
+    "description": "fish and fish products"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "France",
+     "isoCode": "FR"
+    }
+   ]
+  },
+  {
+   "notifId": 880351,
+   "ecValidationDate": "22-10-2026 13:50:37",
+   "reference": "2026.9424",
+   "notifyingCountry": {
+    "organizationName": "Malta",
+    "isoCode": "MT"
+   },
+   "subject": "Presence of Ethylene Oxide in Cut Mango Pickle imported from India",
+   "productCategory": {
+    "id": 18457,
+    "description": "soups, broths, sauces and condiments"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "India",
+     "isoCode": "IN"
+    }
+   ]
+  },
+  {
+   "notifId": 881343,
+   "ecValidationDate": "22-10-2026 13:43:05",
+   "reference": "2026.9423",
+   "notifyingCountry": {
+    "organizationName": "Italy",
+    "isoCode": "IT"
+   },
+   "subject": "sulfites not declared on the label in vegetable preserves ",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Italy",
+     "isoCode": "IT"
+    }
+   ]
+  },
+  {
+   "notifId": 879014,
+   "ecValidationDate": "22-10-2026 11:34:15",
+   "reference": "2026.9017",
+   "notifyingCountry": {
+    "organizationName": "Bulgaria",
+    "isoCode": "BG"
+   },
+   "subject": "Emamectin benzoate, Thiamethoxam and  Tau-Fluvalinate in fresh peppers from  Türkiye",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Türkiye",
+     "isoCode": "TR"
+    }
+   ]
+  },
+  {
+   "notifId": 881123,
+   "ecValidationDate": "22-10-2026 10:55:51",
+   "reference": "2026.9408",
+   "notifyingCountry": {
+    "organizationName": "Bulgaria",
+    "isoCode": "BG"
+   },
+   "subject": "Aflatoxins in chili crushed from India",
+   "productCategory": {
+    "id": 18450,
+    "description": "herbs and spices"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "India",
+     "isoCode": "IN"
+    }
+   ]
+  },
+  {
+   "notifId": 881346,
+   "ecValidationDate": "22-10-2026 10:54:59",
+   "reference": "2026.9407",
+   "notifyingCountry": {
+    "organizationName": "Ireland",
+    "isoCode": "IE"
+   },
+   "subject": "Border rejection of Gummi King Omega-3 food supplement ",
+   "productCategory": {
+    "id": 18439,
+    "description": "dietetic foods, food supplements and fortified foods"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 20042,
+    "description": "potential risk"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "United States",
+     "isoCode": "US"
+    }
+   ]
+  },
+  {
+   "notifId": 881390,
+   "ecValidationDate": "22-10-2026 10:54:35",
+   "reference": "2026.9406",
+   "notifyingCountry": {
+    "organizationName": "Bulgaria",
+    "isoCode": "BG"
+   },
+   "subject": "Aflatoxins in dried figs from Türkiye",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 305,
+    "description": "border rejection notification"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Türkiye",
+     "isoCode": "TR"
+    }
+   ]
+  },
+  {
+   "notifId": 881368,
+   "ecValidationDate": "22-10-2026 10:19:20",
+   "reference": "2026.9404",
+   "notifyingCountry": {
+    "organizationName": "Belgium",
+    "isoCode": "BE"
+   },
+   "subject": "Pesticide residue in groundnuts from Cameroon",
+   "productCategory": {
+    "id": 18427,
+    "description": "nuts, nut products and seeds"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Cameroon",
+     "isoCode": "CM"
+    }
+   ]
+  },
+  {
+   "notifId": 880895,
+   "ecValidationDate": "21-10-2026 17:54:07",
+   "reference": "2026.9399",
+   "notifyingCountry": {
+    "organizationName": "Netherlands",
+    "isoCode": "NL"
+   },
+   "subject": "Rye contaminatid with ergot",
+   "productCategory": {
+    "id": 18443,
+    "description": "feed materials"
+   },
+   "productType": {
+    "id": 282,
+    "description": "feed"
+   },
+   "notificationClassification": {
+    "id": 303,
+    "description": "information notification for follow-up"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Germany",
+     "isoCode": "DE"
+    }
+   ]
+  },
+  {
+   "notifId": 878615,
+   "ecValidationDate": "21-10-2026 17:19:47",
+   "reference": "2026.9397",
+   "notifyingCountry": {
+    "organizationName": "Latvia",
+    "isoCode": "LV"
+   },
+   "subject": "Prohibited pesticides residues: profenofos  1,4 ± 0,4 mg/kg,   chlorfenapyr 0,20 ± 0,10 mg/kg fresh dill from Uzbekistan ",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Uzbekistan",
+     "isoCode": "UZ"
+    }
+   ]
+  },
+  {
+   "notifId": 881292,
+   "ecValidationDate": "21-10-2026 17:12:21",
+   "reference": "2026.9396",
+   "notifyingCountry": {
+    "organizationName": "Czechia",
+    "isoCode": "CZ"
+   },
+   "subject": "Flonicamid in broccoli from Poland",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 20060,
+    "description": "potentially serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "Poland",
+     "isoCode": "PL"
+    }
+   ]
+  },
+  {
+   "notifId": 881037,
+   "ecValidationDate": "21-10-2026 17:08:28",
+   "reference": "2026.9395",
+   "notifyingCountry": {
+    "organizationName": "Belgium",
+    "isoCode": "BE"
+   },
+   "subject": "Pesticide residue in oranges from South Africa",
+   "productCategory": {
+    "id": 18448,
+    "description": "fruits and vegetables"
+   },
+   "productType": {
+    "id": 283,
+    "description": "food"
+   },
+   "notificationClassification": {
+    "id": 304,
+    "description": "information notification for attention"
+   },
+   "riskDecision": {
+    "id": 18761,
+    "description": "serious"
+   },
+   "published": false,
+   "originCountries": [
+    {
+     "organizationName": "South Africa",
+     "isoCode": "ZA"
+    }
+   ]
+  }
+ ],
+ "totalPages": 663,
+ "totalElements": 33146
+}

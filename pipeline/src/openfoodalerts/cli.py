@@ -35,6 +35,31 @@ def ingest_openfda_cmd() -> None:
         ingest_openfda(conn, client)
 
 
+@app.command("backfill-rasff")
+def backfill_rasff_cmd(
+    start_page: Annotated[int, typer.Option(help="First list page to read.")] = 1,
+    max_pages: Annotated[int | None, typer.Option(help="Stop after this many list pages.")] = None,
+    max_details: Annotated[
+        int | None, typer.Option(help="Stop after this many detail requests.")
+    ] = None,
+) -> None:
+    """Walk all RASFF list pages and fetch every detail not yet archived (resumable).
+
+    Safe to stop with Ctrl-C at any moment; re-running continues where it stopped.
+    """
+    from openfoodalerts.sources.rasff.backfill import backfill_rasff
+    from openfoodalerts.sources.rasff.client import RasffClient
+
+    with connect() as conn, RasffClient.create() as client:
+        try:
+            backfill_rasff(
+                conn, client, start_page=start_page, max_pages=max_pages, max_details=max_details
+            )
+        except KeyboardInterrupt:
+            typer.echo("interrupted: archived details are kept; re-run to resume.", err=True)
+            raise typer.Exit(130) from None
+
+
 @app.command("parse")
 def parse_cmd(
     source: Annotated[

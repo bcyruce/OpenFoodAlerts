@@ -1,0 +1,585 @@
+{
+ "id": 9670,
+ "reference": "2012.0101",
+ "subject": "food contact material - official control on the market - alert notification - MAM Air LATEX 6+ ORTHODONTIC SOOTHER \"ΟΡΘΟΔΟΝΤΙΚΗ ΠΙΠΙΛΑ\" - Too high level of total migration - hungary",
+ "ecValidationDate": "24-01-2012 12:18:12",
+ "lastUpdate": "03-03-2020 15:48:25",
+ "notificationClassification": {
+  "id": 306,
+  "description": "alert notification"
+ },
+ "productType": {
+  "id": 281,
+  "description": "food contact material"
+ },
+ "notificationBasis": {
+  "id": 18684,
+  "description": "official control on the market"
+ },
+ "product": {
+  "id": 18881,
+  "description": "MAM Air LATEX 6+ ORTHODONTIC SOOTHER \"ΟΡΘΟΔΟΝΤΙΚΗ ΠΙΠΙΛΑ\"",
+  "productCategory": {
+   "id": 18447,
+   "description": "food contact materials"
+  },
+  "hazards": [
+   {
+    "id": 18897,
+    "name": "migration overall - too high level - migration",
+    "analyticalResult": "495.2",
+    "unit": "µg/kg - ppb",
+    "samplingDate": "01-11-2011 00:00:00",
+    "maxPermittedLvlQuantities": "100",
+    "maxPermittedLvlUnit": "µg/kg - ppb",
+    "hazardCategory": {
+     "description": "migration"
+    },
+    "maxPermittedLvl": "100 µg/kg - ppb"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 18924,
+    "productAspect": "2 SOOTHERS PER PACKAGE",
+    "labelling": "CODE 707100",
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   },
+   {
+    "id": 22823
+   }
+  ],
+  "measures": [
+   {
+    "id": 18905,
+    "takenBy": {
+     "id": 5005,
+     "organizationName": "Cyprus",
+     "isoCode": "CY"
+    },
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 22831,
+    "takenBy": {
+     "id": 5017,
+     "organizationName": "Hungary",
+     "isoCode": "HU"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   },
+   {
+    "id": 22832,
+    "takenBy": {
+     "id": 5017,
+     "organizationName": "Hungary",
+     "isoCode": "HU"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   },
+   {
+    "id": 22947,
+    "takenBy": {
+     "id": 5015,
+     "organizationName": "Greece",
+     "isoCode": "GR"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   },
+   {
+    "id": 22952,
+    "takenBy": {
+     "id": 5015,
+     "organizationName": "Greece",
+     "isoCode": "GR"
+    },
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 23346,
+    "takenBy": {
+     "id": 5017,
+     "organizationName": "Hungary",
+     "isoCode": "HU"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 221,
+   "description": "information on distribution not (yet) available"
+  }
+ },
+ "risk": {
+  "id": 908,
+  "riskDecision": "serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 5,
+    "description": "Austria",
+    "code": "AT",
+    "countryNetworkOrganizationId": 5001
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 32820,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 15670,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 12,
+    "description": "Cyprus",
+    "code": "CY",
+    "countryNetworkOrganizationId": 5005
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 9670,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 19270,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 19270,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 17832,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 17832,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 15670,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 15670,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 24423,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 24423,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 55,
+    "description": "Greece",
+    "code": "GR",
+    "countryNetworkOrganizationId": 5015
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 32820,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 11922,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "OPERATOR"
+    },
+    {
+     "notificationId": 11922,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 52,
+    "description": "Hungary",
+    "code": "HU",
+    "countryNetworkOrganizationId": 5017
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 32820,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 15670,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 19480,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 9670,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10211,
+    "description": "Thailand",
+    "code": "TH",
+    "countryNetworkOrganizationId": 5216
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 11922,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 11922,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "26-01-2012 16:01:33",
+   "fupType": {
+    "id": 27674,
+    "description": "outcome of investigations"
+   }
+  },
+  {
+   "fupNumber": 2,
+   "fupId": 11997,
+   "networkOrganizationId": 55,
+   "organizationDescription": "Greece",
+   "organizationCode": "GR",
+   "fupDate": "26-01-2012 16:02:37",
+   "fupType": {
+    "id": 27672,
+    "description": "measures taken"
+   }
+  },
+  {
+   "fupNumber": 3,
+   "fupId": 12205,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "31-01-2012 17:02:15",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 4,
+   "fupId": 13530,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "03-02-2012 12:03:39",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 5,
+   "fupId": 13950,
+   "networkOrganizationId": 5,
+   "organizationDescription": "Austria",
+   "organizationCode": "AT",
+   "fupDate": "03-02-2012 12:49:33",
+   "fupType": {
+    "id": 27661,
+    "description": "information on sampling/analysis"
+   }
+  },
+  {
+   "fupNumber": 6,
+   "fupId": 14221,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "03-02-2012 13:00:50",
+   "fupType": {
+    "id": 27665,
+    "description": "request"
+   }
+  },
+  {
+   "fupNumber": 7,
+   "fupId": 14780,
+   "networkOrganizationId": 12,
+   "organizationDescription": "Cyprus",
+   "organizationCode": "CY",
+   "fupDate": "07-02-2012 13:47:16",
+   "fupType": {
+    "id": 27661,
+    "description": "information on sampling/analysis"
+   }
+  },
+  {
+   "fupNumber": 8,
+   "fupId": 15670,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "10-02-2012 16:01:07",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 9,
+   "fupId": 15930,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "13-02-2012 15:34:53",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  },
+  {
+   "fupNumber": 10,
+   "fupId": 15133,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "14-02-2012 12:37:10",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 11,
+   "fupId": 17832,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "22-02-2012 13:32:27",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 12,
+   "fupId": 19480,
+   "networkOrganizationId": 12,
+   "organizationDescription": "Cyprus",
+   "organizationCode": "CY",
+   "fupDate": "02-03-2012 12:55:42",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 13,
+   "fupId": 19270,
+   "networkOrganizationId": 5,
+   "organizationDescription": "Austria",
+   "organizationCode": "AT",
+   "fupDate": "02-03-2012 15:49:27",
+   "fupType": {
+    "id": 27676,
+    "description": "withdrawal of original notification"
+   }
+  },
+  {
+   "fupNumber": 14,
+   "fupId": 21222,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "13-03-2012 13:43:16",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 15,
+   "fupId": 24423,
+   "networkOrganizationId": 5,
+   "organizationDescription": "Austria",
+   "organizationCode": "AT",
+   "fupDate": "28-03-2012 15:46:05",
+   "fupType": {
+    "id": 27662,
+    "description": "accompanying documents"
+   }
+  },
+  {
+   "fupNumber": 16,
+   "fupId": 32820,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "11-05-2012 09:41:14",
+   "fupType": {
+    "id": 27665,
+    "description": "request"
+   }
+  },
+  {
+   "fupNumber": 17,
+   "fupId": 32823,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "11-05-2012 09:44:43",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 18,
+   "fupId": 147054,
+   "networkOrganizationId": 12,
+   "organizationDescription": "Cyprus",
+   "organizationCode": "CY",
+   "fupDate": "22-07-2014 16:01:21",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 19,
+   "fupId": 422929,
+   "networkOrganizationId": 12,
+   "organizationDescription": "Cyprus",
+   "organizationCode": "CY",
+   "fupDate": "03-03-2020 15:48:25",
+   "fupType": {
+    "id": 27676,
+    "description": "withdrawal of original notification"
+   }
+  }
+ ],
+ "notificationStatus": "ec_withdrawn",
+ "localConsumerLinksByCountry": {
+  "5216": [],
+  "5015": [
+   {
+    "id": 17,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://efet.gr/index.php/el/enimerosi/deltia-typou/anakleiseis-cat"
+   },
+   {
+    "id": 18,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://www.eof.gr/category/diatrofika-proionta/anakliseis-diatrofika-proionta/"
+   },
+   {
+    "id": 19,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://www.eof.gr/category/diatrofika-proionta/anakoinoseis-diatrofika-proionta/"
+   }
+  ],
+  "5017": [
+   {
+    "id": 20,
+    "countryNetworkOrganizationId": 5017,
+    "link": "https://nkfh.gov.hu/"
+   },
+   {
+    "id": 21,
+    "countryNetworkOrganizationId": 5017,
+    "link": "https://portal.nebih.gov.hu/termekvisszahivas"
+   }
+  ],
+  "5001": [
+   {
+    "id": 1,
+    "countryNetworkOrganizationId": 5001,
+    "link": "http://www.ages.at/ages/produktwarnungen/"
+   }
+  ],
+  "5005": [
+   {
+    "id": 6,
+    "countryNetworkOrganizationId": 5005,
+    "link": "http://www.moa.gov.cy/moa/vs/vs.nsf/vs49_gr/vs49_gr?OpenDocument"
+   },
+   {
+    "id": 7,
+    "countryNetworkOrganizationId": 5005,
+    "link": "https://www.moa.gov.cy/moa/da/da.nsf/home/home?openform"
+   },
+   {
+    "id": 8,
+    "countryNetworkOrganizationId": 5005,
+    "link": "http://www.moh.gov.cy/moh/mphs/phs.nsf/DMLannouncements_gr/DMLannouncements_gr?OpenDocument"
+   }
+  ]
+ }
+}

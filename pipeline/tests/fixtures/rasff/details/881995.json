@@ -1,0 +1,166 @@
+{
+ "id": 881995,
+ "reference": "2026.9489",
+ "subject": "High levels of glycidol and 3-monochloro-1,2-propanediol (3-MCPD) in krupuk (prawn crackers) from China",
+ "ecValidationDate": "23-10-2026 16:50:28",
+ "lastUpdate": "23-10-2026 16:50:28",
+ "notificationClassification": {
+  "id": 304,
+  "description": "information notification for attention"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18684,
+  "description": "official control on the market"
+ },
+ "product": {
+  "id": 31148464,
+  "description": "krupuk (prawn crackers) ",
+  "productCategory": {
+   "id": 18456,
+   "description": "prepared dishes and snacks"
+  },
+  "hazards": [
+   {
+    "id": 31149112,
+    "name": "glycidyl esters  - industrial contaminants",
+    "analyticalResult": "3303",
+    "unit": "µg/kg - ppb",
+    "samplingDate": "31-08-2026 00:00:00",
+    "maxPermittedLvlQuantities": "1000",
+    "maxPermittedLvlUnit": "µg/kg - ppb",
+    "hazardCategory": {
+     "description": "industrial contaminants"
+    },
+    "maxPermittedLvl": "1000 µg/kg - ppb"
+   },
+   {
+    "id": 31149190,
+    "name": "3-monochlor-1,2-propanediol (3-MCPD)  - industrial contaminants",
+    "analyticalResult": "3651",
+    "unit": "µg/kg - ppb",
+    "samplingDate": "31-08-2026 00:00:00",
+    "maxPermittedLvlQuantities": "2500",
+    "maxPermittedLvlUnit": "µg/kg - ppb",
+    "hazardCategory": {
+     "description": "industrial contaminants"
+    },
+    "maxPermittedLvl": "2500 µg/kg - ppb"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31148552,
+    "productAspect": "Fertigverpackung",
+    "labelling": "Loskennzeichnung/Charge: L20260509",
+    "weight": "80.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31149464,
+    "takenBy": {
+     "id": 5007,
+     "organizationName": "Germany",
+     "isoCode": "DE"
+    },
+    "actionTaken": {
+     "id": 18380,
+     "description": "informing authorities"
+    }
+   },
+   {
+    "id": 31149467,
+    "takenBy": {
+     "id": 5007,
+     "organizationName": "Germany",
+     "isoCode": "DE"
+    },
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 220,
+   "description": "distribution restricted to notifying country"
+  }
+ },
+ "risk": {
+  "id": 143881,
+  "riskDecision": "potentially serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10070,
+    "description": "China",
+    "code": "CN",
+    "countryNetworkOrganizationId": 5075
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881995,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 881995,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 3,
+    "description": "Germany",
+    "code": "DE",
+    "countryNetworkOrganizationId": 5007
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881995,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881995,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881995,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 881995,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881995,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5075": [],
+  "5007": [
+   {
+    "id": 16,
+    "countryNetworkOrganizationId": 5007,
+    "link": "http://www.lebensmittelwarnung.de"
+   }
+  ]
+ }
+}

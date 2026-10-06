@@ -1,0 +1,146 @@
+{
+ "id": 881936,
+ "reference": "2026.9476",
+ "subject": "Maximum permitted level for ragweed (Ambrosia spp.) in white millet from France",
+ "ecValidationDate": "23-10-2026 14:18:01",
+ "lastUpdate": "23-10-2026 14:18:01",
+ "notificationClassification": {
+  "id": 306,
+  "description": "alert notification"
+ },
+ "productType": {
+  "id": 282,
+  "description": "feed"
+ },
+ "notificationBasis": {
+  "id": 18423,
+  "description": "company's own check"
+ },
+ "product": {
+  "id": 31147712,
+  "description": "white millet",
+  "productCategory": {
+   "id": 18443,
+   "description": "feed materials"
+  },
+  "hazards": [
+   {
+    "id": 31147816,
+    "name": "ragweed (Ambrosia spp.) seeds - too high content of  - composition",
+    "analyticalResult": "242",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "25-08-2026 00:00:00",
+    "maxPermittedLvlQuantities": "200",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "composition"
+    },
+    "maxPermittedLvl": "200 mg/kg - ppm"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31147766,
+    "productAspect": "bulk",
+    "weight": "25940.0",
+    "weightUnit": {
+     "id": 18973,
+     "description": "kg"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 222,
+   "description": "no distribution from notifying country"
+  }
+ },
+ "risk": {
+  "id": 143870,
+  "riskDecision": "potentially serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 7,
+    "description": "Belgium",
+    "code": "BE",
+    "countryNetworkOrganizationId": 5002
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881936,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881936,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881936,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 881936,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881936,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 14,
+    "description": "France",
+    "code": "FR",
+    "countryNetworkOrganizationId": 5013
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881936,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 881936,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 881936,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5013": [
+   {
+    "id": 14,
+    "countryNetworkOrganizationId": 5013,
+    "link": "https://rappel.conso.gouv.fr/"
+   },
+   {
+    "id": 15,
+    "countryNetworkOrganizationId": 5013,
+    "link": "http://www.economie.gouv.fr/dgccrf/Securite/Alertes/Avis-rappels-de-produits"
+   }
+  ],
+  "5002": [
+   {
+    "id": 2,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/nl/producten"
+   },
+   {
+    "id": 3,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/fr/produits"
+   }
+  ]
+ }
+}

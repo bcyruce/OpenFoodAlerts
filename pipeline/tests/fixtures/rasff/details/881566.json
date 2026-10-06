@@ -1,0 +1,188 @@
+{
+ "id": 881566,
+ "reference": "2026.9437",
+ "subject": "Various illegal animal products and products with animal ingredients from the Philippines, via Denmark",
+ "ecValidationDate": "22-10-2026 17:03:16",
+ "lastUpdate": "23-10-2026 09:40:10",
+ "notificationClassification": {
+  "id": 303,
+  "description": "information notification for follow-up"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18682,
+  "description": "monitoring of media"
+ },
+ "product": {
+  "id": 31142858,
+  "description": "Various animal products",
+  "productCategory": {
+   "id": 18453,
+   "description": "meat and meat products (other than poultry)"
+  },
+  "relatedProducts": [
+   {
+    "id": 31142942,
+    "description": "Various fish and seafood products",
+    "productCategory": {
+     "id": 18445,
+     "description": "fish and fish products"
+    }
+   },
+   {
+    "id": 31142988,
+    "description": "Various dairy products",
+    "productCategory": {
+     "id": 18454,
+     "description": "milk and milk products"
+    }
+   },
+   {
+    "id": 31142998,
+    "description": "Various sweet products",
+    "productCategory": {
+     "id": 18437,
+     "description": "confectionery"
+    }
+   },
+   {
+    "id": 31143008,
+    "description": "Various drinks",
+    "productCategory": {
+     "id": 18435,
+     "description": "cocoa and cocoa preparations, coffee and tea"
+    }
+   },
+   {
+    "id": 31143016,
+    "description": "Various health drinks and products",
+    "productCategory": {
+     "id": 18439,
+     "description": "dietetic foods, food supplements and fortified foods"
+    },
+    "distributionStatus": {
+     "id": 228,
+     "description": "product traded online"
+    }
+   }
+  ]
+ },
+ "risk": {
+  "id": 143788,
+  "riskDecision": "potential risk"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 53,
+    "description": "Denmark",
+    "code": "DK",
+    "countryNetworkOrganizationId": 5008
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881566,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 881566,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10340,
+    "description": "INFOSAN",
+    "code": "INFO",
+    "countryNetworkOrganizationId": 5680
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881856,
+     "flagType": "FOR_ATTENTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 4,
+    "description": "Norway",
+    "code": "NO",
+    "countryNetworkOrganizationId": 5027
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881566,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881566,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881566,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 881566,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881566,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10176,
+    "description": "Philippines",
+    "code": "PH",
+    "countryNetworkOrganizationId": 5181
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881566,
+     "flagType": "ORIGIN"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 881856,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "23-10-2026 09:40:10",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5008": [
+   {
+    "id": 10,
+    "countryNetworkOrganizationId": 5008,
+    "link": "https://foedevarestyrelsen.dk/nyheder/tilbagekaldte-produkter"
+   }
+  ],
+  "5680": [],
+  "5027": [
+   {
+    "id": 31,
+    "countryNetworkOrganizationId": 5027,
+    "link": "https://www.mattilsynet.no/tilbakekallinger"
+   }
+  ],
+  "5181": []
+ }
+}
