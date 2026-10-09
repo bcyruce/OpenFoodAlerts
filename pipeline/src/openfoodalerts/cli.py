@@ -1,5 +1,6 @@
 """`ofa` command-line entry point. Every pipeline job is a subcommand (spec §5)."""
 
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -132,6 +133,39 @@ def load_seeds() -> None:
         counts = seeds.load_seeds(conn)
     for table, count in counts.items():
         typer.echo(f"{table}: {count} rows upserted")
+
+
+@app.command("load-fixtures")
+def load_fixtures_cmd(
+    files: Annotated[
+        list[Path],
+        typer.Argument(help="Saved Source responses; the parent directory names the Source."),
+    ],
+) -> None:
+    """Archive fixture snapshots in the given order and parse them. Dev/CI data only."""
+    from openfoodalerts.fixtures import load_fixtures
+
+    with connect() as conn:
+        archived = load_fixtures(conn, files)
+    typer.echo(f"{archived} records archived from {len(files)} files")
+
+
+@app.command("role-login")
+def role_login_cmd(
+    role: Annotated[str, typer.Argument(help="ofa_pipeline, ofa_web or ofa_mailer.")],
+) -> None:
+    """Let an application role log in, with the password from <ROLE>_PASSWORD."""
+    import os
+
+    from openfoodalerts.db import roles
+
+    password = os.environ.get(roles.password_env(role), "")
+    if not password:
+        typer.echo(f"error: set {roles.password_env(role)}", err=True)
+        raise typer.Exit(1)
+    with connect() as conn:
+        roles.enable_login(conn, role, password)
+    typer.echo(f"{role}: login enabled")
 
 
 if __name__ == "__main__":  # pragma: no cover
