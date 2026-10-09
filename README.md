@@ -15,7 +15,7 @@ make setup
 cd pipeline && uv run ofa --help
 ```
 
-`make help` lists the other targets.
+`make help` lists the other targets. For the website with sample data: `make web-fixtures dev`, then open http://localhost:3000/en/n/openfda/H-0015-2027 (see [web/README.md](web/README.md)).
 
 ## License
 

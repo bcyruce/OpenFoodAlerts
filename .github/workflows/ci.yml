@@ -47,8 +47,29 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ofa
+          POSTGRES_PASSWORD: ofa
+          POSTGRES_DB: ofa
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ofa -d ofa"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://ofa:ofa@localhost:5432/ofa?sslmode=disable
+      TEST_DATABASE_URL: postgres://ofa:ofa@localhost:5432/ofa_test?sslmode=disable
+      # CI-only throwaway password for the read-only web role.
+      OFA_WEB_PASSWORD: ofa_web_ci
+      WEB_DATABASE_URL: postgres://ofa_web:ofa_web_ci@localhost:5432/ofa?sslmode=disable
+      SITE_URL: http://localhost:3004
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: web/package.json
@@ -57,13 +78,28 @@ jobs:
           node-version: 22
           cache: pnpm
           cache-dependency-path: web/pnpm-lock.yaml
+      - name: Install dbmate
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/dbmate https://github.com/amacneil/dbmate/releases/download/v2.21.0/dbmate-linux-amd64
+          sudo chmod +x /usr/local/bin/dbmate
+      - run: uv --directory pipeline sync --locked
       - run: pnpm --dir web install --frozen-lockfile
       - run: pnpm --dir web lint
       - run: pnpm --dir web typecheck
+      - run: make migrate seed test-db db-roles
+      - name: vitest (data access, against TEST_DATABASE_URL)
+        run: pnpm --dir web test
+      - name: Check that web/db/generated matches the migrations
+        run: make db-types && git diff --exit-code -- web/db/generated
+      - run: pnpm --dir web exec playwright install --with-deps chromium
       - name: Playwright smoke tests
-        # Enabled by ticket 04.
-        if: ${{ false }}
         run: make smoke
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: web/test-results/
+          retention-days: 7
 
   gitleaks:
     runs-on: ubuntu-latest
