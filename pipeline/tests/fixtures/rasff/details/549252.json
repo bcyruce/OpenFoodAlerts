@@ -1,0 +1,144 @@
+{
+ "id": 549252,
+ "reference": "2022.2811",
+ "subject": "Mould formation in fresh cheese from France",
+ "ecValidationDate": "16-05-2022 15:26:46",
+ "lastUpdate": "16-05-2022 15:26:46",
+ "notificationClassification": {
+  "id": 301,
+  "description": "non-compliance notification"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18683,
+  "description": "consumer complaint"
+ },
+ "product": {
+  "id": 14366641,
+  "description": "Fresh cheese",
+  "productCategory": {
+   "id": 18454,
+   "description": "milk and milk products"
+  },
+  "productDescriptions": [
+   {
+    "id": 14366767,
+    "weight": "220.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27370,
+     "description": "chilled"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 14367309,
+    "takenBy": {
+     "id": 5002,
+     "organizationName": "Belgium",
+     "isoCode": "BE"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 223,
+   "description": "product (presumably) no longer on the market"
+  }
+ },
+ "risk": {
+  "id": 67041,
+  "riskDecision": "no risk"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 7,
+    "description": "Belgium",
+    "code": "BE",
+    "countryNetworkOrganizationId": 5002
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 549252,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 549252,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 549252,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 549252,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 549252,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 14,
+    "description": "France",
+    "code": "FR",
+    "countryNetworkOrganizationId": 5013
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 549252,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 549252,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 549252,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5013": [
+   {
+    "id": 14,
+    "countryNetworkOrganizationId": 5013,
+    "link": "https://rappel.conso.gouv.fr/"
+   },
+   {
+    "id": 15,
+    "countryNetworkOrganizationId": 5013,
+    "link": "http://www.economie.gouv.fr/dgccrf/Securite/Alertes/Avis-rappels-de-produits"
+   }
+  ],
+  "5002": [
+   {
+    "id": 2,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/nl/producten"
+   },
+   {
+    "id": 3,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/fr/produits"
+   }
+  ]
+ }
+}

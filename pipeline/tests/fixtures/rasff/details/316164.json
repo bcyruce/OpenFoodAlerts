@@ -1,0 +1,1575 @@
+{
+ "id": 316164,
+ "reference": "2016.1023",
+ "subject": "food - company's own check - information notification for follow-up - Various chocolate bars. All best-before dates for all products. - spain",
+ "ecValidationDate": "29-07-2016 16:34:45",
+ "lastUpdate": "12-12-2016 12:59:19",
+ "notificationClassification": {
+  "id": 303,
+  "description": "information notification for follow-up"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18423,
+  "description": "company's own check"
+ },
+ "product": {
+  "id": 273836,
+  "description": "Various chocolate bars. All best-before dates for all products.",
+  "productCategory": {
+   "id": 18437,
+   "description": "confectionery"
+  },
+  "productDescriptions": [
+   {
+    "id": 273935,
+    "weight": "100.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   },
+   {
+    "id": 273932,
+    "weight": "180.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   },
+   {
+    "id": 273936,
+    "weight": "100.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   },
+   {
+    "id": 273937,
+    "weight": "450.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   },
+   {
+    "id": 273938,
+    "weight": "168.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   },
+   {
+    "id": 273940,
+    "weight": "400.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 276555,
+    "takenBy": {
+     "id": 5004,
+     "organizationName": "Switzerland",
+     "isoCode": "CH"
+    },
+    "url": "http://www.ikea.com/ch/de/about_ikea/newsroom/product_recalls",
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 278994,
+    "takenBy": {
+     "id": 5028,
+     "organizationName": "Poland",
+     "isoCode": "PL"
+    },
+    "url": "http://www.ikea.com/pl/pl/about ikea/newsroom",
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 273949,
+    "takenBy": {
+     "id": 5031,
+     "organizationName": "Sweden",
+     "isoCode": "SE"
+    },
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 274101,
+    "takenBy": {
+     "id": 5010,
+     "organizationName": "Spain",
+     "isoCode": "ES"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   },
+   {
+    "id": 274107,
+    "takenBy": {
+     "id": 5008,
+     "organizationName": "Denmark",
+     "isoCode": "DK"
+    },
+    "url": "https://www.foedevarestyrelsen.dk/Nyheder/Aktuelt/Sider/Tilbagetrukne%20fødevarer%202016/Højere-niveauer-af-hasselnød-og-mandel-i-chokolade.aspx",
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 274232,
+    "takenBy": {
+     "id": 5017,
+     "organizationName": "Hungary",
+     "isoCode": "HU"
+    },
+    "url": "http://www.ikea.com/hu/hu/about_ikea/newsitem/CHOKLAD_20160728",
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 274541,
+    "takenBy": {
+     "id": 5027,
+     "organizationName": "Norway",
+     "isoCode": "NO"
+    },
+    "url": "http://www.matportalen.no/verktoy/advarsler/ikea_norge_as_utvider_tilbakekallingen_av_sjokoladeprodukter  ",
+    "actionTaken": {
+     "id": 18836,
+     "description": "recall from consumer"
+    }
+   },
+   {
+    "id": 275266,
+    "takenBy": {
+     "id": 5013,
+     "organizationName": "France",
+     "isoCode": "FR"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 219,
+   "description": "distribution to other member countries"
+  }
+ },
+ "risk": {
+  "id": 12583,
+  "riskDecision": "not serious",
+  "numberOfPersonsAffected": 0
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10042,
+    "description": "Australia",
+    "code": "AU",
+    "countryNetworkOrganizationId": 5047
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 5,
+    "description": "Austria",
+    "code": "AT",
+    "countryNetworkOrganizationId": 5001
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 7,
+    "description": "Belgium",
+    "code": "BE",
+    "countryNetworkOrganizationId": 5002
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10,
+    "description": "Bulgaria",
+    "code": "BG",
+    "countryNetworkOrganizationId": 5003
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315624,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10064,
+    "description": "Canada",
+    "code": "CA",
+    "countryNetworkOrganizationId": 5069
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10070,
+    "description": "China",
+    "code": "CN",
+    "countryNetworkOrganizationId": 5075
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 36,
+    "description": "Croatia",
+    "code": "HR",
+    "countryNetworkOrganizationId": 5016
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315624,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315624,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 12,
+    "description": "Cyprus",
+    "code": "CY",
+    "countryNetworkOrganizationId": 5005
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 37,
+    "description": "Czechia",
+    "code": "CZ",
+    "countryNetworkOrganizationId": 5006
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 53,
+    "description": "Denmark",
+    "code": "DK",
+    "countryNetworkOrganizationId": 5008
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10083,
+    "description": "Dominican Republic",
+    "code": "DO",
+    "countryNetworkOrganizationId": 5088
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10085,
+    "description": "Egypt",
+    "code": "EG",
+    "countryNetworkOrganizationId": 5090
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 21,
+    "description": "Finland",
+    "code": "FI",
+    "countryNetworkOrganizationId": 5012
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 14,
+    "description": "France",
+    "code": "FR",
+    "countryNetworkOrganizationId": 5013
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 3,
+    "description": "Germany",
+    "code": "DE",
+    "countryNetworkOrganizationId": 5007
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 55,
+    "description": "Greece",
+    "code": "GR",
+    "countryNetworkOrganizationId": 5015
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10112,
+    "description": "Hong Kong",
+    "code": "HK",
+    "countryNetworkOrganizationId": 5117
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 52,
+    "description": "Hungary",
+    "code": "HU",
+    "countryNetworkOrganizationId": 5017
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 56,
+    "description": "Iceland",
+    "code": "IS",
+    "countryNetworkOrganizationId": 5019
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10114,
+    "description": "Indonesia",
+    "code": "ID",
+    "countryNetworkOrganizationId": 5119
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315624,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 57,
+    "description": "Ireland",
+    "code": "IE",
+    "countryNetworkOrganizationId": 5018
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 9,
+    "description": "Italy",
+    "code": "IT",
+    "countryNetworkOrganizationId": 5020
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10120,
+    "description": "Japan",
+    "code": "JP",
+    "countryNetworkOrganizationId": 5125
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 61,
+    "description": "Lithuania",
+    "code": "LT",
+    "countryNetworkOrganizationId": 5022
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10138,
+    "description": "Malaysia",
+    "code": "MY",
+    "countryNetworkOrganizationId": 5143
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10153,
+    "description": "Morocco",
+    "code": "MA",
+    "countryNetworkOrganizationId": 5158
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 38,
+    "description": "Netherlands",
+    "code": "NL",
+    "countryNetworkOrganizationId": 5026
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 4,
+    "description": "Norway",
+    "code": "NO",
+    "countryNetworkOrganizationId": 5027
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 31,
+    "description": "Poland",
+    "code": "PL",
+    "countryNetworkOrganizationId": 5028
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 27,
+    "description": "Portugal",
+    "code": "PT",
+    "countryNetworkOrganizationId": 5029
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 42,
+    "description": "Romania",
+    "code": "RO",
+    "countryNetworkOrganizationId": 5030
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10181,
+    "description": "Russia",
+    "code": "RU",
+    "countryNetworkOrganizationId": 5186
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315624,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10193,
+    "description": "Saudi Arabia",
+    "code": "SA",
+    "countryNetworkOrganizationId": 5198
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315624,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10198,
+    "description": "Singapore",
+    "code": "SG",
+    "countryNetworkOrganizationId": 5203
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315624,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 54,
+    "description": "Slovakia",
+    "code": "SK",
+    "countryNetworkOrganizationId": 5033
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10126,
+    "description": "South Korea",
+    "code": "KR",
+    "countryNetworkOrganizationId": 5131
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 2,
+    "description": "Spain",
+    "code": "ES",
+    "countryNetworkOrganizationId": 5010
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315696,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 315624,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 62,
+    "description": "Sweden",
+    "code": "SE",
+    "countryNetworkOrganizationId": 5031
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 316164,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 315696,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 315696,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315624,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 315624,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 63,
+    "description": "Switzerland",
+    "code": "CH",
+    "countryNetworkOrganizationId": 5004
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10208,
+    "description": "Taiwan",
+    "code": "TW",
+    "countryNetworkOrganizationId": 5213
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10211,
+    "description": "Thailand",
+    "code": "TH",
+    "countryNetworkOrganizationId": 5216
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10216,
+    "description": "Trinidad and Tobago",
+    "code": "TT",
+    "countryNetworkOrganizationId": 5221
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10218,
+    "description": "Türkiye",
+    "code": "TR",
+    "countryNetworkOrganizationId": 5223
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10224,
+    "description": "United Arab Emirates",
+    "code": "AE",
+    "countryNetworkOrganizationId": 5229
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 17,
+    "description": "United Kingdom",
+    "code": "GB",
+    "countryNetworkOrganizationId": 5014
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10225,
+    "description": "United States",
+    "code": "US",
+    "countryNetworkOrganizationId": 5230
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 315522,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 315559,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "29-07-2016 17:06:06",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  },
+  {
+   "fupNumber": 2,
+   "fupId": 315562,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "29-07-2016 17:58:37",
+   "fupType": {
+    "id": 27672,
+    "description": "measures taken"
+   }
+  },
+  {
+   "fupNumber": 3,
+   "fupId": 315567,
+   "networkOrganizationId": 53,
+   "organizationDescription": "Denmark",
+   "organizationCode": "DK",
+   "fupDate": "01-08-2016 09:13:12",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 4,
+   "fupId": 315572,
+   "networkOrganizationId": 21,
+   "organizationDescription": "Finland",
+   "organizationCode": "FI",
+   "fupDate": "01-08-2016 12:05:10",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 5,
+   "fupId": 315593,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "01-08-2016 14:57:46",
+   "fupType": {
+    "id": 27671,
+    "description": "follow-up from non-member country"
+   }
+  },
+  {
+   "fupNumber": 6,
+   "fupId": 315604,
+   "networkOrganizationId": 52,
+   "organizationDescription": "Hungary",
+   "organizationCode": "HU",
+   "fupDate": "02-08-2016 08:46:09",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 7,
+   "fupId": 315609,
+   "networkOrganizationId": 520,
+   "organizationDescription": "Public Health Services",
+   "organizationCode": "CY",
+   "fupDate": "02-08-2016 09:53:40",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 8,
+   "fupId": 315639,
+   "networkOrganizationId": 17,
+   "organizationDescription": "United Kingdom",
+   "organizationCode": "GB",
+   "fupDate": "02-08-2016 15:59:38",
+   "fupType": {
+    "id": 27672,
+    "description": "measures taken"
+   }
+  },
+  {
+   "fupNumber": 9,
+   "fupId": 315624,
+   "networkOrganizationId": 62,
+   "organizationDescription": "Sweden",
+   "organizationCode": "SE",
+   "fupDate": "02-08-2016 16:34:41"
+  },
+  {
+   "fupNumber": 10,
+   "fupId": 315675,
+   "networkOrganizationId": 4,
+   "organizationDescription": "Norway",
+   "organizationCode": "NO",
+   "fupDate": "03-08-2016 13:14:46",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 11,
+   "fupId": 315696,
+   "networkOrganizationId": 7,
+   "organizationDescription": "Belgium",
+   "organizationCode": "BE",
+   "fupDate": "03-08-2016 16:40:51",
+   "fupType": {
+    "id": 27665,
+    "description": "request"
+   }
+  },
+  {
+   "fupNumber": 12,
+   "fupId": 315707,
+   "networkOrganizationId": 55,
+   "organizationDescription": "Greece",
+   "organizationCode": "GR",
+   "fupDate": "04-08-2016 10:46:02",
+   "fupType": {
+    "id": 27672,
+    "description": "measures taken"
+   }
+  },
+  {
+   "fupNumber": 13,
+   "fupId": 315724,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "04-08-2016 12:25:32",
+   "fupType": {
+    "id": 27671,
+    "description": "follow-up from non-member country"
+   }
+  },
+  {
+   "fupNumber": 14,
+   "fupId": 315840,
+   "networkOrganizationId": 14,
+   "organizationDescription": "France",
+   "organizationCode": "FR",
+   "fupDate": "08-08-2016 14:03:16",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 15,
+   "fupId": 315879,
+   "networkOrganizationId": 10,
+   "organizationDescription": "Bulgaria",
+   "organizationCode": "BG",
+   "fupDate": "09-08-2016 12:11:38",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 16,
+   "fupId": 316087,
+   "networkOrganizationId": 63,
+   "organizationDescription": "Switzerland",
+   "organizationCode": "CH",
+   "fupDate": "16-08-2016 09:46:45",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 17,
+   "fupId": 316132,
+   "networkOrganizationId": 37,
+   "organizationDescription": "Czechia",
+   "organizationCode": "CZ",
+   "fupDate": "16-08-2016 09:48:31",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 18,
+   "fupId": 316164,
+   "networkOrganizationId": 36,
+   "organizationDescription": "Croatia",
+   "organizationCode": "HR",
+   "fupDate": "16-08-2016 14:34:57",
+   "fupType": {
+    "id": 27674,
+    "description": "outcome of investigations"
+   }
+  },
+  {
+   "fupNumber": 19,
+   "fupId": 316525,
+   "networkOrganizationId": 57,
+   "organizationDescription": "Ireland",
+   "organizationCode": "IE",
+   "fupDate": "25-08-2016 12:20:07",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 20,
+   "fupId": 316686,
+   "networkOrganizationId": 31,
+   "organizationDescription": "Poland",
+   "organizationCode": "PL",
+   "fupDate": "30-08-2016 15:36:22",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 21,
+   "fupId": 316912,
+   "networkOrganizationId": 62,
+   "organizationDescription": "Sweden",
+   "organizationCode": "SE",
+   "fupDate": "05-09-2016 14:07:06",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 22,
+   "fupId": 317493,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "16-09-2016 16:29:41",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  },
+  {
+   "fupNumber": 23,
+   "fupId": 317998,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "28-09-2016 14:37:46",
+   "fupType": {
+    "id": 27672,
+    "description": "measures taken"
+   }
+  },
+  {
+   "fupNumber": 24,
+   "fupId": 318064,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "29-09-2016 16:44:50",
+   "fupType": {
+    "id": 27661,
+    "description": "information on sampling/analysis"
+   }
+  },
+  {
+   "fupNumber": 25,
+   "fupId": 318082,
+   "networkOrganizationId": 9,
+   "organizationDescription": "Italy",
+   "organizationCode": "IT",
+   "fupDate": "30-09-2016 10:41:33",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 26,
+   "fupId": 320121,
+   "networkOrganizationId": 61,
+   "organizationDescription": "Lithuania",
+   "organizationCode": "LT",
+   "fupDate": "22-11-2016 14:14:24",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  },
+  {
+   "fupNumber": 27,
+   "fupId": 321542,
+   "networkOrganizationId": 10,
+   "organizationDescription": "Bulgaria",
+   "organizationCode": "BG",
+   "fupDate": "12-12-2016 12:59:19",
+   "fupType": {
+    "id": 27659,
+    "description": "outcome of investigations and measures taken"
+   }
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5186": [],
+  "5125": [],
+  "5001": [
+   {
+    "id": 1,
+    "countryNetworkOrganizationId": 5001,
+    "link": "http://www.ages.at/ages/produktwarnungen/"
+   }
+  ],
+  "5002": [
+   {
+    "id": 2,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/nl/producten"
+   },
+   {
+    "id": 3,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/fr/produits"
+   }
+  ],
+  "5003": [
+   {
+    "id": 4,
+    "countryNetworkOrganizationId": 5003,
+    "link": "https://bfsa.egov.bg/wps/portal/bfsa-web/home/news"
+   }
+  ],
+  "5131": [],
+  "5004": [
+   {
+    "id": 38,
+    "countryNetworkOrganizationId": 5004,
+    "link": "https://www.blv.admin.ch/blv/fr/home/lebensmittel-und-ernaehrung/rueckrufe-und-oeffentliche-warnungen.html"
+   },
+   {
+    "id": 39,
+    "countryNetworkOrganizationId": 5004,
+    "link": "https://www.blv.admin.ch/blv/de/home/lebensmittel-und-ernaehrung/rueckrufe-und-oeffentliche-warnungen.html"
+   },
+   {
+    "id": 40,
+    "countryNetworkOrganizationId": 5004,
+    "link": "https://www.blv.admin.ch/blv/it/home/lebensmittel-und-ernaehrung/rueckrufe-und-oeffentliche-warnungen.html"
+   },
+   {
+    "id": 41,
+    "countryNetworkOrganizationId": 5004,
+    "link": "https://urldefense.com/v3/__https://www.recallswiss.admin.ch/customer-access/__;!!DOxrgLBm!HrhOgM83RjyOXALdFNAl3NzAyqhh34_rwufDZJah94q6BomC0XPVC9vBCRYCx3DxVFb93xrXW-CU0xRZvkkW36kH$"
+   }
+  ],
+  "5005": [
+   {
+    "id": 6,
+    "countryNetworkOrganizationId": 5005,
+    "link": "http://www.moa.gov.cy/moa/vs/vs.nsf/vs49_gr/vs49_gr?OpenDocument"
+   },
+   {
+    "id": 7,
+    "countryNetworkOrganizationId": 5005,
+    "link": "https://www.moa.gov.cy/moa/da/da.nsf/home/home?openform"
+   },
+   {
+    "id": 8,
+    "countryNetworkOrganizationId": 5005,
+    "link": "http://www.moh.gov.cy/moh/mphs/phs.nsf/DMLannouncements_gr/DMLannouncements_gr?OpenDocument"
+   }
+  ],
+  "5069": [],
+  "5006": [
+   {
+    "id": 9,
+    "countryNetworkOrganizationId": 5006,
+    "link": "https://bezpecnostpotravin.cz/varovani/"
+   }
+  ],
+  "5198": [],
+  "5007": [
+   {
+    "id": 16,
+    "countryNetworkOrganizationId": 5007,
+    "link": "http://www.lebensmittelwarnung.de"
+   }
+  ],
+  "5008": [
+   {
+    "id": 10,
+    "countryNetworkOrganizationId": 5008,
+    "link": "https://foedevarestyrelsen.dk/nyheder/tilbagekaldte-produkter"
+   }
+  ],
+  "5010": [
+   {
+    "id": 35,
+    "countryNetworkOrganizationId": 5010,
+    "link": "http://aplicaciones.magrama.es/silum/web/novedades/novedades.jsp"
+   },
+   {
+    "id": 36,
+    "countryNetworkOrganizationId": 5010,
+    "link": "https://www.aesan.gob.es/AECOSAN/web/seguridad_alimentaria/seccion/alertas_alimentarias.htm"
+   }
+  ],
+  "5203": [],
+  "5075": [],
+  "5012": [
+   {
+    "id": 12,
+    "countryNetworkOrganizationId": 5012,
+    "link": "https://www.ruokavirasto.fi/henkiloasiakkaat/tietoa-elintarvikkeista/takaisinvedot/"
+   },
+   {
+    "id": 13,
+    "countryNetworkOrganizationId": 5012,
+    "link": "https://www.ruokavirasto.fi/sv/privatkunder/information-om-livsmedel/aterkallelser2/"
+   }
+  ],
+  "5013": [
+   {
+    "id": 14,
+    "countryNetworkOrganizationId": 5013,
+    "link": "https://rappel.conso.gouv.fr/"
+   },
+   {
+    "id": 15,
+    "countryNetworkOrganizationId": 5013,
+    "link": "http://www.economie.gouv.fr/dgccrf/Securite/Alertes/Avis-rappels-de-produits"
+   }
+  ],
+  "5014": [],
+  "5015": [
+   {
+    "id": 17,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://efet.gr/index.php/el/enimerosi/deltia-typou/anakleiseis-cat"
+   },
+   {
+    "id": 18,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://www.eof.gr/category/diatrofika-proionta/anakliseis-diatrofika-proionta/"
+   },
+   {
+    "id": 19,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://www.eof.gr/category/diatrofika-proionta/anakoinoseis-diatrofika-proionta/"
+   }
+  ],
+  "5143": [],
+  "5016": [
+   {
+    "id": 5,
+    "countryNetworkOrganizationId": 5016,
+    "link": "https://www.hapih.hr/potrosacki-kutak/"
+   }
+  ],
+  "5017": [
+   {
+    "id": 20,
+    "countryNetworkOrganizationId": 5017,
+    "link": "https://nkfh.gov.hu/"
+   },
+   {
+    "id": 21,
+    "countryNetworkOrganizationId": 5017,
+    "link": "https://portal.nebih.gov.hu/termekvisszahivas"
+   }
+  ],
+  "5018": [
+   {
+    "id": 23,
+    "countryNetworkOrganizationId": 5018,
+    "link": "http://www.fsai.ie/news_centre/food_alerts.html"
+   },
+   {
+    "id": 24,
+    "countryNetworkOrganizationId": 5018,
+    "link": "http://www.fsai.ie/news_centre/allergen_alerts.html"
+   }
+  ],
+  "5019": [
+   {
+    "id": 22,
+    "countryNetworkOrganizationId": 5019,
+    "link": "https://www.mast.is/is/um-mast/frettir/innkallanir"
+   }
+  ],
+  "5020": [
+   {
+    "id": 25,
+    "countryNetworkOrganizationId": 5020,
+    "link": "https://www.salute.gov.it/new/it/avvisi/avvisi-e-richiami-di-prodotti-alimentari/"
+   }
+  ],
+  "5213": [],
+  "5022": [],
+  "5216": [],
+  "5088": [],
+  "5026": [
+   {
+    "id": 30,
+    "countryNetworkOrganizationId": 5026,
+    "link": "https://www.nvwa.nl/onderwerpen/voedselveiligheid/veiligheidswaarschuwingen/overzicht-veiligheidswaarschuwingen"
+   }
+  ],
+  "5090": [],
+  "5027": [
+   {
+    "id": 31,
+    "countryNetworkOrganizationId": 5027,
+    "link": "https://www.mattilsynet.no/tilbakekallinger"
+   }
+  ],
+  "5028": [
+   {
+    "id": 32,
+    "countryNetworkOrganizationId": 5028,
+    "link": "https://www.gov.pl/web/gis/glowny-inspektorat-sanitarny"
+   }
+  ],
+  "5029": [],
+  "5221": [],
+  "5030": [
+   {
+    "id": 33,
+    "countryNetworkOrganizationId": 5030,
+    "link": "https://www.ansvsa.ro/informatii-pentru-public/produse-rechemateretrase/"
+   }
+  ],
+  "5158": [],
+  "5031": [
+   {
+    "id": 37,
+    "countryNetworkOrganizationId": 5031,
+    "link": "http://www.livsmedelsverket.se/om-oss/press/aterkallanden/"
+   }
+  ],
+  "5223": [],
+  "5033": [],
+  "5229": [],
+  "5230": [],
+  "5047": [],
+  "5117": [],
+  "5119": []
+ }
+}

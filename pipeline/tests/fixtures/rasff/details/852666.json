@@ -1,0 +1,224 @@
+{
+ "id": 852666,
+ "reference": "2026.5644",
+ "subject": " Residuos de plaguicidas en semillas de cardamomo procedentes de la India//Pesticide residues in cardamom seeds from India",
+ "ecValidationDate": "25-06-2026 17:18:29",
+ "lastUpdate": "26-06-2026 15:25:36",
+ "notificationClassification": {
+  "id": 305,
+  "description": "border rejection notification"
+ },
+ "productType": {
+  "id": 284,
+  "description": "animals"
+ },
+ "notificationBasis": {
+  "id": 18420,
+  "description": "border control - consignment detained"
+ },
+ "product": {
+  "id": 30763404,
+  "description": "cardamom seeds",
+  "productCategory": {
+   "id": 18450,
+   "description": "herbs and spices"
+  },
+  "hazards": [
+   {
+    "id": 30763575,
+    "name": "Imidaclopride  - pesticide residues",
+    "analyticalResult": "0.14",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.05",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.05 mg/kg - ppm"
+   },
+   {
+    "id": 30763585,
+    "name": "tebuconazole  - pesticide residues",
+    "analyticalResult": "0.53",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.05",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.05 mg/kg - ppm"
+   },
+   {
+    "id": 30763603,
+    "name": "trifloxystrobin  - pesticide residues",
+    "analyticalResult": "0.14",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.05",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.05 mg/kg - ppm"
+   },
+   {
+    "id": 30763832,
+    "name": "bifenthrin  - pesticide residues",
+    "analyticalResult": "0.14",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.03",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.03 mg/kg - ppm"
+   },
+   {
+    "id": 30763838,
+    "name": "chlorpyrifos  - unauthorised substance - pesticide residues",
+    "analyticalResult": "0.03",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.01",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.01 mg/kg - ppm"
+   },
+   {
+    "id": 30763852,
+    "name": "fipronil  - unauthorised substance - pesticide residues",
+    "analyticalResult": "0.013",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.005",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.005 mg/kg - ppm"
+   },
+   {
+    "id": 30763861,
+    "name": "metalaxyl  - pesticide residues",
+    "analyticalResult": "0.21",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "09-06-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.05",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.05 mg/kg - ppm"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 30763442,
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 30764001,
+    "takenBy": {
+     "id": 5010,
+     "organizationName": "Spain",
+     "isoCode": "ES"
+    },
+    "actionTaken": {
+     "id": 18700,
+     "description": "Destruction"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 224,
+   "description": "product not (yet) placed on the market"
+  }
+ },
+ "risk": {
+  "id": 137206,
+  "riskDecision": "serious",
+  "hazardObserved": "Presencia de residuos de plaguicidas de alto riesgo (clorpirifos) y otros (imidacloprid, tebuconazol, trifloxistrobina, bifentrina, fipronil)//Presence of residues of high-risk pesticides (chlorpyrifos) and others (imidacloprid, tebuconazole, trifloxystrobin, bifenthrin, fipronil)"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10113,
+    "description": "India",
+    "code": "IN",
+    "countryNetworkOrganizationId": 5118
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 852666,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 852666,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 2,
+    "description": "Spain",
+    "code": "ES",
+    "countryNetworkOrganizationId": 5010
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 852666,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 852666,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 852666,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 854515,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "26-06-2026 15:25:36",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5010": [
+   {
+    "id": 35,
+    "countryNetworkOrganizationId": 5010,
+    "link": "http://aplicaciones.magrama.es/silum/web/novedades/novedades.jsp"
+   },
+   {
+    "id": 36,
+    "countryNetworkOrganizationId": 5010,
+    "link": "https://www.aesan.gob.es/AECOSAN/web/seguridad_alimentaria/seccion/alertas_alimentarias.htm"
+   }
+  ],
+  "5118": []
+ }
+}

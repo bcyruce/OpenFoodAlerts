@@ -1,0 +1,279 @@
+{
+ "id": 879728,
+ "reference": "2026.9181",
+ "subject": "Salmonella Anatum in wheat middling pellets for feed from the Netherlands",
+ "ecValidationDate": "15-10-2026 16:49:44",
+ "lastUpdate": "15-10-2026 16:49:44",
+ "notificationClassification": {
+  "id": 303,
+  "description": "information notification for follow-up"
+ },
+ "productType": {
+  "id": 282,
+  "description": "feed"
+ },
+ "notificationBasis": {
+  "id": 18423,
+  "description": "company's own check"
+ },
+ "product": {
+  "id": 31118459,
+  "description": "Wheat middling pellets",
+  "productCategory": {
+   "id": 18443,
+   "description": "feed materials"
+  },
+  "hazards": [
+   {
+    "id": 31118533,
+    "name": "Salmonella anatum - pathogenic micro-organisms",
+    "analyticalResult": "Presence",
+    "unit": "/25g",
+    "samplingDate": "27-08-2026 00:00:00",
+    "maxPermittedLvlQuantities": "Absence",
+    "maxPermittedLvlUnit": "/25g",
+    "hazardCategory": {
+     "description": "pathogenic micro-organisms"
+    },
+    "maxPermittedLvl": "Absence /25g"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31118468,
+    "productAspect": "in bulk",
+    "weight": "30360.0",
+    "weightUnit": {
+     "id": 18973,
+     "description": "kg"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "relatedProducts": [
+   {
+    "id": 31118589,
+    "description": "compound feed for pigs",
+    "productCategory": {
+     "id": 18436,
+     "description": "compound feeds"
+    },
+    "productDescriptions": [
+     {
+      "id": 31118608,
+      "weight": "10156.0",
+      "weightUnit": {
+       "id": 18973,
+       "description": "kg"
+      },
+      "temperature": {
+       "id": 27368,
+       "description": "ambient"
+      }
+     }
+    ],
+    "measures": [
+     {
+      "id": 31118635,
+      "takenBy": {
+       "id": 5002,
+       "organizationName": "Belgium",
+       "isoCode": "BE"
+      },
+      "actionTaken": {
+       "id": 18383,
+       "description": "informing recipient(s)"
+      }
+     }
+    ],
+    "distributionStatus": {
+     "id": 219,
+     "description": "distribution to other member countries"
+    }
+   },
+   {
+    "id": 31118627,
+    "description": "compound feed for pigs",
+    "productCategory": {
+     "id": 18436,
+     "description": "compound feeds"
+    },
+    "productDescriptions": [
+     {
+      "id": 31118641,
+      "weight": "8026.0",
+      "weightUnit": {
+       "id": 18973,
+       "description": "kg"
+      },
+      "temperature": {
+       "id": 27368,
+       "description": "ambient"
+      }
+     }
+    ],
+    "measures": [
+     {
+      "id": 31118663,
+      "takenBy": {
+       "id": 5002,
+       "organizationName": "Belgium",
+       "isoCode": "BE"
+      },
+      "actionTaken": {
+       "id": 18383,
+       "description": "informing recipient(s)"
+      }
+     }
+    ],
+    "distributionStatus": {
+     "id": 219,
+     "description": "distribution to other member countries"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31118572,
+    "takenBy": {
+     "id": 5002,
+     "organizationName": "Belgium",
+     "isoCode": "BE"
+    },
+    "actionTaken": {
+     "id": 18955,
+     "description": "destination of the product identified"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 222,
+   "description": "no distribution from notifying country"
+  }
+ },
+ "risk": {
+  "id": 143301,
+  "riskDecision": "potential risk"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 7,
+    "description": "Belgium",
+    "code": "BE",
+    "countryNetworkOrganizationId": 5002
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879728,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 14,
+    "description": "France",
+    "code": "FR",
+    "countryNetworkOrganizationId": 5013
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879728,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 38,
+    "description": "Netherlands",
+    "code": "NL",
+    "countryNetworkOrganizationId": 5026
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879728,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 879728,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5026": [
+   {
+    "id": 30,
+    "countryNetworkOrganizationId": 5026,
+    "link": "https://www.nvwa.nl/onderwerpen/voedselveiligheid/veiligheidswaarschuwingen/overzicht-veiligheidswaarschuwingen"
+   }
+  ],
+  "5013": [
+   {
+    "id": 14,
+    "countryNetworkOrganizationId": 5013,
+    "link": "https://rappel.conso.gouv.fr/"
+   },
+   {
+    "id": 15,
+    "countryNetworkOrganizationId": 5013,
+    "link": "http://www.economie.gouv.fr/dgccrf/Securite/Alertes/Avis-rappels-de-produits"
+   }
+  ],
+  "5002": [
+   {
+    "id": 2,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/nl/producten"
+   },
+   {
+    "id": 3,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/fr/produits"
+   }
+  ]
+ }
+}

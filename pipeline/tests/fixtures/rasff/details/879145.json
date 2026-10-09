@@ -1,0 +1,433 @@
+{
+ "id": 879145,
+ "reference": "2026.9036",
+ "subject": "Diethyltoluamide in bio kepl origin Canada froM Netherlands",
+ "ecValidationDate": "12-10-2026 12:27:14",
+ "lastUpdate": "22-10-2026 15:52:40",
+ "notificationClassification": {
+  "id": 303,
+  "description": "information notification for follow-up"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18684,
+  "description": "official control on the market"
+ },
+ "product": {
+  "id": 31110548,
+  "description": "bio kelp pawder",
+  "productCategory": {
+   "id": 18439,
+   "description": "dietetic foods, food supplements and fortified foods"
+  },
+  "productDescriptions": [
+   {
+    "id": 31110595
+   }
+  ],
+  "relatedProducts": [
+   {
+    "id": 31110643,
+    "description": "Bio kelp powder 100 g",
+    "productCategory": {
+     "id": 18439,
+     "description": "dietetic foods, food supplements and fortified foods"
+    },
+    "measures": [
+     {
+      "id": 31110751,
+      "takenBy": {
+       "id": 5003,
+       "organizationName": "Bulgaria",
+       "isoCode": "BG"
+      },
+      "actionTaken": {
+       "id": 18383,
+       "description": "informing recipient(s)"
+      }
+     }
+    ],
+    "distributionStatus": {
+     "id": 219,
+     "description": "distribution to other member countries"
+    }
+   },
+   {
+    "id": 31110749,
+    "description": "Superself Super Greens Organic Blend х 200 g ",
+    "productCategory": {
+     "id": 18439,
+     "description": "dietetic foods, food supplements and fortified foods"
+    },
+    "distributionStatus": {
+     "id": 225,
+     "description": "distribution to non-member countries only"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31129199,
+    "takenBy": {
+     "id": 5012,
+     "organizationName": "Finland",
+     "isoCode": "FI"
+    },
+    "actionTaken": {
+     "id": 18827,
+     "description": "no action taken"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 219,
+   "description": "distribution to other member countries"
+  }
+ },
+ "risk": {
+  "id": 143154,
+  "riskDecision": "no risk"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10,
+    "description": "Bulgaria",
+    "code": "BG",
+    "countryNetworkOrganizationId": 5003
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879145,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879145,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 879145,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879145,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10064,
+    "description": "Canada",
+    "code": "CA",
+    "countryNetworkOrganizationId": 5069
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "ORIGIN"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 37,
+    "description": "Czechia",
+    "code": "CZ",
+    "countryNetworkOrganizationId": 5006
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 21,
+    "description": "Finland",
+    "code": "FI",
+    "countryNetworkOrganizationId": 5012
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 55,
+    "description": "Greece",
+    "code": "GR",
+    "countryNetworkOrganizationId": 5015
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 52,
+    "description": "Hungary",
+    "code": "HU",
+    "countryNetworkOrganizationId": 5017
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 38,
+    "description": "Netherlands",
+    "code": "NL",
+    "countryNetworkOrganizationId": 5026
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 881394,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 879145,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 27,
+    "description": "Portugal",
+    "code": "PT",
+    "countryNetworkOrganizationId": 5029
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 42,
+    "description": "Romania",
+    "code": "RO",
+    "countryNetworkOrganizationId": 5030
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 54,
+    "description": "Slovakia",
+    "code": "SK",
+    "countryNetworkOrganizationId": 5033
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 59,
+    "description": "Slovenia",
+    "code": "SI",
+    "countryNetworkOrganizationId": 5032
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "FOR_FOLLOW_UP"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 17,
+    "description": "United Kingdom",
+    "code": "GB",
+    "countryNetworkOrganizationId": 5014
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879145,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 879192,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "12-10-2026 12:28:11",
+   "fupType": {
+    "id": 27670,
+    "description": "notification reclassification"
+   }
+  },
+  {
+   "fupNumber": 2,
+   "fupId": 879199,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "12-10-2026 12:51:39",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  },
+  {
+   "fupNumber": 3,
+   "fupId": 880570,
+   "networkOrganizationId": 21,
+   "organizationDescription": "Finland",
+   "organizationCode": "FI",
+   "fupDate": "19-10-2026 09:57:38",
+   "fupType": {
+    "id": 27674,
+    "description": "outcome of investigations"
+   }
+  },
+  {
+   "fupNumber": 4,
+   "fupId": 881394,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "21-10-2026 16:29:45",
+   "fupType": {
+    "id": 27665,
+    "description": "request"
+   }
+  },
+  {
+   "fupNumber": 5,
+   "fupId": 881748,
+   "networkOrganizationId": 10,
+   "organizationDescription": "Bulgaria",
+   "organizationCode": "BG",
+   "fupDate": "22-10-2026 15:52:40",
+   "fupType": {
+    "id": 27658,
+    "description": "additional information"
+   }
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5026": [
+   {
+    "id": 30,
+    "countryNetworkOrganizationId": 5026,
+    "link": "https://www.nvwa.nl/onderwerpen/voedselveiligheid/veiligheidswaarschuwingen/overzicht-veiligheidswaarschuwingen"
+   }
+  ],
+  "5012": [
+   {
+    "id": 12,
+    "countryNetworkOrganizationId": 5012,
+    "link": "https://www.ruokavirasto.fi/henkiloasiakkaat/tietoa-elintarvikkeista/takaisinvedot/"
+   },
+   {
+    "id": 13,
+    "countryNetworkOrganizationId": 5012,
+    "link": "https://www.ruokavirasto.fi/sv/privatkunder/information-om-livsmedel/aterkallelser2/"
+   }
+  ],
+  "5029": [],
+  "5030": [
+   {
+    "id": 33,
+    "countryNetworkOrganizationId": 5030,
+    "link": "https://www.ansvsa.ro/informatii-pentru-public/produse-rechemateretrase/"
+   }
+  ],
+  "5014": [],
+  "5015": [
+   {
+    "id": 17,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://efet.gr/index.php/el/enimerosi/deltia-typou/anakleiseis-cat"
+   },
+   {
+    "id": 18,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://www.eof.gr/category/diatrofika-proionta/anakliseis-diatrofika-proionta/"
+   },
+   {
+    "id": 19,
+    "countryNetworkOrganizationId": 5015,
+    "link": "https://www.eof.gr/category/diatrofika-proionta/anakoinoseis-diatrofika-proionta/"
+   }
+  ],
+  "5032": [
+   {
+    "id": 34,
+    "countryNetworkOrganizationId": 5032,
+    "link": "https://www.gov.si/podrocja/podjetnistvo-in-gospodarstvo/varstvo-potrosnikov-in-konkurence/nevarni-in-neskladni-izdelki/"
+   }
+  ],
+  "5033": [],
+  "5017": [
+   {
+    "id": 20,
+    "countryNetworkOrganizationId": 5017,
+    "link": "https://nkfh.gov.hu/"
+   },
+   {
+    "id": 21,
+    "countryNetworkOrganizationId": 5017,
+    "link": "https://portal.nebih.gov.hu/termekvisszahivas"
+   }
+  ],
+  "5003": [
+   {
+    "id": 4,
+    "countryNetworkOrganizationId": 5003,
+    "link": "https://bfsa.egov.bg/wps/portal/bfsa-web/home/news"
+   }
+  ],
+  "5069": [],
+  "5006": [
+   {
+    "id": 9,
+    "countryNetworkOrganizationId": 5006,
+    "link": "https://bezpecnostpotravin.cz/varovani/"
+   }
+  ]
+ }
+}

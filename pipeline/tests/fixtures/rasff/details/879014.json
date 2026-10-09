@@ -1,0 +1,193 @@
+{
+ "id": 879014,
+ "reference": "2026.9017",
+ "subject": "Emamectin benzoate, Thiamethoxam and  Tau-Fluvalinate in fresh peppers from  Türkiye",
+ "ecValidationDate": "22-10-2026 11:34:15",
+ "lastUpdate": "22-10-2026 11:35:11",
+ "notificationClassification": {
+  "id": 305,
+  "description": "border rejection notification"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18420,
+  "description": "border control - consignment detained"
+ },
+ "product": {
+  "id": 31108318,
+  "description": "Peppers (other than sweet) (Capsicum spp.)",
+  "productCategory": {
+   "id": 18448,
+   "description": "fruits and vegetables"
+  },
+  "hazards": [
+   {
+    "id": 31108326,
+    "name": "emamectin  - pesticide residues",
+    "analyticalResult": "-0.047 +/- 0.024",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "08-10-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.02",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.02 mg/kg - ppm"
+   },
+   {
+    "id": 31108354,
+    "name": "thiamethoxam  - pesticide residues",
+    "analyticalResult": "0.047 +/- 0.024",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "08-10-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.01",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.01 mg/kg - ppm"
+   },
+   {
+    "id": 31108366,
+    "name": "tau-fluvalinate  - pesticide residues",
+    "analyticalResult": "0.028 +/- 0.014",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "08-10-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0.01",
+    "maxPermittedLvlUnit": "mg/kg - ppm",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    },
+    "maxPermittedLvl": "0.01 mg/kg - ppm"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31108320,
+    "weight": "1200.0",
+    "weightUnit": {
+     "id": 18973,
+     "description": "kg"
+    },
+    "temperature": {
+     "id": 27370,
+     "description": "chilled"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31108323,
+    "takenBy": {
+     "id": 5003,
+     "organizationName": "Bulgaria",
+     "isoCode": "BG"
+    },
+    "actionTaken": {
+     "id": 18700,
+     "description": "Destruction"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 224,
+   "description": "product not (yet) placed on the market"
+  }
+ },
+ "risk": {
+  "id": 143096,
+  "riskDecision": "potential risk",
+  "hazardObserved": "RESIDUES OF PESTICIDES Emamectin benzoate-0.047 +/- 0.024mg/kg, Thiamethoxam- 0.047 / 0.024 mg/kg, Tau-Fluvalinate-0.028 -0.014 mg/kg"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10,
+    "description": "Bulgaria",
+    "code": "BG",
+    "countryNetworkOrganizationId": 5003
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879014,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879014,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 879014,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 3,
+    "description": "Germany",
+    "code": "DE",
+    "countryNetworkOrganizationId": 5007
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879014,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10218,
+    "description": "Türkiye",
+    "code": "TR",
+    "countryNetworkOrganizationId": 5223
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 879014,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 879014,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 881588,
+   "networkOrganizationId": 10,
+   "organizationDescription": "Bulgaria",
+   "organizationCode": "BG",
+   "fupDate": "22-10-2026 11:35:11",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5223": [],
+  "5003": [
+   {
+    "id": 4,
+    "countryNetworkOrganizationId": 5003,
+    "link": "https://bfsa.egov.bg/wps/portal/bfsa-web/home/news"
+   }
+  ],
+  "5007": [
+   {
+    "id": 16,
+    "countryNetworkOrganizationId": 5007,
+    "link": "http://www.lebensmittelwarnung.de"
+   }
+  ]
+ }
+}

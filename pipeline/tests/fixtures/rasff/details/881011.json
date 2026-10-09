@@ -1,0 +1,164 @@
+{
+ "id": 881011,
+ "reference": "2026.9335",
+ "subject": "High volatile substance content in children's silicone bowl from China",
+ "ecValidationDate": "20-10-2026 15:34:21",
+ "lastUpdate": "20-10-2026 18:19:19",
+ "notificationClassification": {
+  "id": 304,
+  "description": "information notification for attention"
+ },
+ "productType": {
+  "id": 281,
+  "description": "food contact material"
+ },
+ "notificationBasis": {
+  "id": 18684,
+  "description": "official control on the market"
+ },
+ "product": {
+  "id": 31135701,
+  "description": "Food contact material",
+  "productCategory": {
+   "id": 18447,
+   "description": "food contact materials"
+  },
+  "hazards": [
+   {
+    "id": 31135804,
+    "name": "volatile organic constituents  - high content - migration",
+    "analyticalResult": "1,82",
+    "unit": "%",
+    "samplingDate": "09-09-2026 00:00:00",
+    "maxPermittedLvlQuantities": "0,5",
+    "maxPermittedLvlUnit": "%",
+    "hazardCategory": {
+     "description": "migration"
+    },
+    "maxPermittedLvl": "0,5 %"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31135720,
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31136005,
+    "takenBy": {
+     "id": 5032,
+     "organizationName": "Slovenia",
+     "isoCode": "SI"
+    },
+    "actionTaken": {
+     "id": 18383,
+     "description": "informing recipient(s)"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 220,
+   "description": "distribution restricted to notifying country"
+  }
+ },
+ "risk": {
+  "id": 143664,
+  "riskDecision": "not serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10070,
+    "description": "China",
+    "code": "CN",
+    "countryNetworkOrganizationId": 5075
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881067,
+     "flagType": "FOR_ATTENTION"
+    },
+    {
+     "notificationId": 881011,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 881011,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 59,
+    "description": "Slovenia",
+    "code": "SI",
+    "countryNetworkOrganizationId": 5032
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881011,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881011,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881011,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 881011,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881011,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "followups": [
+  {
+   "fupNumber": 1,
+   "fupId": 881071,
+   "networkOrganizationId": 1,
+   "organizationDescription": "European Commission",
+   "organizationCode": "EU",
+   "fupDate": "20-10-2026 15:44:16",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  },
+  {
+   "fupNumber": 2,
+   "fupId": 881067,
+   "networkOrganizationId": 59,
+   "organizationDescription": "Slovenia",
+   "organizationCode": "SI",
+   "fupDate": "20-10-2026 18:19:19",
+   "fupType": {
+    "id": 27663,
+    "description": "corrigendum"
+   }
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5075": [],
+  "5032": [
+   {
+    "id": 34,
+    "countryNetworkOrganizationId": 5032,
+    "link": "https://www.gov.si/podrocja/podjetnistvo-in-gospodarstvo/varstvo-potrosnikov-in-konkurence/nevarni-in-neskladni-izdelki/"
+   }
+  ]
+ }
+}

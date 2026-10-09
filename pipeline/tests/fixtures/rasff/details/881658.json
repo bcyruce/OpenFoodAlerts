@@ -1,0 +1,179 @@
+{
+ "id": 881658,
+ "reference": "2026.9458",
+ "subject": "Aflatoxins B1 and Ochratoxin A in dried figs from Türkiye",
+ "ecValidationDate": "23-10-2026 10:53:17",
+ "lastUpdate": "23-10-2026 10:53:17",
+ "notificationClassification": {
+  "id": 305,
+  "description": "border rejection notification"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18420,
+  "description": "border control - consignment detained"
+ },
+ "product": {
+  "id": 31144095,
+  "description": "Dried figs",
+  "productCategory": {
+   "id": 18448,
+   "description": "fruits and vegetables"
+  },
+  "hazards": [
+   {
+    "id": 31144105,
+    "name": "ochratoxin A  - mycotoxins",
+    "analyticalResult": "18,4+/-5,5",
+    "unit": "µg/kg - ppb",
+    "samplingDate": "12-10-2026 00:00:00",
+    "maxPermittedLvlQuantities": "8.0",
+    "maxPermittedLvlUnit": "µg/kg - ppb",
+    "hazardCategory": {
+     "description": "mycotoxins"
+    },
+    "maxPermittedLvl": "8.0 µg/kg - ppb"
+   },
+   {
+    "id": 31146929,
+    "name": "Aflatoxin B1  - mycotoxins",
+    "analyticalResult": " 16.6+/-5.0",
+    "unit": "µg/kg - ppb",
+    "samplingDate": "12-10-2026 00:00:00",
+    "maxPermittedLvlQuantities": " 6.0",
+    "maxPermittedLvlUnit": "µg/kg - ppb",
+    "hazardCategory": {
+     "description": "mycotoxins"
+    },
+    "maxPermittedLvl": " 6.0 µg/kg - ppb"
+   },
+   {
+    "id": 31146951,
+    "name": "aflatoxin total - mycotoxins",
+    "analyticalResult": "63+/-13 ",
+    "unit": "µg/kg - ppb",
+    "samplingDate": "12-10-2026 00:00:00",
+    "maxPermittedLvlQuantities": "10",
+    "maxPermittedLvlUnit": "µg/kg - ppb",
+    "hazardCategory": {
+     "description": "mycotoxins"
+    },
+    "maxPermittedLvl": "10 µg/kg - ppb"
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31144097,
+    "weight": "3175.2",
+    "weightUnit": {
+     "id": 18973,
+     "description": "kg"
+    },
+    "temperature": {
+     "id": 27370,
+     "description": "chilled"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31144101,
+    "takenBy": {
+     "id": 5003,
+     "organizationName": "Bulgaria",
+     "isoCode": "BG"
+    },
+    "actionTaken": {
+     "id": 18700,
+     "description": "Destruction"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 224,
+   "description": "product not (yet) placed on the market"
+  }
+ },
+ "risk": {
+  "id": 143803,
+  "riskDecision": "serious",
+  "hazardObserved": "Ochratoxin A Ochratoxin A   18,4+/-5,5 µg/кg;  Aflatoxins Aflatoxins B1 16.6+/-5.0 µg/кg; Aflatoxins ∑ (B1+B2+G1+G2) 63+/-13 µg/кg"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 10,
+    "description": "Bulgaria",
+    "code": "BG",
+    "countryNetworkOrganizationId": 5003
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881658,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881658,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881658,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 3,
+    "description": "Germany",
+    "code": "DE",
+    "countryNetworkOrganizationId": 5007
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881658,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10218,
+    "description": "Türkiye",
+    "code": "TR",
+    "countryNetworkOrganizationId": 5223
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881658,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 881658,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5223": [],
+  "5003": [
+   {
+    "id": 4,
+    "countryNetworkOrganizationId": 5003,
+    "link": "https://bfsa.egov.bg/wps/portal/bfsa-web/home/news"
+   }
+  ],
+  "5007": [
+   {
+    "id": 16,
+    "countryNetworkOrganizationId": 5007,
+    "link": "http://www.lebensmittelwarnung.de"
+   }
+  ]
+ }
+}

@@ -1,0 +1,135 @@
+{
+ "id": 819084,
+ "reference": "2026.0700",
+ "subject": "Incorrect assignment of material category (Cat 3 or Cat 1) for rendered fat from Germany",
+ "ecValidationDate": "28-01-2026 15:12:20",
+ "lastUpdate": "28-01-2026 15:12:20",
+ "notificationClassification": {
+  "id": 303,
+  "description": "information notification for follow-up"
+ },
+ "productType": {
+  "id": 286,
+  "description": "other"
+ },
+ "notificationBasis": {
+  "id": 18423,
+  "description": "company's own check"
+ },
+ "product": {
+  "id": 30321682,
+  "description": "rendered fat",
+  "productCategory": {
+   "id": 19025,
+   "description": "animal by-products"
+  },
+  "productDescriptions": [
+   {
+    "id": 30321704,
+    "productAspect": "Tank-LKW\r\n///Unofficial translation: Tank truck",
+    "weight": "24940.0",
+    "weightUnit": {
+     "id": 18973,
+     "description": "kg"
+    },
+    "temperature": {
+     "id": 27368,
+     "description": "ambient"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 30321750,
+    "takenBy": {
+     "id": 5007,
+     "organizationName": "Germany",
+     "isoCode": "DE"
+    },
+    "actionTaken": {
+     "id": 18383,
+     "description": "informing recipient(s)"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 219,
+   "description": "distribution to other member countries"
+  }
+ },
+ "risk": {
+  "id": 129981,
+  "riskDecision": "potentially serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 3,
+    "description": "Germany",
+    "code": "DE",
+    "countryNetworkOrganizationId": 5007
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 819084,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 819084,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 819084,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 819084,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 819084,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 38,
+    "description": "Netherlands",
+    "code": "NL",
+    "countryNetworkOrganizationId": 5026
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 819084,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 819084,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 819084,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5026": [
+   {
+    "id": 30,
+    "countryNetworkOrganizationId": 5026,
+    "link": "https://www.nvwa.nl/onderwerpen/voedselveiligheid/veiligheidswaarschuwingen/overzicht-veiligheidswaarschuwingen"
+   }
+  ],
+  "5007": [
+   {
+    "id": 16,
+    "countryNetworkOrganizationId": 5007,
+    "link": "http://www.lebensmittelwarnung.de"
+   }
+  ]
+ }
+}

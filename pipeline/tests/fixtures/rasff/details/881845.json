@@ -1,0 +1,167 @@
+{
+ "id": 881845,
+ "reference": "2026.9462",
+ "subject": "Undeclared allergen sesam in stir-fry meat, from Belgium",
+ "ecValidationDate": "23-10-2026 11:45:11",
+ "lastUpdate": "23-10-2026 11:45:11",
+ "notificationClassification": {
+  "id": 306,
+  "description": "alert notification"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18423,
+  "description": "company's own check"
+ },
+ "product": {
+  "id": 31146554,
+  "description": "stir-fry meat ",
+  "productCategory": {
+   "id": 18453,
+   "description": "meat and meat products (other than poultry)"
+  },
+  "productDescriptions": [
+   {
+    "id": 31146606,
+    "weight": "500.0",
+    "weightUnit": {
+     "id": 18974,
+     "description": "g"
+    },
+    "temperature": {
+     "id": 27370,
+     "description": "chilled"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31146624,
+    "takenBy": {
+     "id": 5026,
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    },
+    "actionTaken": {
+     "id": 18826,
+     "description": "informing consignor"
+    }
+   },
+   {
+    "id": 31146625,
+    "takenBy": {
+     "id": 5026,
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    },
+    "actionTaken": {
+     "id": 18383,
+     "description": "informing recipient(s)"
+    }
+   },
+   {
+    "id": 31146626,
+    "takenBy": {
+     "id": 5026,
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    },
+    "actionTaken": {
+     "id": 18837,
+     "description": "withdrawal from the market"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 219,
+   "description": "distribution to other member countries"
+  }
+ },
+ "risk": {
+  "id": 143852,
+  "riskDecision": "serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 7,
+    "description": "Belgium",
+    "code": "BE",
+    "countryNetworkOrganizationId": 5002
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881845,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 38,
+    "description": "Netherlands",
+    "code": "NL",
+    "countryNetworkOrganizationId": 5026
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881845,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881845,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5026": [
+   {
+    "id": 30,
+    "countryNetworkOrganizationId": 5026,
+    "link": "https://www.nvwa.nl/onderwerpen/voedselveiligheid/veiligheidswaarschuwingen/overzicht-veiligheidswaarschuwingen"
+   }
+  ],
+  "5002": [
+   {
+    "id": 2,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/nl/producten"
+   },
+   {
+    "id": 3,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/fr/produits"
+   }
+  ]
+ }
+}

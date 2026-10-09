@@ -1,0 +1,159 @@
+{
+ "id": 878615,
+ "reference": "2026.9397",
+ "subject": "Prohibited pesticides residues: profenofos  1,4 ± 0,4 mg/kg,   chlorfenapyr 0,20 ± 0,10 mg/kg fresh dill from Uzbekistan ",
+ "ecValidationDate": "21-10-2026 17:19:47",
+ "lastUpdate": "21-10-2026 17:19:47",
+ "notificationClassification": {
+  "id": 304,
+  "description": "information notification for attention"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18421,
+  "description": "border control - consignment released"
+ },
+ "product": {
+  "id": 31102684,
+  "description": "Other",
+  "productCategory": {
+   "id": 18448,
+   "description": "fruits and vegetables"
+  },
+  "hazards": [
+   {
+    "id": 31102696,
+    "name": "profenofos  - unauthorised substance - pesticide residues",
+    "analyticalResult": "1,4 ± 0,4",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "20-09-2026 00:00:00",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    }
+   },
+   {
+    "id": 31103965,
+    "name": "chlorfenapyr  - unauthorised substance - pesticide residues",
+    "analyticalResult": "  0,20 ± 0,10",
+    "unit": "mg/kg - ppm",
+    "samplingDate": "20-09-2026 00:00:00",
+    "hazardCategory": {
+     "description": "pesticide residues"
+    }
+   }
+  ],
+  "productDescriptions": [
+   {
+    "id": 31102686,
+    "productAspect": "White plastic-foam box",
+    "weight": "18.0",
+    "weightUnit": {
+     "id": 18973,
+     "description": "kg"
+    },
+    "temperature": {
+     "id": 27370,
+     "description": "chilled"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31102689,
+    "takenBy": {
+     "id": 5024,
+     "organizationName": "Latvia",
+     "isoCode": "LV"
+    },
+    "actionTaken": {
+     "id": 18380,
+     "description": "informing authorities"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 227,
+   "description": "no distribution to other member countries"
+  }
+ },
+ "risk": {
+  "id": 143008,
+  "riskDecision": "serious",
+  "hazardObserved": "Pesticides residues: profenofos  1,4 ± 0,4 mg/kg,   chlorfenapyr 0,20 ± 0,10 mg/kg fresh dill from Uzbekistan"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 24,
+    "description": "Latvia",
+    "code": "LV",
+    "countryNetworkOrganizationId": 5024
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 878615,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 878615,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 878615,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 31,
+    "description": "Poland",
+    "code": "PL",
+    "countryNetworkOrganizationId": 5028
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 878615,
+     "flagType": "DISTRIBUTION"
+    },
+    {
+     "notificationId": 878615,
+     "flagType": "OPERATOR"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 10228,
+    "description": "Uzbekistan",
+    "code": "UZ",
+    "countryNetworkOrganizationId": 5233
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 878615,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 878615,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5024": [],
+  "5233": [],
+  "5028": [
+   {
+    "id": 32,
+    "countryNetworkOrganizationId": 5028,
+    "link": "https://www.gov.pl/web/gis/glowny-inspektorat-sanitarny"
+   }
+  ]
+ }
+}

@@ -4,6 +4,10 @@ Every observation of a Notification (one archived raw record) is compared with i
 normalized fields. A difference becomes a new row in `notification_versions` holding the
 diff and whether the change is substantial. Times come from the raw record's `fetched_at`,
 so replaying the archive reproduces the same history.
+
+Official child records (Hazards, Product categories, countries with roles, measures) are part
+of the observed state: they are compared like any other field and, when anything changed,
+replaced as a whole. AI-made child rows (provenance = 'ai') are left alone.
 """
 
 from collections.abc import Callable
@@ -13,9 +17,11 @@ from psycopg.types.json import Jsonb
 
 from openfoodalerts.archive import RawRecord
 from openfoodalerts.db.connection import Connection
-from openfoodalerts.parse.model import ParsedNotification
+from openfoodalerts.parse.model import CHILD_FIELDS, ParsedNotification
 
+# Every compared field; COLUMNS are the ones stored in `notifications` itself.
 FIELDS = tuple(ParsedNotification.model_fields)
+COLUMNS = tuple(f for f in FIELDS if f not in CHILD_FIELDS)
 
 # (previous, new) -> is the change substantial? One rule per Source (spec §10.3).
 SubstantialRule = Callable[[ParsedNotification, ParsedNotification], bool]
@@ -42,7 +48,108 @@ def diff(old: ParsedNotification, new: ParsedNotification) -> dict[str, dict[str
 
 
 def _values(parsed: ParsedNotification) -> list[object]:
-    return [Jsonb(v) if k == "source_fields" else v for k, v in parsed.model_dump().items()]
+    dumped = parsed.model_dump(include=set(COLUMNS))
+    return [Jsonb(dumped[k]) if k == "source_fields" else dumped[k] for k in COLUMNS]
+
+
+_LOAD_CHILDREN = {
+    "hazards": """
+        SELECT h.hazard_name AS name, c.rasff_id AS category_rasff_id, h.is_primary,
+               h.analytical_result, h.unit, h.max_permitted_level, h.sampling_date,
+               h.provenance
+        FROM notification_hazards h LEFT JOIN hazard_categories c ON c.id = h.hazard_category_id
+        WHERE h.notification_id = %s AND h.provenance = 'official' ORDER BY h.position, h.id
+    """,
+    "product_categories": """
+        SELECT p.rasff_id, x.provenance
+        FROM notification_product_categories x
+        JOIN product_categories p ON p.id = x.product_category_id
+        WHERE x.notification_id = %s AND x.provenance = 'official' ORDER BY x.position, x.id
+    """,
+    "countries": """
+        SELECT country_iso2 AS iso2, role, provenance FROM notification_countries
+        WHERE notification_id = %s AND provenance = 'official'
+    """,
+    "measures": """
+        SELECT country_iso2, action_rasff_id, action_text FROM measures
+        WHERE notification_id = %s ORDER BY position, id
+    """,
+}
+
+
+_CHILD_TABLES_WITH_PROVENANCE = (
+    "notification_hazards",
+    "notification_product_categories",
+    "notification_countries",
+)
+
+
+def _load_children(conn: Connection, notification_id: int) -> dict[str, list[dict[str, Any]]]:
+    return {
+        name: conn.execute(sql, (notification_id,)).fetchall()
+        for name, sql in _LOAD_CHILDREN.items()
+    }
+
+
+def _write_children(conn: Connection, notification_id: int, parsed: ParsedNotification) -> None:
+    """Replace the official child records of one Notification with the parsed ones."""
+    nid = notification_id
+    for table in _CHILD_TABLES_WITH_PROVENANCE:
+        conn.execute(
+            f"DELETE FROM {table} WHERE notification_id = %s AND provenance = 'official'", (nid,)
+        )
+    conn.execute("DELETE FROM measures WHERE notification_id = %s", (nid,))
+    with conn.cursor() as cur:
+        cur.executemany(
+            """
+            INSERT INTO notification_hazards
+                (notification_id, position, hazard_name, hazard_category_id, is_primary,
+                 analytical_result, unit, max_permitted_level, sampling_date, provenance)
+            VALUES (%s, %s, %s, (SELECT id FROM hazard_categories WHERE rasff_id = %s),
+                    %s, %s, %s, %s, %s, %s)
+            """,
+            [
+                (
+                    nid,
+                    i,
+                    h.name,
+                    h.category_rasff_id,
+                    h.is_primary,
+                    h.analytical_result,
+                    h.unit,
+                    h.max_permitted_level,
+                    h.sampling_date,
+                    h.provenance,
+                )
+                for i, h in enumerate(parsed.hazards)
+            ],
+        )
+        cur.executemany(
+            """
+            INSERT INTO notification_product_categories
+                (notification_id, position, product_category_id, provenance)
+            VALUES (%s, %s, (SELECT id FROM product_categories WHERE rasff_id = %s), %s)
+            """,
+            [(nid, i, c.rasff_id, c.provenance) for i, c in enumerate(parsed.product_categories)],
+        )
+        cur.executemany(
+            """
+            INSERT INTO notification_countries (notification_id, country_iso2, role, provenance)
+            VALUES (%s, %s, %s, %s)
+            """,
+            [(nid, c.iso2, c.role, c.provenance) for c in parsed.countries],
+        )
+        cur.executemany(
+            """
+            INSERT INTO measures (notification_id, position, country_iso2, action_rasff_id,
+                                  action_text)
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            [
+                (nid, i, m.country_iso2, m.action_rasff_id, m.action_text)
+                for i, m in enumerate(parsed.measures)
+            ],
+        )
 
 
 def _current(
@@ -50,14 +157,16 @@ def _current(
 ) -> tuple[int, int, ParsedNotification] | None:
     row = conn.execute(
         f"""
-        SELECT id, current_version, {", ".join(FIELDS)} FROM notifications
+        SELECT id, current_version, {", ".join(COLUMNS)} FROM notifications
         WHERE source_id = %s AND source_key = %s
         """,
         (source_id, source_key),
     ).fetchone()
     if row is None:
         return None
-    return int(row["id"]), int(row["current_version"]), ParsedNotification.model_validate(row)
+    notification_id = int(row["id"])
+    state = ParsedNotification.model_validate({**row, **_load_children(conn, notification_id)})
+    return notification_id, int(row["current_version"]), state
 
 
 def _insert_version(
@@ -91,9 +200,9 @@ def _write_first(
         row = conn.execute(
             f"""
             INSERT INTO notifications
-                (source_id, {", ".join(FIELDS)}, raw_record_id, parser_version,
+                (source_id, {", ".join(COLUMNS)}, raw_record_id, parser_version,
                  current_version, first_seen_at, last_changed_at)
-            VALUES (%s, {", ".join(["%s"] * len(FIELDS))}, %s, %s, 1, %s, %s)
+            VALUES (%s, {", ".join(["%s"] * len(COLUMNS))}, %s, %s, 1, %s, %s)
             RETURNING id
             """,
             [source_id, *_values(parsed), raw.id, parser_version, raw.fetched_at, raw.fetched_at],
@@ -104,13 +213,14 @@ def _write_first(
         notification_id = existing_id
         conn.execute(
             f"""
-            UPDATE notifications SET {", ".join(f"{f} = %s" for f in FIELDS)},
+            UPDATE notifications SET {", ".join(f"{f} = %s" for f in COLUMNS)},
                 raw_record_id = %s, parser_version = %s, current_version = 1,
                 first_seen_at = %s, last_changed_at = %s
             WHERE id = %s
             """,
             [*_values(parsed), raw.id, parser_version, raw.fetched_at, raw.fetched_at, existing_id],
         )
+    _write_children(conn, notification_id, parsed)
     _insert_version(conn, notification_id, 1, raw, {}, False)
 
 
@@ -140,12 +250,14 @@ def observe(
     _insert_version(conn, notification_id, version, raw, changes, is_substantial(previous, parsed))
     conn.execute(
         f"""
-        UPDATE notifications SET {", ".join(f"{f} = %s" for f in FIELDS)},
+        UPDATE notifications SET {", ".join(f"{f} = %s" for f in COLUMNS)},
             raw_record_id = %s, parser_version = %s, current_version = %s, last_changed_at = %s
         WHERE id = %s
         """,
         [*_values(parsed), raw.id, parser_version, version, raw.fetched_at, notification_id],
     )
+    if any(field in changes for field in CHILD_FIELDS):
+        _write_children(conn, notification_id, parsed)
     return "changed"
 
 
