@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keyFromSegments, notificationPath } from "./notification-path";
+import { keyFromSegments, notificationPath, prerenderSegments } from "./notification-path";
 
 describe("notificationPath", () => {
   it("puts an openFDA recall number in one segment", () => {
@@ -48,5 +48,15 @@ describe("keyFromSegments", () => {
 
   it("rejects malformed percent-encoding", () => {
     expect(keyFromSegments("openfda", ["%E0%A4%A"])).toBeNull();
+  });
+});
+
+describe("prerenderSegments", () => {
+  it("returns the route segments of an ordinary key", () => {
+    expect(prerenderSegments("openfda", "H-0015-2027")).toEqual(["H-0015-2027"]);
+  });
+
+  it("skips a one-segment key that contains a slash (openFDA has recall number N/A)", () => {
+    expect(prerenderSegments("openfda", "N/A")).toBeNull();
   });
 });

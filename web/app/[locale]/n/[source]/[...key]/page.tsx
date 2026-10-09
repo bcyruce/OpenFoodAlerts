@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { NotificationDetailView } from "@/components/notification-detail";
 import { routing } from "@/i18n/routing";
 import { getDb } from "@/lib/db";
-import { keyFromSegments, keySegments, notificationPath } from "@/lib/notification-path";
+import { keyFromSegments, notificationPath, prerenderSegments } from "@/lib/notification-path";
 import {
   getNotificationDetail,
   listRecentNotificationKeys,
@@ -24,7 +24,10 @@ const PRERENDERED = 50;
 
 export async function generateStaticParams(): Promise<{ source: string; key: string[] }[]> {
   const recent = await listRecentNotificationKeys(getDb(), PRERENDERED);
-  const params = recent.map(({ source, key }) => ({ source, key: keySegments(source, key) }));
+  const params = recent.flatMap(({ source, key }) => {
+    const segments = prerenderSegments(source, key);
+    return segments ? [{ source, key: segments }] : [];
+  });
   // ensureStatic needs at least one parameter set, even on an empty database.
   return params.length > 0 ? params : [{ source: "openfda", key: ["none"] }];
 }

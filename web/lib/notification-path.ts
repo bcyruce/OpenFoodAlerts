@@ -33,3 +33,13 @@ export function keyFromSegments(source: string, segments: readonly string[]): st
   if (PATH_KEYED.has(source)) return `/${decoded.join("/")}`;
   return decoded.length === 1 ? decoded[0] : null;
 }
+
+/**
+ * Segments for `generateStaticParams`, or null when the key cannot be prerendered: Next.js
+ * builds export paths from unencoded params, so a "/" inside one segment would split it.
+ * Such pages still render on request through their percent-encoded URL.
+ */
+export function prerenderSegments(source: string, key: string): string[] | null {
+  const segments = keySegments(source, key);
+  return segments.some((s) => s === "" || s.includes("/")) ? null : segments;
+}
