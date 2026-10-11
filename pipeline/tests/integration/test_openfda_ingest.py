@@ -97,3 +97,13 @@ def test_api_key_is_sent_when_configured(
     fda = FakeOpenFDA(fixtures_dir)
     ingest_openfda(db, fda.client())
     assert all(u.params.get("api_key") == "k123" for u in fda.requests)
+
+
+def test_api_key_is_never_archived(
+    db: Connection, fixtures_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENFDA_API_KEY", "k123")
+    ingest_openfda(db, FakeOpenFDA(fixtures_dir).client())
+    rows = db.execute("SELECT url FROM raw_records").fetchall()
+    assert rows
+    assert not [r["url"] for r in rows if "k123" in r["url"]]

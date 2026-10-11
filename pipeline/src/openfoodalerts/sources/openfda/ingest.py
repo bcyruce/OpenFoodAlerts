@@ -93,7 +93,7 @@ def ingest_openfda(conn: Connection, client: PoliteClient) -> JobStats:
             source="openfda",
             kind="list",
             source_key=META_KEY,
-            url=str(probe.request.url),
+            url=str(probe.request.url.copy_remove_param("api_key")),
             http_status=probe.status_code,
             content_type="application/json",
             body=canonical_json(meta),

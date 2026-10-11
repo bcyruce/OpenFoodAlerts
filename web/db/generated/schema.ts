@@ -192,8 +192,9 @@ export const notifications = pgTable("notifications", {
 	currentVersion: integer("current_version").default(1).notNull(),
 	searchTsv: tsvector("search_tsv"),
 }, (table) => [
+	index("notifications_first_seen_idx").using("btree", table.sourceId.asc().nullsLast().op("int2_ops"), table.firstSeenAt.desc().nullsFirst().op("timestamptz_ops")),
 	index("notifications_product_text_trgm_idx").using("gin", table.productText.asc().nullsLast().op("gin_trgm_ops")),
-	index("notifications_published_at_idx").using("btree", table.publishedAt.desc().nullsFirst().op("timestamptz_ops"), table.id.desc().nullsFirst().op("timestamptz_ops")),
+	index("notifications_published_at_idx").using("btree", table.publishedAt.desc().nullsFirst().op("int8_ops"), table.id.desc().nullsFirst().op("timestamptz_ops")),
 	index("notifications_published_idx").using("btree", table.sourceId.asc().nullsLast().op("int2_ops"), table.publishedAt.desc().nullsFirst().op("timestamptz_ops")),
 	index("notifications_search_idx").using("gin", table.searchTsv.asc().nullsLast().op("tsvector_ops")),
 	foreignKey({
@@ -278,9 +279,13 @@ export const sources = pgTable("sources", {
 	lastSuccessAt: timestamp("last_success_at", { withTimezone: true, mode: 'string' }),
 	lastError: text("last_error"),
 	lastErrorAt: timestamp("last_error_at", { withTimezone: true, mode: 'string' }),
+	contractStatus: text("contract_status"),
+	contractCheckedAt: timestamp("contract_checked_at", { withTimezone: true, mode: 'string' }),
+	contractError: text("contract_error"),
 }, (table) => [
 	unique("sources_code_key").on(table.code),
 	check("sources_code_check", sql`code = ANY (ARRAY['rasff'::text, 'nvwa'::text, 'openfda'::text])`),
+	check("sources_contract_status_check", sql`contract_status = ANY (ARRAY['ok'::text, 'failed'::text, 'unreachable'::text])`),
 ]);
 
 export const subscriptions = pgTable("subscriptions", {

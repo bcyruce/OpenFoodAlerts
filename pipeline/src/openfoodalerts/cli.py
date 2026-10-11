@@ -228,5 +228,57 @@ def role_login_cmd(
     typer.echo(f"{role}: login enabled")
 
 
+@app.command("probe-contracts")
+def probe_contracts_cmd(
+    source: Annotated[
+        list[str] | None, typer.Option("--source", "-s", help="Only these Sources.")
+    ] = None,
+) -> None:
+    """Check each Source's endpoints against the contract models (a few light requests).
+
+    A Source whose contract failed is skipped by `parse` until a probe passes again; raw
+    archiving continues. Exit code 0: all ok; 3: a Source failed or was unreachable.
+    """
+    from openfoodalerts.probe import EXIT_PROBLEMS, default_probes, probe_contracts
+    from openfoodalerts.sources.nvwa.ingest import MIN_INTERVAL
+    from openfoodalerts.sources.rasff.client import RasffClient
+
+    with (
+        connect() as conn,
+        RasffClient.create() as rasff,
+        PoliteClient(min_interval=MIN_INTERVAL) as nvwa,
+        PoliteClient() as openfda,
+    ):
+        probes = default_probes(rasff, nvwa, openfda)
+        unknown = set(source or ()) - set(probes)
+        if unknown:
+            typer.echo(f"error: unknown Source {', '.join(sorted(unknown))}", err=True)
+            raise typer.Exit(2)
+        results = probe_contracts(
+            conn,
+            {code: probes[code] for code in source} if source else probes,
+            clients=(rasff, nvwa, openfda),
+        )
+    for result in results.values():
+        typer.echo(f"{result.source:8} {result.status:12} {result.error or ''}".rstrip())
+    if any(r.status != "ok" for r in results.values()):
+        raise typer.Exit(EXIT_PROBLEMS)
+
+
+@app.command("check-data")
+def check_data_cmd() -> None:
+    """Data quality assertions on the parsed Notifications (read-only).
+
+    Exit code 0: every check holds (warnings allowed); 3: a check failed.
+    """
+    from openfoodalerts.quality import EXIT_FAILED, check_data, failed, format_report
+
+    with connect() as conn:
+        results = check_data(conn)
+    typer.echo(format_report(results))
+    if failed(results):
+        raise typer.Exit(EXIT_FAILED)
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
