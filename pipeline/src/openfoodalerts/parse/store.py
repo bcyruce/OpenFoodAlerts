@@ -8,6 +8,10 @@ so replaying the archive reproduces the same history.
 Official child records (Hazards, Product categories, countries with roles, measures) are part
 of the observed state: they are compared like any other field and, when anything changed,
 replaced as a whole. AI-made child rows (provenance = 'ai') are left alone.
+
+Whenever the stored state changes, `search_tsv` is rebuilt from it by the SQL function
+`notification_search_tsv` (migration 20261025000800_search, which also backfilled the rows
+that existed before it).
 """
 
 from collections.abc import Callable
@@ -152,6 +156,13 @@ def _write_children(conn: Connection, notification_id: int, parsed: ParsedNotifi
         )
 
 
+def _write_search_document(conn: Connection, notification_id: int) -> None:
+    conn.execute(
+        "UPDATE notifications SET search_tsv = notification_search_tsv(id) WHERE id = %s",
+        (notification_id,),
+    )
+
+
 def _current(
     conn: Connection, source_id: int, source_key: str
 ) -> tuple[int, int, ParsedNotification] | None:
@@ -221,6 +232,7 @@ def _write_first(
             [*_values(parsed), raw.id, parser_version, raw.fetched_at, raw.fetched_at, existing_id],
         )
     _write_children(conn, notification_id, parsed)
+    _write_search_document(conn, notification_id)
     _insert_version(conn, notification_id, 1, raw, {}, False)
 
 
@@ -258,6 +270,7 @@ def observe(
     )
     if any(field in changes for field in CHILD_FIELDS):
         _write_children(conn, notification_id, parsed)
+    _write_search_document(conn, notification_id)
     return "changed"
 
 

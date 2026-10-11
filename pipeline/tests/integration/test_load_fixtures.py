@@ -58,8 +58,25 @@ def test_cli_loads_the_given_files(db: Connection, fixtures_dir: Path) -> None:
 
 
 def test_rejects_unsupported_sources(db: Connection, tmp_path: Path) -> None:
-    (tmp_path / "rasff").mkdir()
-    path = tmp_path / "rasff" / "x.json"
+    (tmp_path / "xyz").mkdir()
+    path = tmp_path / "xyz" / "x.json"
     path.write_text("{}", encoding="utf-8")
-    with pytest.raises(ValueError, match="rasff"):
+    with pytest.raises(ValueError, match=r"x\.json"):
         load_fixtures(db, [path])
+
+
+def test_loads_rasff_and_nvwa_detail_snapshots(db: Connection, fixtures_dir: Path) -> None:
+    # The Source is the nearest directory named after one (rasff/details/…, nvwa/detail/…).
+    load_fixtures(
+        db,
+        [
+            fixtures_dir / "rasff" / "details" / "881995.json",
+            fixtures_dir / "nvwa" / "detail" / "cook-korianderzaad-update.html",
+        ],
+    )
+    assert keys(db) == {
+        "2026.9489": 1,
+        "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen": 1,
+    }
+    hazards = db.execute("SELECT count(*) AS n FROM notification_hazards").fetchone()
+    assert hazards is not None and hazards["n"] > 0
