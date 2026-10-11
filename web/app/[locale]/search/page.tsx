@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { SearchView } from "@/components/search-view";
+import { isSiteLocale } from "@/i18n/routing";
 import { getDb } from "@/lib/db";
 import { parseSearchQuery, toSearchParams, type RawParams } from "@/lib/filters";
 import { searchNotifications } from "@/lib/search";
@@ -12,6 +13,7 @@ export const instant = false;
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/search">): Promise<Metadata> {
   const { locale } = await params;
+  if (!isSiteLocale(locale)) return {};
   const t = await getTranslations({ locale, namespace: "Search" });
   return {
     title: t("title"),
@@ -33,6 +35,8 @@ function received(params: RawParams): URLSearchParams {
 
 export default async function SearchPage({ params, searchParams }: PageProps<"/[locale]/search">) {
   const { locale } = await params;
+  // Search is not part of the Chinese module (spec §9).
+  if (!isSiteLocale(locale)) notFound();
   const raw = await searchParams;
   const query = parseSearchQuery(raw);
   // One URL per search: the GET form also submits empty fields, `[]` names or unsorted

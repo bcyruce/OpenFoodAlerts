@@ -1,6 +1,5 @@
-import { hasLocale } from "next-intl";
 import type { NextRequest } from "next/server";
-import { routing } from "@/i18n/routing";
+import { isSiteLocale, routing } from "@/i18n/routing";
 import { getDb } from "@/lib/db";
 import { parseSearchQuery } from "@/lib/filters";
 import { searchNotifications } from "@/lib/search";
@@ -14,7 +13,7 @@ import { searchNotifications } from "@/lib/search";
 export async function GET(request: NextRequest): Promise<Response> {
   const params = request.nextUrl.searchParams;
   const requested = params.get("locale");
-  const locale = hasLocale(routing.locales, requested) ? requested : routing.defaultLocale;
+  const locale = requested !== null && isSiteLocale(requested) ? requested : routing.defaultLocale;
   const result = await searchNotifications(getDb(), parseSearchQuery(params), { locale });
   return Response.json(result, { headers: { "X-Robots-Tag": "noindex" } });
 }

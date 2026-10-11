@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LanguageSwitch } from "@/components/language-switch";
-import { routing } from "@/i18n/routing";
+import { homePath, HTML_LANG, routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/site";
 import "../globals.css";
 
@@ -22,7 +22,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations({ locale, namespace: "Site" });
   return (
-    <html lang={locale} className="h-full antialiased">
+    <html lang={HTML_LANG[locale]} className="h-full antialiased">
       <body className="flex min-h-full flex-col">
         <a
           href="#main"
@@ -33,12 +33,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
         <header className="border-b border-slate-200">
           <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-3">
             <Link
-              href={`/${locale}`}
+              href={homePath(locale)}
               className="text-lg font-semibold text-slate-900 no-underline hover:text-slate-900"
             >
               {t("name")}
             </Link>
-            <LanguageSwitch label={t("languageSwitch")} locales={routing.locales} current={locale} />
+            <LanguageSwitch label={t("languageSwitch")} current={locale} />
           </div>
         </header>
         <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">

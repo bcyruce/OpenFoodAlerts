@@ -91,7 +91,8 @@
     "food contact material": "voedselcontactmateriaal"
   },
   "Home": {
-    "intro": "De website is in aanbouw. Pagina's van meldingen zijn al beschikbaar."
+    "intro": "De website is in aanbouw. Pagina's van meldingen zijn al beschikbaar.",
+    "subscribe": "Abonneer u op een dagelijkse Digest per e-mail"
   },
   "Search": {
     "title": "Meldingen zoeken",
@@ -136,5 +137,82 @@
     "officialValue": "officieel",
     "aiValue": "AI-indeling",
     "aiBadge": "AI"
+  },
+  "Alerts": {
+    "metaTitle": "Abonneren op e-mailupdates",
+    "metaDescription": "Gratis dagelijkse Digest van officiële voedselveiligheidsmeldingen van RASFF, NVWA en openFDA, gefilterd zoals u wilt.",
+    "heading": "Abonneren op e-mailupdates",
+    "intro": "Ontvang elke dag een Digest met nieuwe officiële voedselveiligheidsmeldingen die bij uw filters passen, en desgewenst een Instant e-mail bij meldingen met hoge prioriteit. Gratis, zonder account, en u kunt zich op elk moment afmelden.",
+    "emailLabel": "E-mailadres",
+    "languageLegend": "Taal van de e-mails",
+    "languageZhNote": "Chinese e-mails gaan alleen over de NVWA.",
+    "sourcesLegend": "Bronnen",
+    "sourcesHint": "Kies er minstens één. Vink Instant e-mail aan om meldingen met hoge prioriteit direct te ontvangen.",
+    "instantLabel": "Instant e-mail",
+    "instantFor": "Instant e-mail voor {source}",
+    "instantHint": "Een Instant e-mail wordt verstuurd zodra er een passende melding met hoge prioriteit verschijnt: RASFF-alertmeldingen, FDA Class I-terugroepingen en alle NVWA-waarschuwingen over voedsel. Maximaal 5 per dag; de rest komt in de Digest.",
+    "sourceDescriptions": {
+      "rasff": "EU Rapid Alert System for Food and Feed",
+      "nvwa": "Nederlandse Voedsel- en Warenautoriteit",
+      "openfda": "Amerikaanse FDA, food enforcement reports"
+    },
+    "hazardLegend": "Gevarencategorieën",
+    "productLegend": "Productcategorieën",
+    "countryLegend": "Landen van herkomst",
+    "filterHint": "Geen selectie betekent alles.",
+    "selectedCount": "{count, plural, =0 {alle} other {# geselecteerd}}",
+    "countrySearch": "Zoek een land",
+    "unclassifiedLabel": "Ook meldingen zonder classificatie opnemen",
+    "unclassifiedHint": "Sommige meldingen hebben (nog) geen gevarencategorie, productcategorie of land van herkomst, bijvoorbeeld als de AI geen keuze kon maken. Laat dit aangevinkt om ze niet te missen.",
+    "privacyNote": "We bewaren alleen uw e-mailadres, taal en filters, om deze e-mails te versturen. Geen cookies, geen tracking.",
+    "honeypotLabel": "Laat dit veld leeg",
+    "submit": "Abonneren",
+    "submitting": "Bezig met versturen…",
+    "successHeading": "Kijk in uw inbox",
+    "success": "Als {email} onze e-mails kan ontvangen, is er een bevestigingslink onderweg. De link is 24 uur geldig; er wordt niets verstuurd totdat u bevestigt.",
+    "errorInvalid": "Verbeter de velden die hieronder zijn gemarkeerd.",
+    "errorEmail": "Vul een geldig e-mailadres in.",
+    "errorSources": "Kies minstens één bron.",
+    "errorConsent": "Vink het toestemmingsvakje aan om te abonneren.",
+    "errorOutdated": "Deze pagina is verouderd. Laad haar opnieuw en probeer het nog eens.",
+    "errorRateLimited": "Te veel pogingen. Probeer het over een paar minuten opnieuw.",
+    "errorServer": "Er ging iets mis. Probeer het later opnieuw."
+  },
+  "AlertsConfirm": {
+    "metaTitle": "Bevestig uw abonnement",
+    "heading": "Bevestig uw abonnement",
+    "intro": "Druk op de knop om e-mails van OpenFoodAlerts te gaan ontvangen.",
+    "button": "Abonnement bevestigen",
+    "confirming": "Bezig met bevestigen…",
+    "successHeading": "Abonnement bevestigd",
+    "success": "Uw abonnement is actief. U ontvangt om 07:00 uur (Amsterdamse tijd) een Digest op dagen met nieuwe passende meldingen.",
+    "invalid": "Deze bevestigingslink is ongeldig of al gebruikt.",
+    "expired": "Deze bevestigingslink is verlopen. Abonneer u opnieuw.",
+    "missing": "Voor deze pagina is de link uit uw bevestigingsmail nodig. Open de link in de e-mail opnieuw.",
+    "rateLimited": "Te veel pogingen. Probeer het over een paar minuten opnieuw.",
+    "error": "Er ging iets mis. Probeer het later opnieuw.",
+    "subscribeAgain": "Naar het abonnementsformulier"
+  },
+  "Email": {
+    "footer": "OpenFoodAlerts archiveert officiële voedselveiligheidsmeldingen van RASFF, NVWA en openFDA. Het is geen officiële bron.",
+    "reason": "U ontvangt deze e-mail omdat dit adres is ingevuld op {site}.",
+    "confirm": {
+      "subject": "Bevestig uw abonnement op OpenFoodAlerts",
+      "intro": "Iemand, hopelijk u, heeft gevraagd om op dit adres e-mails van OpenFoodAlerts te ontvangen: een dagelijkse Digest met nieuwe officiële voedselveiligheidsmeldingen die bij deze filters passen.",
+      "sources": "Bronnen: {value}",
+      "hazardCategories": "Gevarencategorieën: {value}",
+      "productCategories": "Productcategorieën: {value}",
+      "originCountries": "Landen van herkomst: {value}",
+      "unclassified": "Meldingen zonder classificatie: {value}",
+      "instant": "Instant e-mail: {value}",
+      "all": "alle",
+      "none": "geen",
+      "selected": "{count} geselecteerd",
+      "included": "opgenomen",
+      "excluded": "niet opgenomen",
+      "button": "Abonnement bevestigen",
+      "validity": "Deze link is 24 uur geldig. Er wordt niets verstuurd totdat u bevestigt.",
+      "ignore": "Heeft u hier niet om gevraagd? Negeer deze e-mail dan. De aanvraag wordt na 7 dagen automatisch verwijderd."
+    }
   }
 }

@@ -43,3 +43,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright email outbox (EMAIL_TRANSPORT=outbox)
+/e2e/.outbox/

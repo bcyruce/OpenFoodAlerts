@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { NotificationDetailView } from "@/components/notification-detail";
-import { routing } from "@/i18n/routing";
+import { isSiteLocale, SITE_LOCALES } from "@/i18n/routing";
 import { getDb } from "@/lib/db";
 import { keyFromSegments, notificationPath, prerenderSegments } from "@/lib/notification-path";
 import {
@@ -22,14 +22,22 @@ export const instant = false;
 
 const PRERENDERED = 50;
 
-export async function generateStaticParams(): Promise<{ source: string; key: string[] }[]> {
+// ensureStatic needs at least one parameter set, even on an empty database or under zh.
+const SENTINEL = [{ source: "openfda", key: ["none"] }];
+
+export async function generateStaticParams({
+  params,
+}: {
+  params: { locale: string };
+}): Promise<{ source: string; key: string[] }[]> {
+  // Notification pages do not exist in zh (spec §9); the sentinel renders as a 404.
+  if (!isSiteLocale(params.locale)) return SENTINEL;
   const recent = await listRecentNotificationKeys(getDb(), PRERENDERED);
-  const params = recent.flatMap(({ source, key }) => {
+  const prerendered = recent.flatMap(({ source, key }) => {
     const segments = prerenderSegments(source, key);
     return segments ? [{ source, key: segments }] : [];
   });
-  // ensureStatic needs at least one parameter set, even on an empty database.
-  return params.length > 0 ? params : [{ source: "openfda", key: ["none"] }];
+  return prerendered.length > 0 ? prerendered : SENTINEL;
 }
 
 /** Cached per Notification; the pipeline's changes appear within the revalidate window. */
@@ -42,7 +50,7 @@ async function loadNotification(source: string, key: string): Promise<Notificati
 
 async function resolve(params: PageProps<"/[locale]/n/[source]/[...key]">["params"]) {
   const { locale, source, key: segments } = await params;
-  const key = keyFromSegments(source, segments);
+  const key = isSiteLocale(locale) ? keyFromSegments(source, segments) : null;
   const notification = key === null ? null : await loadNotification(source, key);
   return { locale, notification };
 }
@@ -70,7 +78,7 @@ export async function generateMetadata({
     alternates: {
       canonical: path,
       languages: Object.fromEntries(
-        routing.locales.map((l) => [l, notificationPath(l, n.source.code, n.sourceKey)]),
+        SITE_LOCALES.map((l) => [l, notificationPath(l, n.source.code, n.sourceKey)]),
       ),
     },
     openGraph: {
@@ -80,7 +88,7 @@ export async function generateMetadata({
       url: path,
       siteName: "OpenFoodAlerts",
       locale: OG_LOCALES[locale],
-      alternateLocale: routing.locales.filter((l) => l !== locale).map((l) => OG_LOCALES[l]),
+      alternateLocale: SITE_LOCALES.filter((l) => l !== locale).map((l) => OG_LOCALES[l]),
       publishedTime: n.publishedAt ?? n.firstSeenAt,
       modifiedTime: n.lastChangedAt,
     },
