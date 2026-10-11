@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 from openfoodalerts.archive import RawRecord, get_raw, source_id
 from openfoodalerts.db.connection import Connection
-from openfoodalerts.jobs import JobStats, run_job
+from openfoodalerts.jobs import JobStats, log_event, run_job
 from openfoodalerts.parse.model import ParsedNotification
 from openfoodalerts.parse.store import (
     SubstantialRule,
@@ -137,11 +137,26 @@ def replay_source(conn: Connection, parser: SourceParser, stats: JobStats) -> No
     conn.commit()
 
 
+def _contract_failed(conn: Connection, code: str, stats: JobStats) -> bool:
+    """Spec §3.4: no parse results for a Source whose last contract probe failed.
+
+    Its raw records stay in the archive and are parsed once a probe passes again.
+    """
+    from openfoodalerts.probe import contract_failed
+
+    if not contract_failed(conn, code):
+        return False
+    log_event("parse_skipped", job=stats.job, source=code, reason="contract failed")
+    stats.extra.setdefault("skipped_sources", []).append(code)
+    return True
+
+
 def parse(conn: Connection, sources: Iterable[str] | None = None) -> JobStats:
     registry = _registry()
     with run_job(conn, "parse", None) as stats:
         for code in sources or registry:
-            parse_source(conn, registry[code], stats)
+            if not _contract_failed(conn, code, stats):
+                parse_source(conn, registry[code], stats)
     return stats
 
 
@@ -150,5 +165,6 @@ def replay(conn: Connection, sources: Iterable[str] | None = None) -> JobStats:
     registry = _registry()
     with run_job(conn, "replay", None) as stats:
         for code in sources or registry:
-            replay_source(conn, registry[code], stats)
+            if not _contract_failed(conn, code, stats):
+                replay_source(conn, registry[code], stats)
     return stats

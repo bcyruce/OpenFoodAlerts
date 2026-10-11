@@ -48,7 +48,8 @@ def db(monkeypatch: pytest.MonkeyPatch) -> Iterator[Connection]:
         )
     if any(r["tablename"] == "sources" for r in rows):
         conn.execute(
-            "UPDATE sources SET last_success_at = NULL, last_error = NULL, last_error_at = NULL"
+            "UPDATE sources SET last_success_at = NULL, last_error = NULL, last_error_at = NULL,"
+            " contract_status = NULL, contract_checked_at = NULL, contract_error = NULL"
         )
     conn.commit()
     try:
