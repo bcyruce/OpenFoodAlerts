@@ -35,6 +35,27 @@ def ingest_openfda_cmd() -> None:
         ingest_openfda(conn, client)
 
 
+@app.command("backfill-nvwa")
+def backfill_nvwa_cmd() -> None:
+    """List every NVWA safety warning (new list + archive) and fetch unarchived details.
+
+    Resumable: details already in the archive are skipped.
+    """
+    from openfoodalerts.sources.nvwa.ingest import MIN_INTERVAL, backfill_nvwa
+
+    with connect() as conn, PoliteClient(min_interval=MIN_INTERVAL) as client:
+        backfill_nvwa(conn, client)
+
+
+@app.command("ingest-nvwa")
+def ingest_nvwa_cmd() -> None:
+    """New NVWA warnings from API page 1, then refetch pages whose sitemap lastmod moved on."""
+    from openfoodalerts.sources.nvwa.ingest import MIN_INTERVAL, ingest_nvwa
+
+    with connect() as conn, PoliteClient(min_interval=MIN_INTERVAL) as client:
+        ingest_nvwa(conn, client)
+
+
 @app.command("parse")
 def parse_cmd(
     source: Annotated[
