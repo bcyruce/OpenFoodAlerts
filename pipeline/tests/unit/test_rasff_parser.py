@@ -8,7 +8,7 @@ from typing import Any
 import pytest
 
 from openfoodalerts.parse.model import ParsedMeasure, ParsedNotification
-from openfoodalerts.sources.rasff.parser import is_rasff_news, parse_detail
+from openfoodalerts.sources.rasff.parser import is_rasff_news, is_substantial, parse_detail
 
 DETAILS = Path(__file__).parents[1] / "fixtures" / "rasff" / "details"
 
@@ -180,3 +180,19 @@ def test_a_detail_without_hazards_has_none() -> None:
     n = parse_detail(detail(881845))
     assert n.hazards == []
     assert n.hazard_text is None
+
+
+def derived(name: str) -> dict[str, Any]:
+    body: dict[str, Any] = json.loads(
+        (DETAILS.parent / "derived" / f"{name}.json").read_text(encoding="utf-8")
+    )
+    return body
+
+
+@pytest.mark.parametrize(
+    ("later", "substantial"),
+    [("881995_v2_new_distribution", True), ("881995_v2_text_fix", False)],
+)
+def test_substantial_rule_on_two_versions_of_a_detail(later: str, substantial: bool) -> None:
+    """RASFF (spec §10.3): a new distribution country is substantial, a text fix is not."""
+    assert is_substantial(parse_detail(detail(881995)), parse_detail(derived(later))) is substantial
