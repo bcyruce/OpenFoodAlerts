@@ -1,5 +1,6 @@
 """`ofa` command-line entry point. Every pipeline job is a subcommand (spec §5)."""
 
+from datetime import datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -80,6 +81,44 @@ def ingest_nvwa_cmd() -> None:
 
     with connect() as conn, PoliteClient(min_interval=MIN_INTERVAL) as client:
         ingest_nvwa(conn, client)
+
+
+@app.command("ingest-rasff")
+def ingest_rasff_cmd(
+    max_details: Annotated[
+        int | None, typer.Option(help="Stop after this many detail requests (trial runs).")
+    ] = None,
+    today: Annotated[
+        datetime | None,
+        typer.Option(formats=["%Y-%m-%d"], help="Treat this date as today (default: Brussels)."),
+    ] = None,
+) -> None:
+    """Fetch RASFF Notifications validated in the last 14 days whose detail is not archived.
+
+    Run `ofa parse --source rasff` afterwards to turn them into Notifications.
+    """
+    from openfoodalerts.sources.rasff.client import RasffClient
+    from openfoodalerts.sources.rasff.ingest import ingest_rasff
+
+    with connect() as conn, RasffClient.create() as client:
+        ingest_rasff(conn, client, today=today.date() if today else None, max_details=max_details)
+
+
+@app.command("refresh-rasff")
+def refresh_rasff_cmd(
+    max_details: Annotated[
+        int | None, typer.Option(help="Re-fetch at most this many details, newest first.")
+    ] = None,
+) -> None:
+    """Re-fetch details of RASFF Notifications validated in the last 30 days.
+
+    Changed details are archived; `ofa parse --source rasff` records them as new versions.
+    """
+    from openfoodalerts.sources.rasff.client import RasffClient
+    from openfoodalerts.sources.rasff.refresh import refresh_rasff
+
+    with connect() as conn, RasffClient.create() as client:
+        refresh_rasff(conn, client, max_details=max_details)
 
 
 @app.command("parse")

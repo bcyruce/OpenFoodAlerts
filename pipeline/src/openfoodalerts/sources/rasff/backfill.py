@@ -108,6 +108,49 @@ def fetch_detail(
     return True
 
 
+def walk_list(
+    conn: Connection,
+    client: RasffClient,
+    stats: JobStats,
+    *,
+    filters: dict[str, Any] | None = None,
+    start_page: int = 1,
+    max_pages: int | None = None,
+    max_details: int | None = None,
+    items_per_page: int = ITEMS_PER_PAGE,
+) -> None:
+    """Walk list pages from `start_page`; fetch the details not yet archived.
+
+    Shared by `backfill-rasff` (whole list) and `ingest-rasff` (list filtered by date).
+    Counts pages, skipped and fetched details in `stats.extra`.
+    """
+    stats.extra.update(pages=0, skipped=0, fetched=0, missing=0)
+    archived = archived_detail_keys(conn)
+    page = start_page
+    while max_pages is None or stats.extra["pages"] < max_pages:
+        payload = fetch_list_page(conn, client, page, items_per_page, filters)
+        stats.extra["pages"] += 1
+        stats.extra["total_pages"] = payload.get("totalPages")
+        stats.extra["total_elements"] = payload.get("totalElements")
+        items = payload.get("notifications") or []
+        for item in items:
+            reference = str(item["reference"])
+            if reference in archived:
+                stats.extra["skipped"] += 1
+                continue
+            if max_details is not None and stats.extra["fetched"] >= max_details:
+                stats.extra["last_page"] = page
+                stats.extra["capped"] = True
+                return
+            stats.extra["fetched"] += 1
+            if fetch_detail(conn, client, int(item["notifId"]), reference, stats):
+                archived.add(reference)
+        stats.extra["last_page"] = page
+        if not items or page >= int(payload.get("totalPages") or 0):
+            break
+        page += 1
+
+
 def backfill_rasff(
     conn: Connection,
     client: RasffClient,
@@ -123,28 +166,13 @@ def backfill_rasff(
     is walked.
     """
     with run_job(conn, "backfill-rasff", SOURCE, client.http) as stats:
-        stats.extra.update(pages=0, skipped=0, fetched=0, missing=0)
-        archived = archived_detail_keys(conn)
-        page = start_page
-        while max_pages is None or stats.extra["pages"] < max_pages:
-            payload = fetch_list_page(conn, client, page, items_per_page)
-            stats.extra["pages"] += 1
-            stats.extra["total_pages"] = payload.get("totalPages")
-            stats.extra["total_elements"] = payload.get("totalElements")
-            items = payload.get("notifications") or []
-            for item in items:
-                reference = str(item["reference"])
-                if reference in archived:
-                    stats.extra["skipped"] += 1
-                    continue
-                if max_details is not None and stats.extra["fetched"] >= max_details:
-                    stats.extra["last_page"] = page
-                    return stats
-                stats.extra["fetched"] += 1
-                if fetch_detail(conn, client, int(item["notifId"]), reference, stats):
-                    archived.add(reference)
-            stats.extra["last_page"] = page
-            if not items or page >= int(payload.get("totalPages") or 0):
-                break
-            page += 1
+        walk_list(
+            conn,
+            client,
+            stats,
+            start_page=start_page,
+            max_pages=max_pages,
+            max_details=max_details,
+            items_per_page=items_per_page,
+        )
     return stats

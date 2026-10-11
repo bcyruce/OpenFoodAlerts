@@ -1,10 +1,5 @@
 """`backfill-rasff` against a fake RASFF Window serving the real detail fixtures."""
 
-import json
-from pathlib import Path
-from typing import Any
-
-import httpx
 import pytest
 from typer.testing import CliRunner
 
@@ -13,51 +8,7 @@ from openfoodalerts.db.connection import Connection
 from openfoodalerts.parse.run import parse
 from openfoodalerts.sources.rasff.backfill import backfill_rasff
 from openfoodalerts.sources.rasff.client import RasffClient
-
-DETAILS = Path(__file__).parents[1] / "fixtures" / "rasff" / "details"
-CONTACT = [{"contactPerson": {"email": "officer@authority.example"}}]
-
-
-class FakeRasff:
-    """List pages in the order given, details by notifId; detail bodies carry contacts."""
-
-    def __init__(self) -> None:
-        bodies = [json.loads(p.read_text(encoding="utf-8")) for p in sorted(DETAILS.glob("*.json"))]
-        self.details: dict[int, dict[str, Any]] = {
-            b["id"]: b | {"additionalInformations": CONTACT} for b in bodies
-        }
-        self.detail_requests: list[int] = []
-        self.list_requests: list[dict[str, Any]] = []
-        self.missing: set[int] = set()
-        self.interrupt_after: int | None = None
-
-    def _list(self, body: dict[str, Any]) -> httpx.Response:
-        self.list_requests.append(body)
-        page, size = body["parameters"]["pageNumber"], body["parameters"]["itemsPerPage"]
-        items = [{"notifId": i, "reference": d["reference"]} for i, d in self.details.items()]
-        chunk = items[(page - 1) * size : page * size]
-        pages = -(-len(items) // size)
-        return httpx.Response(
-            200,
-            json={"notifications": chunk, "totalPages": pages, "totalElements": len(items)},
-            headers={"X-Rate-Limit-Remaining": "49"},
-        )
-
-    def handler(self, request: httpx.Request) -> httpx.Response:
-        if request.method == "POST":
-            return self._list(json.loads(request.content))
-        notif_id = int(request.url.path.rstrip("/").split("/")[-2])
-        if self.interrupt_after is not None and len(self.detail_requests) >= self.interrupt_after:
-            raise KeyboardInterrupt
-        self.detail_requests.append(notif_id)
-        if notif_id in self.missing:
-            return httpx.Response(404, json={"status": "NOT_FOUND"})
-        return httpx.Response(
-            200, json=self.details[notif_id], headers={"X-Rate-Limit-Remaining": "49"}
-        )
-
-    def client(self) -> RasffClient:
-        return RasffClient.create(transport=httpx.MockTransport(self.handler), sleep=lambda s: None)
+from tests.rasff_fake import FakeRasff
 
 
 def raw_keys(db: Connection, kind: str) -> list[str]:
