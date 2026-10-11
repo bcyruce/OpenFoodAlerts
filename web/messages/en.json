@@ -91,6 +91,84 @@
     "food contact material": "food contact material"
   },
   "Home": {
-    "intro": "The website is under construction. Notification pages are already available."
+    "intro": "The website is under construction. Notification pages are already available.",
+    "subscribe": "Subscribe to a daily Digest by email"
+  },
+  "Alerts": {
+    "metaTitle": "Subscribe to email updates",
+    "metaDescription": "Free daily Digest of official food-safety notifications from RASFF, NVWA and openFDA, filtered your way.",
+    "heading": "Subscribe to email updates",
+    "intro": "Get a daily Digest of new official food-safety notifications that match your filters, and optionally an Instant email for high-priority ones. Free, no account needed, and you can unsubscribe at any time.",
+    "emailLabel": "Email address",
+    "languageLegend": "Email language",
+    "languageZhNote": "Chinese emails cover NVWA only.",
+    "sourcesLegend": "Sources",
+    "sourcesHint": "Choose at least one. Tick Instant email to also get high-priority notifications right away.",
+    "instantLabel": "Instant email",
+    "instantFor": "Instant email for {source}",
+    "instantHint": "Instant emails are sent as soon as a matching high-priority notification appears: RASFF alert notifications, FDA Class I recalls and every NVWA food warning. At most 5 per day; the rest go into the Digest.",
+    "sourceDescriptions": {
+      "rasff": "EU Rapid Alert System for Food and Feed",
+      "nvwa": "Netherlands Food and Consumer Product Safety Authority",
+      "openfda": "US FDA food enforcement reports"
+    },
+    "hazardLegend": "Hazard categories",
+    "productLegend": "Product categories",
+    "countryLegend": "Countries of origin",
+    "filterHint": "No selection means all.",
+    "selectedCount": "{count, plural, =0 {all} other {# selected}}",
+    "countrySearch": "Find a country",
+    "unclassifiedLabel": "Also include notifications without a classification",
+    "unclassifiedHint": "Some notifications have no hazard category, product category or country of origin yet, for example when the AI could not decide. Keep this ticked so you do not miss them.",
+    "privacyNote": "We only store your email address, language and filters, to send these emails. No cookies, no tracking.",
+    "honeypotLabel": "Leave this field empty",
+    "submit": "Subscribe",
+    "submitting": "Sending…",
+    "successHeading": "Check your inbox",
+    "success": "If {email} can receive our emails, a confirmation link is on its way. It is valid for 24 hours; nothing is sent until you confirm.",
+    "errorInvalid": "Please correct the fields marked below.",
+    "errorEmail": "Enter a valid email address.",
+    "errorSources": "Choose at least one Source.",
+    "errorConsent": "Tick the consent box to subscribe.",
+    "errorOutdated": "This page is out of date. Reload it and try again.",
+    "errorRateLimited": "Too many attempts. Please try again in a few minutes.",
+    "errorServer": "Something went wrong. Please try again later."
+  },
+  "AlertsConfirm": {
+    "metaTitle": "Confirm your subscription",
+    "heading": "Confirm your subscription",
+    "intro": "Press the button to start receiving emails from OpenFoodAlerts.",
+    "button": "Confirm subscription",
+    "confirming": "Confirming…",
+    "successHeading": "Subscription confirmed",
+    "success": "Your subscription is active. You will receive a Digest at 07:00 (Amsterdam time) on days with new matching notifications.",
+    "invalid": "This confirmation link is not valid or has already been used.",
+    "expired": "This confirmation link has expired. Please subscribe again.",
+    "missing": "This page needs the link from your confirmation email. Open the link in the email again.",
+    "rateLimited": "Too many attempts. Please try again in a few minutes.",
+    "error": "Something went wrong. Please try again later.",
+    "subscribeAgain": "Go to the subscription form"
+  },
+  "Email": {
+    "footer": "OpenFoodAlerts archives official food-safety notifications from RASFF, NVWA and openFDA. It is not an official source.",
+    "reason": "You receive this email because this address was entered on {site}.",
+    "confirm": {
+      "subject": "Confirm your OpenFoodAlerts subscription",
+      "intro": "Someone, hopefully you, asked to receive OpenFoodAlerts emails at this address: a daily Digest of new official food-safety notifications that match these filters.",
+      "sources": "Sources: {value}",
+      "hazardCategories": "Hazard categories: {value}",
+      "productCategories": "Product categories: {value}",
+      "originCountries": "Countries of origin: {value}",
+      "unclassified": "Notifications without a classification: {value}",
+      "instant": "Instant email: {value}",
+      "all": "all",
+      "none": "none",
+      "selected": "{count} selected",
+      "included": "included",
+      "excluded": "not included",
+      "button": "Confirm subscription",
+      "validity": "This link is valid for 24 hours. Nothing will be sent until you confirm.",
+      "ignore": "If you did not ask for this, ignore this email. The request is deleted automatically after 7 days."
+    }
   }
 }

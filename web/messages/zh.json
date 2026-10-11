@@ -1,0 +1,91 @@
+{
+  "Site": {
+    "name": "OpenFoodAlerts",
+    "tagline": "官方食品安全通报的存档与解读",
+    "skipToContent": "跳到主要内容",
+    "languageSwitch": "语言",
+    "disclaimer": "本站非官方来源，与 NVWA、欧盟委员会、FDA 无关联；信息可能延迟或有误；采取任何行动前请核对官方通报。"
+  },
+  "Notification": {
+    "notFoundTitle": "页面未找到",
+    "notFoundBody": "此页面不存在，或没有中文版本。",
+    "backHome": "前往订阅页面"
+  },
+  "Alerts": {
+    "metaTitle": "订阅邮件",
+    "metaDescription": "免费订阅 NVWA 食品安全警告的每日 Digest。",
+    "heading": "订阅邮件",
+    "intro": "每天收到一封 Digest，列出符合您筛选条件的新官方食品安全通报；也可以选择在出现高优先级通报时立即收到 Instant email。免费，无需注册账户，可随时退订。",
+    "emailLabel": "邮箱地址",
+    "languageLegend": "邮件语言",
+    "languageZhNote": "中文邮件只包含 NVWA 的通报。",
+    "sourcesLegend": "来源",
+    "sourcesHint": "至少选择一个。勾选 Instant email，可在出现高优先级通报时立即收到邮件。",
+    "instantLabel": "Instant email",
+    "instantFor": "{source} 的 Instant email",
+    "instantHint": "出现符合条件的高优先级通报时立即发送：RASFF 的 alert 通报、FDA 的 Class I 召回，以及 NVWA 的所有食品类警告。每天最多 5 封，其余的放进 Digest。",
+    "sourceDescriptions": {
+      "rasff": "欧盟食品和饲料快速预警系统",
+      "nvwa": "荷兰食品和消费品安全局",
+      "openfda": "美国 FDA 食品执法报告"
+    },
+    "hazardLegend": "危害类别",
+    "productLegend": "产品类别",
+    "countryLegend": "原产国",
+    "filterHint": "不选表示全部。",
+    "selectedCount": "{count, plural, =0 {全部} other {已选 # 项}}",
+    "countrySearch": "查找国家",
+    "unclassifiedLabel": "同时包含未分类的通报",
+    "unclassifiedHint": "有些通报（暂时）没有危害类别、产品类别或原产国，例如 AI 无法判断时。保持勾选，以免错过这些通报。",
+    "privacyNote": "我们只保存您的邮箱地址、语言和筛选条件，仅用于发送这些邮件。不使用 cookie，不做追踪。",
+    "honeypotLabel": "请勿填写此栏",
+    "submit": "订阅",
+    "submitting": "正在发送…",
+    "successHeading": "请查看您的邮箱",
+    "success": "如果 {email} 可以接收我们的邮件，确认链接正在发送中。链接 24 小时内有效；在您确认之前我们不会发送任何邮件。",
+    "errorInvalid": "请修改下面标出的栏目。",
+    "errorEmail": "请输入有效的邮箱地址。",
+    "errorSources": "请至少选择一个来源。",
+    "errorConsent": "请勾选同意声明后再订阅。",
+    "errorOutdated": "此页面已过期，请刷新后重试。",
+    "errorRateLimited": "尝试次数过多，请几分钟后再试。",
+    "errorServer": "出现错误，请稍后再试。"
+  },
+  "AlertsConfirm": {
+    "metaTitle": "确认订阅",
+    "heading": "确认订阅",
+    "intro": "点击按钮，开始接收 OpenFoodAlerts 的邮件。",
+    "button": "确认订阅",
+    "confirming": "正在确认…",
+    "successHeading": "订阅已确认",
+    "success": "您的订阅已生效。有新的匹配通报时，您会在当天 07:00（阿姆斯特丹时间）收到一封 Digest。",
+    "invalid": "此确认链接无效或已被使用。",
+    "expired": "此确认链接已过期，请重新订阅。",
+    "missing": "此页面需要确认邮件中的链接。请重新打开邮件中的链接。",
+    "rateLimited": "尝试次数过多，请几分钟后再试。",
+    "error": "出现错误，请稍后再试。",
+    "subscribeAgain": "前往订阅页面"
+  },
+  "Email": {
+    "footer": "OpenFoodAlerts 存档来自 RASFF、NVWA 和 openFDA 的官方食品安全通报，本站不是官方来源。",
+    "reason": "您收到这封邮件，是因为有人在 {site} 上填写了这个邮箱地址。",
+    "confirm": {
+      "subject": "请确认您的 OpenFoodAlerts 订阅",
+      "intro": "有人（希望是您本人）申请用这个邮箱接收 OpenFoodAlerts 的邮件：每天一封 Digest，列出符合以下筛选条件的新官方食品安全通报。",
+      "sources": "来源：{value}",
+      "hazardCategories": "危害类别：{value}",
+      "productCategories": "产品类别：{value}",
+      "originCountries": "原产国：{value}",
+      "unclassified": "未分类的通报：{value}",
+      "instant": "Instant email：{value}",
+      "all": "全部",
+      "none": "无",
+      "selected": "已选 {count} 项",
+      "included": "包含",
+      "excluded": "不包含",
+      "button": "确认订阅",
+      "validity": "此链接 24 小时内有效。在您确认之前，我们不会发送任何邮件。",
+      "ignore": "如果这不是您本人的操作，请忽略这封邮件。该申请将在 7 天后自动删除。"
+    }
+  }
+}

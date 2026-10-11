@@ -17,9 +17,28 @@ Next.js App Router site (Next 16, Cache Components, next-intl, Drizzle, Tailwind
   - openFDA and RASFF keys are one segment: `/en/n/openfda/H-0015-2027`, `/en/n/rasff/2026.9489`.
   - NVWA keys (URL paths) fill the remaining segments without the leading slash: `/en/n/nvwa/actueel/nieuws/2026/10/24/veiligheidswaarschuwing-…`.
   - Segments are percent-encoded; `keyFromSegments` reverses it.
-- Locales: `en` (default) and `nl`, always prefixed; `/` redirects by Accept-Language. No locale cookie.
+- `/{locale}/alerts`: subscription form; `/{locale}/alerts/confirm#token=…`: confirmation landing page (button → `/api/confirm`). Both `noindex`, available in en/nl/zh.
+- `POST /api/subscribe`, `POST /api/confirm`: JSON only (also blocks cross-site form posts). See the route files for bodies and status codes.
+- Locales: `en` (default), `nl` and `zh`, always prefixed; `/` redirects by Accept-Language to en/nl only. zh exists only for the sections listed in `localesForPath` (`i18n/routing.ts`, now just `alerts`); other pages call `notFound()` unless `isSiteLocale(locale)`. No locale cookie.
+
+## Subscriptions (ticket 28)
+
+Private tables `subscriptions`, `email_suppressions`, `email_deliveries` (migration `20261025000700`). `ofa_web` reads and writes the first two and only reads `email_deliveries`; it records confirmation emails through the SECURITY DEFINER function `record_confirm_delivery(subscription_id, provider_message_id)`. `ofa_pipeline` has no access; `ofa_mailer` reads Subscriptions and public tables and inserts deliveries.
+
+Modules to reuse (tickets 29–31):
+
+- `lib/subscriptions/validate.ts`: `parseSubscriptionRequest(body, known)`, `normalizeEmail`, filter types, `SOURCE_CODES`, `ZH_SOURCES`.
+- `lib/subscriptions/crypto.ts`: `newConfirmToken`, `tokenHash`, `manageToken(id, secret)`, `emailHash(email, pepper)`, `ipHash`. The formats are documented at the top of the file; the Python mailer must build manage tokens and email hashes the same way.
+- `lib/subscriptions/service.ts`: `requestSubscription`, `confirmSubscription`, `isSuppressed(db, email, pepper)`, `confirmUrl`.
+- `lib/subscriptions/consent.ts`: `CONSENT_TEXT_VERSION` and the consent texts per version and locale. Bump the version whenever a text changes.
+- `lib/subscriptions/catalog.ts`: filter values from the seed tables; `runtime.ts`: env wiring, rate limiters, `loadFilterCatalog()` (cached).
+- `lib/email/transport.ts`: `EmailTransport` (`brevo` | `outbox` | `log` via `EMAIL_TRANSPORT`; `createMemoryTransport()` for tests). `lib/email/render.ts`: `renderEmail({locale, subject, blocks, footer})` → plain text + HTML. `lib/email/templates.ts`: `renderConfirmEmail`; strings in `messages/*.json` under `Email`.
+- `lib/rate-limit.ts`: in-memory per-IP limiter (single instance only) and `clientIp(headers, CLIENT_IP_HEADER)`.
+
+Environment: `OFA_HASH_PEPPER`, `OFA_TOKEN_SECRET` (required in production), `EMAIL_TRANSPORT`, `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_FROM_NAME`, `EMAIL_OUTBOX_DIR`, `CLIENT_IP_HEADER`, `SUBSCRIBE_RATE_LIMIT`, `CONFIRM_RATE_LIMIT`, `SITE_URL` (see `.env.example`).
 
 ## Tests
 
 - `pnpm test` (vitest): data access against `TEST_DATABASE_URL`, each test in a rolled-back transaction.
-- `make smoke` (repo root): loads the fixtures (`make web-fixtures`), builds, starts on `SMOKE_PORT` (3004) and runs Playwright (`e2e/`, chromium only, axe WCAG A/AA check).
+- `make smoke` (repo root): loads the fixtures (`make web-fixtures`), builds, starts on `SMOKE_PORT` (3004) and runs Playwright (`e2e/`, chromium only, axe WCAG A/AA check). The test server sends email with `EMAIL_TRANSPORT=outbox` into `e2e/.outbox/` (git-ignored), where `e2e/outbox.ts` reads it back.
+- Subscription tests run as `ofa_web` (`SET LOCAL ROLE`, see `lib/test-db.ts`), so they also check the migration's grants.
