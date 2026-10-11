@@ -207,7 +207,7 @@ def test_parse_writes_the_notification_and_its_child_records(db: Connection) -> 
     n = notification(db, "2026.9489")
     assert n["source_ref"] == "881995"
     assert n["parser_version"] == "rasff-1"
-    assert n["search_tsv"] is None
+    assert n["search_tsv"] is not None  # see test_search_tsv.py
     assert hazards(db, "2026.9489") == [
         {
             "hazard_name": "glycidyl esters",

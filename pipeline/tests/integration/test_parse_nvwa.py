@@ -73,7 +73,7 @@ def test_parse_writes_the_warning(db: Connection, page: bytes) -> None:
     assert n["product_type"] == "food"
     assert n["product_type_provenance"] == "rule"
     assert n["risk_official"] is None  # NVWA does not grade: "not graded" (ADR 0006)
-    assert n["search_tsv"] is None
+    assert n["search_tsv"] is not None  # see test_search_tsv.py
     assert n["source_fields"]["update_notes"][0].startswith("Update 13 oktober 2026")
 
 

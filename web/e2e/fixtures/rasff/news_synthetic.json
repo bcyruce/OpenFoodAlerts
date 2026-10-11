@@ -1,0 +1,142 @@
+{
+ "id": 999901,
+ "reference": "2026.9901",
+ "subject": "RASFF News: metal particles found in grated cheese (synthetic test record)",
+ "ecValidationDate": "23-10-2026 15:33:51",
+ "lastUpdate": "23-10-2026 15:33:51",
+ "notificationClassification": {
+  "id": 302,
+  "description": "news"
+ },
+ "productType": {
+  "id": 283,
+  "description": "food"
+ },
+ "notificationBasis": {
+  "id": 18423,
+  "description": "company's own check"
+ },
+ "product": {
+  "id": 31147662,
+  "description": "grated cheese ",
+  "productCategory": {
+   "id": 18454,
+   "description": "milk and milk products"
+  },
+  "productDescriptions": [
+   {
+    "id": 31147670,
+    "temperature": {
+     "id": 27370,
+     "description": "chilled"
+    }
+   }
+  ],
+  "measures": [
+   {
+    "id": 31147765,
+    "takenBy": {
+     "id": 5026,
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    },
+    "actionTaken": {
+     "id": 18383,
+     "description": "informing recipient(s)"
+    }
+   },
+   {
+    "id": 31147767,
+    "takenBy": {
+     "id": 5026,
+     "organizationName": "Netherlands",
+     "isoCode": "NL"
+    },
+    "actionTaken": {
+     "id": 18826,
+     "description": "informing consignor"
+    }
+   }
+  ],
+  "distributionStatus": {
+   "id": 219,
+   "description": "distribution to other member countries"
+  }
+ },
+ "risk": {
+  "id": 143866,
+  "riskDecision": "serious"
+ },
+ "organizationFlags": [
+  {
+   "organization": {
+    "id": 7,
+    "description": "Belgium",
+    "code": "BE",
+    "countryNetworkOrganizationId": 5002
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881931,
+     "flagType": "FOR_FOLLOW_UP"
+    },
+    {
+     "notificationId": 881931,
+     "flagType": "DISTRIBUTION"
+    }
+   ]
+  },
+  {
+   "organization": {
+    "id": 38,
+    "description": "Netherlands",
+    "code": "NL",
+    "countryNetworkOrganizationId": 5026
+   },
+   "notificationFlags": [
+    {
+     "notificationId": 881931,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881931,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881931,
+     "flagType": "ORIGIN"
+    },
+    {
+     "notificationId": 881931,
+     "flagType": "NOTIFYING"
+    },
+    {
+     "notificationId": 881931,
+     "flagType": "OPERATOR"
+    }
+   ]
+  }
+ ],
+ "notificationStatus": "ec_validated",
+ "localConsumerLinksByCountry": {
+  "5026": [
+   {
+    "id": 30,
+    "countryNetworkOrganizationId": 5026,
+    "link": "https://www.nvwa.nl/onderwerpen/voedselveiligheid/veiligheidswaarschuwingen/overzicht-veiligheidswaarschuwingen"
+   }
+  ],
+  "5002": [
+   {
+    "id": 2,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/nl/producten"
+   },
+   {
+    "id": 3,
+    "countryNetworkOrganizationId": 5002,
+    "link": "https://favv-afsca.be/fr/produits"
+   }
+  ]
+ }
+}

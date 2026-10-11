@@ -16,7 +16,10 @@ UV := uv --directory pipeline
 PNPM := pnpm --dir web
 # Fixture snapshots for the web, loaded in this order (later snapshots become new versions).
 WEB_FIXTURES := $(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/openfda/*.json)) \
-	$(sort $(wildcard $(CURDIR)/web/e2e/fixtures/openfda/*.json))
+	$(sort $(wildcard $(CURDIR)/web/e2e/fixtures/openfda/*.json)) \
+	$(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/rasff/details/*.json)) \
+	$(sort $(wildcard $(CURDIR)/web/e2e/fixtures/rasff/*.json)) \
+	$(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/nvwa/detail/*.html))
 
 .PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval smoke
 
@@ -50,7 +53,7 @@ db-roles: ## Enable login for ofa_web with OFA_WEB_PASSWORD (roles are cluster-w
 db-types: ## Regenerate web/db/generated/ (Drizzle) from the migrated DATABASE_URL
 	cd web && node scripts/db-types.mjs
 
-web-fixtures: ## Archive and parse the openFDA fixtures into DATABASE_URL (dev/CI data)
+web-fixtures: ## Archive and parse the openFDA, RASFF and NVWA fixtures into DATABASE_URL (dev/CI data)
 	$(UV) run ofa load-fixtures $(WEB_FIXTURES)
 
 lint: ## ruff + eslint
