@@ -2,18 +2,57 @@
 import { relations } from "drizzle-orm/relations";
 import { sources, rawRecords, notifications, notificationHazards, hazardCategories, notificationProductCategories, productCategories, notificationCountries, countries, measures, notificationVersions } from "./schema";
 
-export const rawRecordsRelations = relations(rawRecords, ({one, many}) => ({
-	source: one(sources, {
-		fields: [rawRecords.sourceId],
-		references: [sources.id]
-	}),
-	notifications: many(notifications),
-	notificationVersions: many(notificationVersions),
+export const countriesRelations = relations(countries, ({many}) => ({
+	notificationCountries: many(notificationCountries),
+	measures: many(measures),
 }));
 
-export const sourcesRelations = relations(sources, ({many}) => ({
-	rawRecords: many(rawRecords),
-	notifications: many(notifications),
+export const hazardCategoriesRelations = relations(hazardCategories, ({many}) => ({
+	notificationHazards: many(notificationHazards),
+}));
+
+export const measuresRelations = relations(measures, ({one}) => ({
+	notification: one(notifications, {
+		fields: [measures.notificationId],
+		references: [notifications.id]
+	}),
+	country: one(countries, {
+		fields: [measures.countryIso2],
+		references: [countries.iso2]
+	}),
+}));
+
+export const notificationCountriesRelations = relations(notificationCountries, ({one}) => ({
+	notification: one(notifications, {
+		fields: [notificationCountries.notificationId],
+		references: [notifications.id]
+	}),
+	country: one(countries, {
+		fields: [notificationCountries.countryIso2],
+		references: [countries.iso2]
+	}),
+}));
+
+export const notificationHazardsRelations = relations(notificationHazards, ({one}) => ({
+	notification: one(notifications, {
+		fields: [notificationHazards.notificationId],
+		references: [notifications.id]
+	}),
+	hazardCategory: one(hazardCategories, {
+		fields: [notificationHazards.hazardCategoryId],
+		references: [hazardCategories.id]
+	}),
+}));
+
+export const notificationProductCategoriesRelations = relations(notificationProductCategories, ({one}) => ({
+	notification: one(notifications, {
+		fields: [notificationProductCategories.notificationId],
+		references: [notifications.id]
+	}),
+	productCategory: one(productCategories, {
+		fields: [notificationProductCategories.productCategoryId],
+		references: [productCategories.id]
+	}),
 }));
 
 export const notificationsRelations = relations(notifications, ({one, many}) => ({
@@ -32,63 +71,6 @@ export const notificationsRelations = relations(notifications, ({one, many}) => 
 	notificationVersions: many(notificationVersions),
 }));
 
-export const notificationHazardsRelations = relations(notificationHazards, ({one}) => ({
-	notification: one(notifications, {
-		fields: [notificationHazards.notificationId],
-		references: [notifications.id]
-	}),
-	hazardCategory: one(hazardCategories, {
-		fields: [notificationHazards.hazardCategoryId],
-		references: [hazardCategories.id]
-	}),
-}));
-
-export const hazardCategoriesRelations = relations(hazardCategories, ({many}) => ({
-	notificationHazards: many(notificationHazards),
-}));
-
-export const notificationProductCategoriesRelations = relations(notificationProductCategories, ({one}) => ({
-	notification: one(notifications, {
-		fields: [notificationProductCategories.notificationId],
-		references: [notifications.id]
-	}),
-	productCategory: one(productCategories, {
-		fields: [notificationProductCategories.productCategoryId],
-		references: [productCategories.id]
-	}),
-}));
-
-export const productCategoriesRelations = relations(productCategories, ({many}) => ({
-	notificationProductCategories: many(notificationProductCategories),
-}));
-
-export const notificationCountriesRelations = relations(notificationCountries, ({one}) => ({
-	notification: one(notifications, {
-		fields: [notificationCountries.notificationId],
-		references: [notifications.id]
-	}),
-	country: one(countries, {
-		fields: [notificationCountries.countryIso2],
-		references: [countries.iso2]
-	}),
-}));
-
-export const countriesRelations = relations(countries, ({many}) => ({
-	notificationCountries: many(notificationCountries),
-	measures: many(measures),
-}));
-
-export const measuresRelations = relations(measures, ({one}) => ({
-	notification: one(notifications, {
-		fields: [measures.notificationId],
-		references: [notifications.id]
-	}),
-	country: one(countries, {
-		fields: [measures.countryIso2],
-		references: [countries.iso2]
-	}),
-}));
-
 export const notificationVersionsRelations = relations(notificationVersions, ({one}) => ({
 	notification: one(notifications, {
 		fields: [notificationVersions.notificationId],
@@ -98,4 +80,22 @@ export const notificationVersionsRelations = relations(notificationVersions, ({o
 		fields: [notificationVersions.rawRecordId],
 		references: [rawRecords.id]
 	}),
+}));
+
+export const productCategoriesRelations = relations(productCategories, ({many}) => ({
+	notificationProductCategories: many(notificationProductCategories),
+}));
+
+export const rawRecordsRelations = relations(rawRecords, ({one, many}) => ({
+	source: one(sources, {
+		fields: [rawRecords.sourceId],
+		references: [sources.id]
+	}),
+	notifications: many(notifications),
+	notificationVersions: many(notificationVersions),
+}));
+
+export const sourcesRelations = relations(sources, ({many}) => ({
+	rawRecords: many(rawRecords),
+	notifications: many(notifications),
 }));

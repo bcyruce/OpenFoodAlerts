@@ -46,9 +46,24 @@ function fixSchema(text) {
     .replace(/(import \{ sql \} from "drizzle-orm"\n)/, `$1\n${defs}\n`);
 }
 
+// drizzle-kit emits tables in catalog order, which differs between databases; sort the
+// top-level exports by name so the output only changes when the schema does. Table
+// references live in callbacks, so the order does not matter at runtime.
+function sortExports(text) {
+  const first = text.search(/^export const /m);
+  if (first < 0) return text;
+  const blocks = text
+    .slice(first)
+    .split(/^(?=export const )/m)
+    .map((b) => b.trimEnd() + "\n");
+  blocks.sort((a, b) => a.match(/^export const (\w+)/)[1].localeCompare(b.match(/^export const (\w+)/)[1]));
+  return text.slice(0, first) + blocks.join("\n");
+}
+
 for (const file of ["schema.ts", "relations.ts"]) {
   const path = join(out, file);
   let text = readFileSync(path, "utf8").replace(/\r\n/g, "\n");
   if (file === "schema.ts") text = fixSchema(text);
+  text = sortExports(text);
   writeFileSync(path, header + text);
 }
