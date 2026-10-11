@@ -33,10 +33,11 @@ class SourceParser:
 
 
 def _registry() -> dict[str, SourceParser]:
+    from openfoodalerts.sources.nvwa.parser import PARSER as NVWA
     from openfoodalerts.sources.openfda.parser import PARSER as OPENFDA
     from openfoodalerts.sources.rasff.parser import PARSER as RASFF
 
-    return {p.source: p for p in (OPENFDA, RASFF)}
+    return {p.source: p for p in (OPENFDA, RASFF, NVWA)}
 
 
 def _apply(conn: Connection, parser: SourceParser, sid: int, raw_id: int, stats: JobStats) -> None:
