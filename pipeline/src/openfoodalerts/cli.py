@@ -280,5 +280,30 @@ def check_data_cmd() -> None:
         raise typer.Exit(EXIT_FAILED)
 
 
+@app.command("taxonomy-draft")
+def taxonomy_draft_cmd(
+    since: Annotated[str, typer.Option(help="Count Notifications from this date (YYYY-MM-DD).")] = (
+        "2020-01-01"
+    ),
+    output: Annotated[Path, typer.Option(help="Draft CSV to write.")] = Path(
+        "../db/seed/taxonomy/v1-draft.csv"
+    ),
+) -> None:
+    """Count RASFF Notifications per Hazard category and write the draft T1 merge table.
+
+    Read-only towards the database; ~30 list requests. The domain expert reviews the draft
+    before it is frozen as taxonomy v1 (ticket 11).
+    """
+    from openfoodalerts.sources.rasff.client import RasffClient
+    from openfoodalerts.taxonomy import count_hazard_categories, draft_merge, write_draft
+
+    filter_since = datetime.strptime(since, "%Y-%m-%d").strftime("%d-%m-%Y 00:00:00")
+    with RasffClient.create() as client:
+        rows = draft_merge(count_hazard_categories(client, since=filter_since))
+    write_draft(rows, output, since)
+    for r in sorted(rows, key=lambda r: -r.count):
+        typer.echo(f"{r.count:>6}  {r.name}  ->  {r.label}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
