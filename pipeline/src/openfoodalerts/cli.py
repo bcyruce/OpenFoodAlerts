@@ -210,6 +210,19 @@ def load_fixtures_cmd(
     typer.echo(f"{archived} records archived from {len(files)} files")
 
 
+@app.command("cleanup-subscriptions")
+def cleanup_subscriptions_cmd() -> None:
+    """Delete expired subscription data (spec §5): pending after 7 days, unsubscribed after
+    30 days, email deliveries after 12 months. Connects with MAILER_DATABASE_URL.
+    """
+    from openfoodalerts.db.connection import mailer_database_url
+    from openfoodalerts.subscriptions.cleanup import cleanup_subscriptions
+
+    with connect(mailer_database_url()) as conn:
+        counts = cleanup_subscriptions(conn)
+    typer.echo(", ".join(f"{key}: {value}" for key, value in counts.items()))
+
+
 @app.command("role-login")
 def role_login_cmd(
     role: Annotated[str, typer.Argument(help="ofa_pipeline, ofa_web or ofa_mailer.")],

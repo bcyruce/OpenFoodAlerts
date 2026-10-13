@@ -191,7 +191,9 @@
     "missing": "Voor deze pagina is de link uit uw bevestigingsmail nodig. Open de link in de e-mail opnieuw.",
     "rateLimited": "Te veel pogingen. Probeer het over een paar minuten opnieuw.",
     "error": "Er ging iets mis. Probeer het later opnieuw.",
-    "subscribeAgain": "Naar het abonnementsformulier"
+    "subscribeAgain": "Naar het abonnementsformulier",
+    "manageIntro": "Elke e-mail bevat een link om uw filters te wijzigen of u af te melden. U kunt die nu ook gebruiken:",
+    "manageLink": "uw abonnement beheren"
   },
   "Email": {
     "footer": "OpenFoodAlerts archiveert officiële voedselveiligheidsmeldingen van RASFF, NVWA en openFDA. Het is geen officiële bron.",
@@ -214,5 +216,43 @@
       "validity": "Deze link is 24 uur geldig. Er wordt niets verstuurd totdat u bevestigt.",
       "ignore": "Heeft u hier niet om gevraagd? Negeer deze e-mail dan. De aanvraag wordt na 7 dagen automatisch verwijderd."
     }
+  },
+  "Manage": {
+    "metaTitle": "Uw abonnement beheren",
+    "heading": "Uw abonnement beheren",
+    "forAddress": "Abonnement voor {email}",
+    "status": {
+      "active": "Actief: u ontvangt een Digest op dagen met nieuwe meldingen die aan uw filters voldoen.",
+      "pending": "Nog niet bevestigd: open de link in de bevestigingsmail om e-mails te ontvangen."
+    },
+    "statusUnsubscribed": "Afgemeld op {date}. U ontvangt geen e-mails meer. Het abonnement wordt 30 dagen na het afmelden automatisch verwijderd.",
+    "invalidHeading": "Deze link is niet geldig",
+    "invalid": "De link is misschien onvolledig, of het abonnement is verwijderd. Kopieer de volledige link uit uw meest recente e-mail, of abonneer u opnieuw.",
+    "subscribeAgain": "Naar het aanmeldformulier",
+    "settingsHeading": "Uw filters",
+    "emailNote": "Wilt u een ander e-mailadres gebruiken? Meld u dan af en abonneer u opnieuw met het nieuwe adres.",
+    "save": "Wijzigingen opslaan",
+    "saving": "Opslaan…",
+    "saved": "Uw wijzigingen zijn opgeslagen.",
+    "unsubscribeHeading": "Afmelden",
+    "unsubscribeIntro": "Stop vanaf nu alle e-mails van OpenFoodAlerts aan dit adres.",
+    "unsubscribeButton": "Afmelden",
+    "unsubscribing": "Afmelden…",
+    "unsubscribed": "U bent afgemeld. We sturen u geen e-mails meer.",
+    "alreadyUnsubscribed": "Dit adres ontvangt geen e-mails meer van dit abonnement.",
+    "deleteHeading": "Mijn gegevens verwijderen",
+    "deleteIntro": "Verwijdert direct uw abonnement, uw filters en de registratie van de e-mails die we u stuurden. We bewaren alleen een onomkeerbare code van uw adres (een hash met geheime sleutel), zodat we het nooit meer mailen. U kunt zich met dit adres niet opnieuw abonneren.",
+    "deleteButton": "Mijn gegevens verwijderen",
+    "deleteConfirm": "Weet u het zeker? Dit kan niet ongedaan worden gemaakt.",
+    "deleteConfirmButton": "Ja, verwijder mijn gegevens",
+    "deleteCancel": "Annuleren",
+    "deleting": "Verwijderen…",
+    "deletedHeading": "Uw gegevens zijn verwijderd",
+    "deleted": "Uw abonnement en alles wat we daarover hadden opgeslagen, zijn verwijderd. Dit adres ontvangt geen e-mails meer van ons.",
+    "errorInvalid": "Verbeter de hierboven gemarkeerde velden.",
+    "errorGone": "Dit abonnement bestaat niet meer.",
+    "errorUnsubscribed": "Dit abonnement is afgemeld en kan niet meer worden gewijzigd.",
+    "errorRateLimited": "Te veel pogingen. Probeer het over een paar minuten opnieuw.",
+    "errorServer": "Er ging iets mis. Probeer het later opnieuw."
   }
 }

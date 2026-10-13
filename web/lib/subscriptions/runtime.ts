@@ -4,7 +4,8 @@
  * - OFA_HASH_PEPPER, OFA_TOKEN_SECRET: required in production (see SubscriptionSecrets).
  * - EMAIL_TRANSPORT and friends: see lib/email/transport.ts.
  * - CLIENT_IP_HEADER: header with the client address (default x-forwarded-for).
- * - SUBSCRIBE_RATE_LIMIT / CONFIRM_RATE_LIMIT: "COUNT/SECONDS" per IP (default 5/600, 20/600).
+ * - SUBSCRIBE_RATE_LIMIT / CONFIRM_RATE_LIMIT / MANAGE_RATE_LIMIT: "COUNT/SECONDS" per IP
+ *   (default 5/600, 20/600, 60/600).
  * - SITE_URL: base of the links in emails.
  */
 import { cacheLife } from "next/cache";
@@ -13,6 +14,7 @@ import { getDb } from "@/lib/db";
 import { createRateLimiter, parseRateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/site";
 import { getFilterCatalog, type FilterCatalog } from "./catalog";
+import type { ManageDeps } from "./manage";
 import type { SubscriptionDeps, SubscriptionSecrets } from "./service";
 
 const DEV_SECRET = "development-only-not-secret";
@@ -41,6 +43,11 @@ export function subscriptionDeps(): SubscriptionDeps {
   return deps;
 }
 
+/** For the manage link (no email is sent there, so no transport is needed). */
+export function manageDeps(): ManageDeps {
+  return { db: getDb(), secrets: secretsFromEnv() };
+}
+
 export const CLIENT_IP_HEADER = (process.env.CLIENT_IP_HEADER ?? "x-forwarded-for").toLowerCase();
 
 export const subscribeLimiter = createRateLimiter(
@@ -48,6 +55,14 @@ export const subscribeLimiter = createRateLimiter(
 );
 export const confirmLimiter = createRateLimiter(
   parseRateLimit(process.env.CONFIRM_RATE_LIMIT, { limit: 20, windowMs: 600_000 }),
+);
+/**
+ * /api/manage, /api/delete and the GET redirect of /api/unsubscribe. Tokens are 256-bit,
+ * so this only limits load. One-click POSTs to /api/unsubscribe are not limited: they come
+ * from a few mail-provider addresses on behalf of many subscribers.
+ */
+export const manageLimiter = createRateLimiter(
+  parseRateLimit(process.env.MANAGE_RATE_LIMIT, { limit: 60, windowMs: 600_000 }),
 );
 
 /** Seed data changes rarely; cached for the form and for validating /api/subscribe. */

@@ -191,7 +191,9 @@
     "missing": "This page needs the link from your confirmation email. Open the link in the email again.",
     "rateLimited": "Too many attempts. Please try again in a few minutes.",
     "error": "Something went wrong. Please try again later.",
-    "subscribeAgain": "Go to the subscription form"
+    "subscribeAgain": "Go to the subscription form",
+    "manageIntro": "Every email has a link to change your filters or unsubscribe. You can also use it now:",
+    "manageLink": "manage your subscription"
   },
   "Email": {
     "footer": "OpenFoodAlerts archives official food-safety notifications from RASFF, NVWA and openFDA. It is not an official source.",
@@ -214,5 +216,43 @@
       "validity": "This link is valid for 24 hours. Nothing will be sent until you confirm.",
       "ignore": "If you did not ask for this, ignore this email. The request is deleted automatically after 7 days."
     }
+  },
+  "Manage": {
+    "metaTitle": "Manage your subscription",
+    "heading": "Manage your subscription",
+    "forAddress": "Subscription for {email}",
+    "status": {
+      "active": "Active: you receive a Digest on days with new matching notifications.",
+      "pending": "Not confirmed yet: open the link in the confirmation email to start receiving emails."
+    },
+    "statusUnsubscribed": "Unsubscribed on {date}. You no longer receive any emails. The subscription is deleted automatically 30 days after unsubscribing.",
+    "invalidHeading": "This link is not valid",
+    "invalid": "The link may be incomplete, or the subscription has been deleted. Copy the full link from your most recent email, or subscribe again.",
+    "subscribeAgain": "Go to the subscription form",
+    "settingsHeading": "Your filters",
+    "emailNote": "To use a different email address, unsubscribe and subscribe again with the new address.",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Your changes have been saved.",
+    "unsubscribeHeading": "Unsubscribe",
+    "unsubscribeIntro": "Stop all emails from OpenFoodAlerts to this address, starting now.",
+    "unsubscribeButton": "Unsubscribe",
+    "unsubscribing": "Unsubscribing…",
+    "unsubscribed": "You are unsubscribed. We will not send you any more emails.",
+    "alreadyUnsubscribed": "This address no longer receives emails from this subscription.",
+    "deleteHeading": "Delete my data",
+    "deleteIntro": "Deletes your subscription, your filters and the record of the emails we sent you, right away. We keep only an irreversible code of your address (a keyed hash), so that we never email it again. You will not be able to subscribe again with this address.",
+    "deleteButton": "Delete my data",
+    "deleteConfirm": "Are you sure? This cannot be undone.",
+    "deleteConfirmButton": "Yes, delete my data",
+    "deleteCancel": "Cancel",
+    "deleting": "Deleting…",
+    "deletedHeading": "Your data has been deleted",
+    "deleted": "Your subscription and everything we stored about it have been deleted. This address will not receive any more emails from us.",
+    "errorInvalid": "Please correct the fields marked above.",
+    "errorGone": "This subscription no longer exists.",
+    "errorUnsubscribed": "This subscription has been unsubscribed and can no longer be changed.",
+    "errorRateLimited": "Too many attempts. Please try again in a few minutes.",
+    "errorServer": "Something went wrong. Please try again later."
   }
 }

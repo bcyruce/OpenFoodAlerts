@@ -50,8 +50,15 @@ test-db: ## Create, migrate and seed the database used by DB-backed tests
 db-roles: ## Enable login for ofa_web with OFA_WEB_PASSWORD (roles are cluster-wide)
 	$(UV) run ofa role-login ofa_web
 
-db-types: ## Regenerate web/db/generated/ (Drizzle) from the migrated DATABASE_URL
-	cd web && node scripts/db-types.mjs
+# Generated from a throwaway, freshly migrated database: drizzle-kit follows catalog order,
+# which only matches between databases that ran the same migrations from scratch.
+TYPES_DATABASE_URL ?= postgres://ofa:ofa@localhost:5432/ofa_types?sslmode=disable
+
+db-types: ## Regenerate web/db/generated/ (Drizzle) from a freshly migrated scratch database
+	$(DBMATE) --url "$(TYPES_DATABASE_URL)" drop
+	$(DBMATE) --url "$(TYPES_DATABASE_URL)" --wait up >/dev/null
+	cd web && DATABASE_URL="$(TYPES_DATABASE_URL)" node scripts/db-types.mjs
+	$(DBMATE) --url "$(TYPES_DATABASE_URL)" drop
 
 web-fixtures: ## Archive and parse the openFDA, RASFF and NVWA fixtures into DATABASE_URL (dev/CI data)
 	$(UV) run ofa load-fixtures $(WEB_FIXTURES)

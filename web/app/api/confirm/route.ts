@@ -2,17 +2,19 @@
  * POST /api/confirm (spec §8): `{"token": "..."}` from the confirmation link. POST, not
  * GET, so mail scanners that open links cannot confirm on the subscriber's behalf.
  *
- * 200 {"status":"active"} | 400 {"error":"invalid"} | 410 {"error":"expired"} | 429.
+ * 200 {"status":"active","manage_path":"/{locale}/alerts/manage/{manage token}"} |
+ * 400 {"error":"invalid"} | 410 {"error":"expired"} | 429. The manage path (ticket 29)
+ * lets the subscriber change or end the Subscription before the first Digest arrives.
  */
 import { clientIp } from "@/lib/rate-limit";
-import { TOKEN_PATTERN } from "@/lib/subscriptions/crypto";
+import { manageToken, TOKEN_PATTERN } from "@/lib/subscriptions/crypto";
 import {
   CLIENT_IP_HEADER,
   confirmLimiter,
   logEvent,
   subscriptionDeps,
 } from "@/lib/subscriptions/runtime";
-import { confirmSubscription } from "@/lib/subscriptions/service";
+import { activateSubscription } from "@/lib/subscriptions/service";
 
 const NO_STORE = { "cache-control": "no-store" };
 
@@ -36,9 +38,14 @@ export async function POST(request: Request) {
     return reply(400, { error: "invalid" });
   }
 
-  const outcome = await confirmSubscription(subscriptionDeps(), token);
-  logEvent("subscription_confirm", { outcome });
-  if (outcome === "confirmed") return reply(200, { status: "active" });
-  if (outcome === "expired") return reply(410, { error: "expired" });
+  const deps = subscriptionDeps();
+  const result = await activateSubscription(deps, token);
+  logEvent("subscription_confirm", { outcome: result.outcome });
+  if (result.outcome === "confirmed") {
+    const { id, locale } = result.subscription;
+    const managePath = `/${locale}/alerts/manage/${manageToken(id, deps.secrets.tokenSecret)}`;
+    return reply(200, { status: "active", manage_path: managePath });
+  }
+  if (result.outcome === "expired") return reply(410, { error: "expired" });
   return reply(400, { error: "invalid" });
 }
