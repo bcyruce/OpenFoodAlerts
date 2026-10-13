@@ -6,7 +6,7 @@ import { createMemoryTransport, type EmailMessage } from "@/lib/email/transport"
 import { pgErrorCode, testClient, withRollback, type Tx } from "@/lib/test-db";
 import { CONSENT_TEXT_VERSION } from "./consent";
 import { emailHash, ipHash, manageToken, tokenHash } from "./crypto";
-import { confirmSubscription, requestSubscription, type SubscriptionDeps } from "./service";
+import { activateSubscription, confirmSubscription, requestSubscription, type SubscriptionDeps } from "./service";
 import type { SubscriptionRequest } from "./validate";
 
 afterAll(() => testClient.end());
@@ -82,6 +82,8 @@ describe("requestSubscription and confirmSubscription", () => {
         instant_sources: ["nvwa"],
         consent_text_version: CONSENT_TEXT_VERSION,
         consent_ip_hash: ipHash("203.0.113.7", SECRETS.hashPepper),
+        // Lets the sendable_subscriptions view check the do-not-send list (ticket 29).
+        email_hash: emailHash("jan@example.nl", SECRETS.hashPepper),
         confirm_token_hash: tokenHash(token),
         manage_token_hash: tokenHash(manageToken(row.id as string, SECRETS.tokenSecret)),
       });
@@ -101,6 +103,16 @@ describe("requestSubscription and confirmSubscription", () => {
         FROM email_deliveries d JOIN subscriptions s ON s.id = d.subscription_id
         WHERE s.email = 'jan@example.nl'`);
       expect(rows).toEqual([{ kind: "confirm", provider_message_id: "memory-1", notification_ids: [] }]);
+    }, AS_WEB));
+
+  it("returns the activated Subscription, so the confirmation page can link to its manage page", () =>
+    withRollback(async (tx) => {
+      const d = deps(tx);
+      await requestSubscription(d, request, null);
+      const result = await activateSubscription(d, tokenFrom(d.transport.sent[0]));
+      const row = await subscriptionRow(tx, "jan@example.nl");
+      expect(result).toEqual({ outcome: "confirmed", subscription: { id: row.id, locale: "nl" } });
+      expect(await activateSubscription(d, tokenFrom(d.transport.sent[0]))).toEqual({ outcome: "invalid" });
     }, AS_WEB));
 
   it("rejects a confirmation link older than 24 hours", () =>
@@ -205,7 +217,7 @@ describe("database privileges (spec §11.2)", () => {
 
   it("keeps the pipeline role out of the private tables", () =>
     withRollback(async (tx) => {
-      for (const table of ["subscriptions", "email_suppressions", "email_deliveries"]) {
+      for (const table of ["subscriptions", "email_suppressions", "email_deliveries", "sendable_subscriptions"]) {
         expect(await pgErrorCode(tx, (sp) => sp.execute(sql.raw(`SELECT 1 FROM ${table}`)))).toBe("42501");
       }
       expect(
@@ -213,11 +225,13 @@ describe("database privileges (spec §11.2)", () => {
       ).toBe("42501");
     }, { role: "ofa_pipeline" }));
 
-  it("lets the mailer read Subscriptions and record deliveries, but not change Subscriptions", () =>
+  it("lets the mailer read sendable Subscriptions and record deliveries, but not change Subscriptions", () =>
     withRollback(async (tx) => {
-      await tx.execute(sql`SELECT count(*) FROM subscriptions`);
-      await tx.execute(sql`SELECT count(*) FROM email_suppressions`);
+      // Since ticket 29 the mailer sees Subscriptions only through sendable_subscriptions.
+      await tx.execute(sql`SELECT count(*) FROM sendable_subscriptions`);
       await tx.execute(sql`SELECT count(*) FROM notifications`);
+      expect(await pgErrorCode(tx, (sp) => sp.execute(sql`SELECT 1 FROM subscriptions`))).toBe("42501");
+      expect(await pgErrorCode(tx, (sp) => sp.execute(sql`SELECT 1 FROM email_suppressions`))).toBe("42501");
       expect(await pgErrorCode(tx, (sp) => sp.execute(sql`UPDATE subscriptions SET locale = 'en'`))).toBe("42501");
       expect(await pgErrorCode(tx, (sp) => sp.execute(sql`DELETE FROM email_suppressions`))).toBe("42501");
       // INSERT is allowed (fails here only on the foreign key, not on privileges).

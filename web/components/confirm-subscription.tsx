@@ -26,6 +26,7 @@ export function ConfirmSubscription({ formPath }: { formPath: string }) {
   // Kept after the fragment is removed from the address bar.
   const [token, setToken] = useState<string | null>(null);
   const [state, setState] = useState<State>("ready");
+  const [managePath, setManagePath] = useState<string | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const current = token ?? hashToken;
 
@@ -40,6 +41,10 @@ export function ConfirmSubscription({ formPath }: { formPath: string }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ token: current }),
       });
+      if (response.status === 200) {
+        const body = (await response.json()) as { manage_path?: string };
+        setManagePath(body.manage_path ?? null);
+      }
       next =
         response.status === 200
           ? "confirmed"
@@ -68,6 +73,11 @@ export function ConfirmSubscription({ formPath }: { formPath: string }) {
       <div ref={resultRef} tabIndex={-1} role="status" className="mt-6 rounded border border-green-700 bg-green-50 p-4">
         <h2 className="text-lg font-semibold">{t("successHeading")}</h2>
         <p className="mt-2">{t("success")}</p>
+        {managePath && (
+          <p className="mt-2">
+            {t("manageIntro")} <a href={managePath}>{t("manageLink")}</a>
+          </p>
+        )}
       </div>
     );
   }

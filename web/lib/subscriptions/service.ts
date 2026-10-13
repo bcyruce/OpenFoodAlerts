@@ -12,7 +12,7 @@ import { renderConfirmEmail } from "@/lib/email/templates";
 import type { EmailTransport } from "@/lib/email/transport";
 import type { Reader } from "@/lib/notifications";
 import { emailHash, ipHash, manageToken, newConfirmToken, tokenHash } from "./crypto";
-import type { SubscriptionRequest } from "./validate";
+import type { SubscriptionLocale, SubscriptionRequest } from "./validate";
 
 export type SubscriptionSecrets = {
   /** OFA_HASH_PEPPER: keys the email and IP hashes. Never rotate (suppressions depend on it). */
@@ -113,6 +113,8 @@ async function prepare(
       .values({
         id,
         email: req.email,
+        // Lets the sendable_subscriptions view match the do-not-send list.
+        emailHash: emailHash(req.email, secrets.hashPepper),
         status: "pending",
         manageTokenHash: tokenHash(manageToken(id, secrets.tokenSecret)),
         createdAt: now.toISOString(),
@@ -155,9 +157,21 @@ export async function confirmSubscription(
   deps: Pick<SubscriptionDeps, "db" | "now">,
   token: string,
 ): Promise<ConfirmOutcome> {
+  return (await activateSubscription(deps, token)).outcome;
+}
+
+export type ActivateResult =
+  | { outcome: "confirmed"; subscription: { id: string; locale: SubscriptionLocale } }
+  | { outcome: Exclude<ConfirmOutcome, "confirmed"> };
+
+/** `confirmSubscription`, also returning the activated Subscription (for its manage link). */
+export async function activateSubscription(
+  deps: Pick<SubscriptionDeps, "db" | "now">,
+  token: string,
+): Promise<ActivateResult> {
   const now = (deps.now ?? (() => new Date()))().toISOString();
   const hash = tokenHash(token);
-  const confirmed = await deps.db
+  const [confirmed] = await deps.db
     .update(subscriptions)
     .set({ status: "active", confirmedAt: now, confirmTokenHash: null, confirmExpiresAt: null })
     .where(
@@ -167,11 +181,13 @@ export async function confirmSubscription(
         sql`${subscriptions.confirmExpiresAt} > ${now}`,
       ),
     )
-    .returning({ id: subscriptions.id });
-  if (confirmed.length > 0) return "confirmed";
+    .returning({ id: subscriptions.id, locale: subscriptions.locale });
+  if (confirmed) {
+    return { outcome: "confirmed", subscription: { id: confirmed.id, locale: confirmed.locale as SubscriptionLocale } };
+  }
   const pending = await deps.db
     .select({ id: subscriptions.id })
     .from(subscriptions)
     .where(eq(subscriptions.confirmTokenHash, hash));
-  return pending.length > 0 ? "expired" : "invalid";
+  return { outcome: pending.length > 0 ? "expired" : "invalid" };
 }

@@ -27,6 +27,8 @@ export default defineConfig({
       OFA_TOKEN_SECRET: process.env.OFA_TOKEN_SECRET ?? "smoke-test-token-secret",
       // All tests share one IP; keep the per-IP limit out of the way.
       SUBSCRIBE_RATE_LIMIT: "200/600",
+      CONFIRM_RATE_LIMIT: "200/600",
+      MANAGE_RATE_LIMIT: "500/600",
     },
   },
 });

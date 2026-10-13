@@ -29,7 +29,7 @@ Next.js App Router site (Next 16, Cache Components, next-intl, Drizzle, Tailwind
 
 ## Subscriptions (ticket 28)
 
-Private tables `subscriptions`, `email_suppressions`, `email_deliveries` (migration `20261025000700`). `ofa_web` reads and writes the first two and only reads `email_deliveries`; it records confirmation emails through the SECURITY DEFINER function `record_confirm_delivery(subscription_id, provider_message_id)`. `ofa_pipeline` has no access; `ofa_mailer` reads Subscriptions and public tables and inserts deliveries.
+Private tables `subscriptions`, `email_suppressions`, `email_deliveries` (migration `20261025000700`). `ofa_web` reads and writes the first two and only reads `email_deliveries`; it records confirmation emails through the SECURITY DEFINER function `record_confirm_delivery(subscription_id, provider_message_id)`. `ofa_pipeline` has no access; `ofa_mailer` reads public tables and inserts deliveries, and since ticket 29 sees Subscriptions only through the `sendable_subscriptions` view (below).
 
 Modules to reuse (tickets 29–31):
 
@@ -41,7 +41,33 @@ Modules to reuse (tickets 29–31):
 - `lib/email/transport.ts`: `EmailTransport` (`brevo` | `outbox` | `log` via `EMAIL_TRANSPORT`; `createMemoryTransport()` for tests). `lib/email/render.ts`: `renderEmail({locale, subject, blocks, footer})` → plain text + HTML. `lib/email/templates.ts`: `renderConfirmEmail`; strings in `messages/*.json` under `Email`.
 - `lib/rate-limit.ts`: in-memory per-IP limiter (single instance only) and `clientIp(headers, CLIENT_IP_HEADER)`.
 
-Environment: `OFA_HASH_PEPPER`, `OFA_TOKEN_SECRET` (required in production), `EMAIL_TRANSPORT`, `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_FROM_NAME`, `EMAIL_OUTBOX_DIR`, `CLIENT_IP_HEADER`, `SUBSCRIBE_RATE_LIMIT`, `CONFIRM_RATE_LIMIT`, `SITE_URL` (see `.env.example`).
+Environment: `OFA_HASH_PEPPER`, `OFA_TOKEN_SECRET` (required in production), `EMAIL_TRANSPORT`, `BREVO_API_KEY`, `EMAIL_FROM`, `EMAIL_FROM_NAME`, `EMAIL_OUTBOX_DIR`, `CLIENT_IP_HEADER`, `SUBSCRIBE_RATE_LIMIT`, `CONFIRM_RATE_LIMIT`, `MANAGE_RATE_LIMIT`, `SITE_URL` (see `.env.example`).
+
+### Manage, unsubscribe, delete (ticket 29)
+
+- Page `/{locale}/alerts/manage/{token}` (en/nl/zh, noindex, `Referrer-Policy: no-referrer`, per request): masked address, status, the same filter fields as the form (`components/subscription-settings.tsx`), an unsubscribe button (`#unsubscribe`) and "delete my data". Opening it changes nothing.
+- `GET /api/manage?token=` → `{subscription}`; `POST /api/manage` JSON `{token, locale, filters, include_unclassified, instant_sources}` (same rules as subscribing, via `parseSubscriptionSettings`) → 200 / 400 / 404 / 409 unsubscribed.
+- `POST /api/unsubscribe?token=` with form body `List-Unsubscribe=One-Click` (RFC 8058; no cookies or JS) or JSON `{token}` → 200 `{"status":"unsubscribed"}` (idempotent) / 400 / 404. `GET /api/unsubscribe?token=` never unsubscribes: 303 to the manage page `#unsubscribe`.
+- `POST /api/delete` JSON `{token}` → deletes every Subscription of that address with its deliveries and adds the email HMAC to `email_suppressions`.
+- `POST /api/confirm` now also returns `manage_path`; the confirmation page links to it.
+- Modules: `lib/subscriptions/manage.ts` (`findSubscription`, `updateSubscriptionSettings`, `unsubscribe`, `deleteSubscriptionData`, `maskEmail`), `lib/subscriptions/links.ts`, `lib/subscriptions/http.ts` (no-store / no-referrer / noindex responses, rate-limit helper).
+
+**Links in Digest and Instant emails (contract with the Python mailer).** `pipeline/src/openfoodalerts/subscriptions/links.py` and `lib/subscriptions/links.ts` produce identical values; both test suites share the literal test vector.
+
+```text
+token        = base64url_nopad(HMAC-SHA256(OFA_TOKEN_SECRET, "manage:v1:" + subscription_id))
+manage page  = {SITE_URL}/{subscription.locale}/alerts/manage/{token}
+unsubscribe  = {SITE_URL}/api/unsubscribe?token={token}
+
+List-Unsubscribe: <{SITE_URL}/api/unsubscribe?token={token}>
+List-Unsubscribe-Post: List-Unsubscribe=One-Click
+```
+
+Put the manage link and the unsubscribe link in the body of every Digest and Instant email as well (spec §10.5). No `mailto:` variant (nobody reads an unsubscribe mailbox). The headers go only on Digest and Instant emails, not on confirmation emails.
+
+**Who may be emailed.** Migration `20261025001110` adds `subscriptions.email_hash` (the web writes it) and the view `sendable_subscriptions` (active and not in `email_suppressions`; rows without `email_hash` are excluded). `ofa_mailer` can read only this view, not `subscriptions` or `email_suppressions`. The mailer selects recipients from the view and checks `is_sendable(conn, id)` again right before each send (`openfoodalerts.subscriptions.sendable`).
+
+**Retention.** `uv run ofa cleanup-subscriptions` (daily) calls the SECURITY DEFINER function `cleanup_subscriptions()` (migration `20261025001100`, EXECUTE for `ofa_mailer` only): pending 7 days after the last request, unsubscribed after 30 days, `email_deliveries` after 12 months. It connects with `MAILER_DATABASE_URL` (falls back to `DATABASE_URL`).
 
 ## Tests
 

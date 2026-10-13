@@ -64,7 +64,9 @@
     "missing": "此页面需要确认邮件中的链接。请重新打开邮件中的链接。",
     "rateLimited": "尝试次数过多，请几分钟后再试。",
     "error": "出现错误，请稍后再试。",
-    "subscribeAgain": "前往订阅页面"
+    "subscribeAgain": "前往订阅页面",
+    "manageIntro": "每封邮件里都有修改筛选条件或退订的链接。您现在也可以直接：",
+    "manageLink": "管理您的订阅"
   },
   "Email": {
     "footer": "OpenFoodAlerts 存档来自 RASFF、NVWA 和 openFDA 的官方食品安全通报，本站不是官方来源。",
@@ -87,5 +89,43 @@
       "validity": "此链接 24 小时内有效。在您确认之前，我们不会发送任何邮件。",
       "ignore": "如果这不是您本人的操作，请忽略这封邮件。该申请将在 7 天后自动删除。"
     }
+  },
+  "Manage": {
+    "metaTitle": "管理您的订阅",
+    "heading": "管理您的订阅",
+    "forAddress": "订阅邮箱：{email}",
+    "status": {
+      "active": "已生效：有符合筛选条件的新通报时，您会在当天收到 Digest。",
+      "pending": "尚未确认：请打开确认邮件中的链接，之后才会开始收到邮件。"
+    },
+    "statusUnsubscribed": "已于 {date} 退订，您不会再收到任何邮件。订阅记录将在退订 30 天后自动删除。",
+    "invalidHeading": "此链接无效",
+    "invalid": "链接可能不完整，或者该订阅已被删除。请从最近一封邮件中复制完整链接，或重新订阅。",
+    "subscribeAgain": "前往订阅表单",
+    "settingsHeading": "您的筛选条件",
+    "emailNote": "如需改用其他邮箱，请先退订，再用新邮箱重新订阅。",
+    "save": "保存更改",
+    "saving": "正在保存…",
+    "saved": "更改已保存。",
+    "unsubscribeHeading": "退订",
+    "unsubscribeIntro": "从现在起，OpenFoodAlerts 不再向此邮箱发送任何邮件。",
+    "unsubscribeButton": "退订",
+    "unsubscribing": "正在退订…",
+    "unsubscribed": "您已退订，我们不会再给您发送邮件。",
+    "alreadyUnsubscribed": "此邮箱已不再接收这个订阅的邮件。",
+    "deleteHeading": "删除我的数据",
+    "deleteIntro": "立即删除您的订阅、筛选条件以及我们给您发送邮件的记录。我们只保留您邮箱的一个不可逆编码（带密钥的哈希），以确保不再给它发邮件。此后无法再用这个邮箱订阅。",
+    "deleteButton": "删除我的数据",
+    "deleteConfirm": "确定吗？此操作无法撤销。",
+    "deleteConfirmButton": "确定，删除我的数据",
+    "deleteCancel": "取消",
+    "deleting": "正在删除…",
+    "deletedHeading": "您的数据已删除",
+    "deleted": "您的订阅以及我们保存的相关信息均已删除，此邮箱不会再收到我们的邮件。",
+    "errorInvalid": "请修改上方标出的字段。",
+    "errorGone": "该订阅已不存在。",
+    "errorUnsubscribed": "该订阅已退订，无法再修改。",
+    "errorRateLimited": "尝试次数过多，请几分钟后再试。",
+    "errorServer": "出了点问题，请稍后再试。"
   }
 }

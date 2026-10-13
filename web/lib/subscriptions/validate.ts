@@ -69,6 +69,21 @@ function pickList<T extends string | number>(
   return [...new Set(value as T[])].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
+/** What a subscriber may change on the manage page: everything but address and consent. */
+export type SubscriptionSettings = Omit<SubscriptionRequest, "email" | "consentTextVersion">;
+
+export type SettingsResult =
+  | { ok: true; value: SubscriptionSettings }
+  | { ok: false; errors: FieldError[] };
+
+/** The `/api/manage` body; same rules as subscribing (zh ⇒ NVWA only, instant ⊆ sources). */
+export function parseSubscriptionSettings(raw: unknown, known: KnownFilterValues): SettingsResult {
+  if (!isRecord(raw)) return { ok: false, errors: [{ field: "body", code: "invalid" }] };
+  const errors: FieldError[] = [];
+  const value = settingsFrom(raw, known, (field, code = "invalid") => errors.push({ field, code }));
+  return errors.length > 0 ? { ok: false, errors } : { ok: true, value };
+}
+
 export function parseSubscriptionRequest(raw: unknown, known: KnownFilterValues): ParseResult {
   if (!isRecord(raw)) return { ok: false, errors: [{ field: "body", code: "invalid" }] };
   const errors: FieldError[] = [];
@@ -77,6 +92,21 @@ export function parseSubscriptionRequest(raw: unknown, known: KnownFilterValues)
   const email = typeof raw.email === "string" ? normalizeEmail(raw.email) : "";
   if (email.length > MAX_EMAIL_LENGTH || !EMAIL_PATTERN.test(email)) fail("email");
 
+  const settings = settingsFrom(raw, known, fail);
+
+  if (raw.consent !== true) fail("consent", "required");
+  if (raw.consent_text_version !== CONSENT_TEXT_VERSION) fail("consent_text_version", "outdated");
+
+  if (errors.length > 0) return { ok: false, errors };
+  return { ok: true, value: { email, ...settings, consentTextVersion: CONSENT_TEXT_VERSION } };
+}
+
+/** Reads the shared fields, reporting problems through `fail`; the value is only valid without failures. */
+function settingsFrom(
+  raw: Record<string, unknown>,
+  known: KnownFilterValues,
+  fail: (field: string, code?: string) => void,
+): SubscriptionSettings {
   const locale = raw.locale as SubscriptionLocale;
   if (!SUBSCRIPTION_LOCALES.includes(locale)) fail("locale");
 
@@ -105,24 +135,15 @@ export function parseSubscriptionRequest(raw: unknown, known: KnownFilterValues)
   if (!instant) fail("instant_sources");
   else if (!instant.every((s) => chosen.includes(s))) fail("instant_sources", "not_in_sources");
 
-  if (raw.consent !== true) fail("consent", "required");
-  if (raw.consent_text_version !== CONSENT_TEXT_VERSION) fail("consent_text_version", "outdated");
-
-  if (errors.length > 0) return { ok: false, errors };
   return {
-    ok: true,
-    value: {
-      email,
-      locale,
-      filters: {
-        sources: sources!,
-        hazard_categories: hazards!,
-        product_categories: products!,
-        origin_countries: countries!,
-      },
-      includeUnclassified: includeUnclassified as boolean,
-      instantSources: instant!,
-      consentTextVersion: CONSENT_TEXT_VERSION,
+    locale,
+    filters: {
+      sources: sources!,
+      hazard_categories: hazards!,
+      product_categories: products!,
+      origin_countries: countries!,
     },
+    includeUnclassified: includeUnclassified as boolean,
+    instantSources: instant!,
   };
 }

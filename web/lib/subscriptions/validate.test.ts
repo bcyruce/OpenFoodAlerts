@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CONSENT_TEXT_VERSION } from "./consent";
-import { parseSubscriptionRequest, type KnownFilterValues } from "./validate";
+import { parseSubscriptionRequest, parseSubscriptionSettings, type KnownFilterValues } from "./validate";
 
 const known: KnownFilterValues = {
   hazardCategories: [21782, 21798],
@@ -126,5 +126,46 @@ describe("parseSubscriptionRequest", () => {
   it("rejects a body that is not an object", () => {
     expect(errorFields(null)).toEqual(["body"]);
     expect(errorFields([1])).toEqual(["body"]);
+  });
+});
+
+describe("parseSubscriptionSettings (manage page, ticket 29)", () => {
+  function settings(overrides: Record<string, unknown> = {}) {
+    const all: Record<string, unknown> = body(overrides);
+    delete all.email;
+    delete all.consent;
+    delete all.consent_text_version;
+    return all;
+  }
+
+  it("accepts the editable fields, without email or consent", () => {
+    expect(parseSubscriptionSettings(settings({ token: "ignored" }), known)).toEqual({
+      ok: true,
+      value: {
+        locale: "nl",
+        filters: {
+          sources: ["nvwa", "rasff"],
+          hazard_categories: [21798],
+          product_categories: [],
+          origin_countries: [],
+        },
+        includeUnclassified: true,
+        instantSources: ["nvwa"],
+      },
+    });
+  });
+
+  it("applies the same rules as subscribing: zh means NVWA only, instant within sources", () => {
+    expect(parseSubscriptionSettings(settings({ locale: "zh" }), known)).toEqual({
+      ok: false,
+      errors: [{ field: "filters.sources", code: "zh_nvwa_only" }],
+    });
+    expect(
+      parseSubscriptionSettings(settings({ filters: { sources: ["rasff"] }, instant_sources: ["nvwa"] }), known),
+    ).toEqual({ ok: false, errors: [{ field: "instant_sources", code: "not_in_sources" }] });
+    expect(parseSubscriptionSettings(settings({ filters: { hazard_categories: [1] } }), known)).toEqual({
+      ok: false,
+      errors: [{ field: "filters.hazard_categories", code: "invalid" }],
+    });
   });
 });
