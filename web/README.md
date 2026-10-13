@@ -14,6 +14,7 @@ Next.js App Router site (Next 16, Cache Components, next-intl, Drizzle, Tailwind
   - `lib/filters.ts` (pure, client-safe): `parseFilters(params)` → `Filters`, `parseSearchQuery(params)` → `{q, page, filters}`, `toSearchParams(query)` (canonical URL form). `params` is a `URLSearchParams` or a page's `searchParams` object. Parameters: `source`, `hazard` (RASFF hazard category id), `product` (RASFF product category id), `country` (origin ISO2), `risk` (`risk_official` value or `not_graded`), each repeatable with or without `[]`; `from`/`to` (YYYY-MM-DD, Amsterdam days, inclusive); `official_only` (`1`/`true`/`on`). Unusable values are dropped, never an error.
   - `lib/filter-sql.ts`: `FROM_NOTIFICATIONS` (`notifications n JOIN sources s`), `scopeSql("search" | "stats")` (spec §4.3; stats also drop RASFF News), `filtersSql(filters, {omit})` (`omit` one facet to count its values), `provenanceSql(alias, filters)`, `inList`, `rows`.
 - `searchNotifications(db, {q, page, filters}, {locale, pageSize?})` in `lib/search.ts` → `SearchResponse`: `{q, filters, page, pageSize, total, pageCount, results, facets}`. Text matching uses the SQL function `notification_search_query(q)` on `search_tsv` (written by the pipeline at parse time) plus `product_text ILIKE` for partial words; facets `source`, `hazard`, `product`, `country`, `risk` are `{value, label, count, selected}[]`.
+- Statistics (ticket 23): `lib/stats-query.ts` (pure, client-safe) adds the period to the shared filters: `parseStatsQuery(params)` → `{filters, months}`, `toStatsParams(query)`, `resolvePeriod(query, now)`. `months` = last N Amsterdam calendar months including the current one (default 12, `all` = no lower bound, ignored when `from`/`to` is set). `getStats(db, query, {locale, now?})` in `lib/stats.ts` → `StatsResponse` (shape below); scope `scopeSql("stats")`, one block per Source, never added up (ADR 0005). `lib/stats-tables.ts`: `timeSeriesTable`, `heatmapGrid`, `pairLabel`, `formatMonth` (the numbers behind both the charts and their data tables).
 
 ## Routes
 
@@ -23,6 +24,24 @@ Next.js App Router site (Next 16, Cache Components, next-intl, Drizzle, Tailwind
   - Segments are percent-encoded; `keyFromSegments` reverses it.
 - `/{locale}/search`: search page (SSR on every request, `noindex`). A plain GET form, so it works without JavaScript; non-canonical query strings (empty fields, `[]` names) redirect to the canonical URL.
 - `GET /api/search`: the same search as JSON (`SearchResponse`); also takes `locale` for labels and detail paths.
+- `/{locale}/dashboard`: statistics (SSR on every request, en/nl). The client then refetches `/api/stats` on every filter change and replaces the URL (`history.replaceState`), so the address bar is always shareable; the controls are also a GET form for browsers without JavaScript. Charts: Apache ECharts (`components/dashboard/echarts.ts`, tree-shaken `echarts/core` + line/bar/heatmap + SVG renderer), imported on the client after the first paint by `<Chart option label height>`. Every chart has a data table (`<details>`), rendered on the server.
+- `GET /api/stats`: the filter parameters of `/api/search` (same parser) plus `months` and `locale`. Response:
+
+  ```text
+  { filters,                      // resolved: `from` is set when `months` applies
+    period: { months, from, to }, // months: number | null
+    months: ["2025-11", …],       // consecutive YYYY-MM, oldest first; every array below is aligned with it
+    sources: [{                   // the selected Sources (all three by default), always rasff, nvwa, openfda order
+      source, label, total,
+      classified: { hazard, product, country },   // Notifications with ≥1 value of that dimension
+      monthly: [n, …],
+      top: { hazard|product|country: [{ value, label, count }] },   // ≤ 10, count desc
+      heatmap: [{ hazard: {value,label}, country: {value,label}, total, counts: [n, …] }]  // ≤ 20 pairs
+    }] }
+  ```
+
+  Values are RASFF ids (hazard, product) or ISO2 (country), as in the filters. Counts are Notifications; one with several categories counts in each. With `official_only`, AI rows are left out of filters and dimensions but the Notifications still count in `total`/`monthly`.
+- Reusable for the home page thumbnails (ticket 26): `getStats` (e.g. `{filters: NO_FILTERS, months: 12}`), `<Chart>`, `timeSeriesOption`/`heatmapOption`/`topOption` and `SOURCE_COLORS` in `components/dashboard/options.ts`, and the exported `Results` component.
 - `/{locale}/alerts`: subscription form; `/{locale}/alerts/confirm#token=…`: confirmation landing page (button → `/api/confirm`). Both `noindex`, available in en/nl/zh.
 - `POST /api/subscribe`, `POST /api/confirm`: JSON only (also blocks cross-site form posts). See the route files for bodies and status codes.
 - Locales: `en` (default), `nl` and `zh`, always prefixed; `/` redirects by Accept-Language to en/nl only. zh exists only for the sections listed in `localesForPath` (`i18n/routing.ts`, now just `alerts`); other pages call `notFound()` unless `isSiteLocale(locale)`. No locale cookie.

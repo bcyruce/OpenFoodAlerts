@@ -70,13 +70,13 @@ export const SOURCE_LABELS: Record<string, string> = {
 
 const NOT_GRADED_LABELS: Record<string, string> = { en: "Not graded", nl: "Niet ingedeeld" };
 
-type Names = { name_en: string; name_nl: string | null };
+export type Names = { name_en: string; name_nl: string | null };
 
-function categoryLabel(locale: string, names: Names): string {
+export function categoryLabel(locale: string, names: Names): string {
   return (locale === "nl" ? names.name_nl : null) ?? names.name_en;
 }
 
-function countryLabel(locale: string, iso2: string, names: Names): string {
+export function countryLabel(locale: string, iso2: string, names: Names): string {
   if (locale === "en") return names.name_en;
   if (locale === "nl" && names.name_nl) return names.name_nl;
   // The RASFF dictionary has no Dutch names yet; ICU has them for ISO codes.
