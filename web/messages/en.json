@@ -214,5 +214,57 @@
       "validity": "This link is valid for 24 hours. Nothing will be sent until you confirm.",
       "ignore": "If you did not ask for this, ignore this email. The request is deleted automatically after 7 days."
     }
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "metaDescription": "Official food-safety notifications from RASFF, NVWA and openFDA by Hazard category, Product category, country of origin and month.",
+    "intro": "Official food-safety notifications per Source, by Hazard category, Product category, country of origin and month. Each Source is counted on its own and never added up: the same incident can appear at more than one Source.",
+    "filtersHeading": "Filters",
+    "source": "Source",
+    "sourceHint": "At least one Source stays selected.",
+    "period": "Period",
+    "periodMonths": "{count, plural, one {Last month} other {Last # months}}",
+    "periodAll": "All time",
+    "periodCustom": "Custom dates",
+    "from": "From",
+    "to": "To",
+    "dimension": {
+      "hazard": "Hazard category",
+      "product": "Product category",
+      "country": "Country of origin"
+    },
+    "filterList": "Filter this list",
+    "selectedNone": "all",
+    "selectedCount": "{count} selected",
+    "clearSelection": "Clear selection",
+    "officialOnly": "Official classifications only",
+    "officialOnlyHint": "Leaves AI classifications of Hazard category, Product category and country of origin out of the filters and the counts.",
+    "apply": "Apply filters",
+    "reset": "Clear filters",
+    "updating": "Updating the charts…",
+    "updated": "Charts updated.",
+    "error": "The statistics could not be loaded. Please try again.",
+    "scopeNote": "Counted: food, feed and food contact material, by publication date; RASFF News is left out. Months are calendar months in Amsterdam time.",
+    "totalsHeading": "Notifications per Source",
+    "total": "{count, plural, =0 {No notifications} one {# notification} other {# notifications}}",
+    "classifiedNote": "With a Hazard category: {hazard}. With a Product category: {product}. With a country of origin: {country}.",
+    "timeSeriesHeading": "Notifications per month",
+    "timeSeriesLabel": "Line chart of notifications per month, one line per Source. The numbers are in the data table.",
+    "heatmapHeading": "Hazard category × country of origin per month",
+    "heatmapHint": "Up to {count} most frequent combinations. A notification with several Hazard categories or countries of origin counts in each.",
+    "heatmapLabel": "Heatmap of notifications per month for each combination of Hazard category and country of origin. The numbers are in the data table.",
+    "heatmapEmpty": "No notifications with both a Hazard category and a country of origin. NVWA and openFDA do not publish these; they will come from the AI classification.",
+    "topHeading": {
+      "hazard": "Most frequent Hazard categories",
+      "product": "Most frequent Product categories",
+      "country": "Most frequent countries of origin"
+    },
+    "topLabel": "Bar chart: {title}. The numbers are in the data table.",
+    "topEmpty": "No values for these notifications.",
+    "showTable": "Data table",
+    "month": "Month",
+    "count": "Notifications",
+    "pair": "Hazard category · country of origin",
+    "totalColumn": "Total"
   }
 }

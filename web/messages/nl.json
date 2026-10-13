@@ -214,5 +214,57 @@
       "validity": "Deze link is 24 uur geldig. Er wordt niets verstuurd totdat u bevestigt.",
       "ignore": "Heeft u hier niet om gevraagd? Negeer deze e-mail dan. De aanvraag wordt na 7 dagen automatisch verwijderd."
     }
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "metaDescription": "Officiële voedselveiligheidsmeldingen van RASFF, NVWA en openFDA per gevarencategorie, productcategorie, land van herkomst en maand.",
+    "intro": "Officiële voedselveiligheidsmeldingen per bron, naar gevarencategorie, productcategorie, land van herkomst en maand. Elke bron wordt apart geteld en nooit opgeteld: hetzelfde incident kan bij meer dan één bron voorkomen.",
+    "filtersHeading": "Filters",
+    "source": "Bron",
+    "sourceHint": "Er blijft altijd minstens één bron geselecteerd.",
+    "period": "Periode",
+    "periodMonths": "{count, plural, one {Afgelopen maand} other {Afgelopen # maanden}}",
+    "periodAll": "Alles",
+    "periodCustom": "Eigen datums",
+    "from": "Van",
+    "to": "Tot en met",
+    "dimension": {
+      "hazard": "Gevarencategorie",
+      "product": "Productcategorie",
+      "country": "Land van herkomst"
+    },
+    "filterList": "Deze lijst filteren",
+    "selectedNone": "alle",
+    "selectedCount": "{count} geselecteerd",
+    "clearSelection": "Selectie wissen",
+    "officialOnly": "Alleen officiële indelingen",
+    "officialOnlyHint": "Laat AI-indelingen van gevarencategorie, productcategorie en land van herkomst weg uit de filters en de aantallen.",
+    "apply": "Filters toepassen",
+    "reset": "Filters wissen",
+    "updating": "De grafieken worden bijgewerkt…",
+    "updated": "Grafieken bijgewerkt.",
+    "error": "De statistieken konden niet worden geladen. Probeer het opnieuw.",
+    "scopeNote": "Geteld: levensmiddelen, diervoeder en voedselcontactmaterialen, naar publicatiedatum; RASFF News telt niet mee. Maanden zijn kalendermaanden in Nederlandse tijd.",
+    "totalsHeading": "Meldingen per bron",
+    "total": "{count, plural, =0 {Geen meldingen} one {# melding} other {# meldingen}}",
+    "classifiedNote": "Met gevarencategorie: {hazard}. Met productcategorie: {product}. Met land van herkomst: {country}.",
+    "timeSeriesHeading": "Meldingen per maand",
+    "timeSeriesLabel": "Lijngrafiek van het aantal meldingen per maand, één lijn per bron. De aantallen staan in de datatabel.",
+    "heatmapHeading": "Gevarencategorie × land van herkomst per maand",
+    "heatmapHint": "Maximaal {count} meest voorkomende combinaties. Een melding met meerdere gevarencategorieën of landen van herkomst telt bij elk ervan mee.",
+    "heatmapLabel": "Heatmap van het aantal meldingen per maand voor elke combinatie van gevarencategorie en land van herkomst. De aantallen staan in de datatabel.",
+    "heatmapEmpty": "Geen meldingen met zowel een gevarencategorie als een land van herkomst. NVWA en openFDA publiceren deze niet; ze komen later uit de AI-indeling.",
+    "topHeading": {
+      "hazard": "Meest voorkomende gevarencategorieën",
+      "product": "Meest voorkomende productcategorieën",
+      "country": "Meest voorkomende landen van herkomst"
+    },
+    "topLabel": "Staafdiagram: {title}. De aantallen staan in de datatabel.",
+    "topEmpty": "Geen waarden voor deze meldingen.",
+    "showTable": "Datatabel",
+    "month": "Maand",
+    "count": "Meldingen",
+    "pair": "Gevarencategorie · land van herkomst",
+    "totalColumn": "Totaal"
   }
 }
