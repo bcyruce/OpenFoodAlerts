@@ -102,7 +102,8 @@ for (const path of [
     await page.goto(path, { waitUntil: "networkidle" });
     if (!PLANNED.includes(path)) await expect(page.getByTestId("site-footer")).toBeVisible();
     await expect(page.getByTestId("ad-box")).toHaveCount(0);
-    await expect(page.getByText(AD_LABEL)).toHaveCount(0);
+    // exact: the About page quotes the label inside a sentence when it explains the rules.
+    await expect(page.getByText(AD_LABEL, { exact: true })).toHaveCount(0);
   });
 }
 

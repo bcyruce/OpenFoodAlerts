@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
+import { OPERATOR } from "@/lib/legal";
 import { OWNER_NAME, ownerName, snelvinkUrl } from "@/lib/referral";
 import { REPO_URL } from "@/lib/site";
 import { footerLinks } from "@/lib/site-links";
@@ -32,7 +33,7 @@ export async function SiteFooter({ locale }: { locale: Locale }) {
         <p data-testid="footer-sources">{t("attribution")}</p>
         <p data-testid="footer-built-by">
           {t.rich("builtBy", {
-            name: ownerName(OWNER_NAME, t("ownerPlaceholder")),
+            name: ownerName(OPERATOR.ownerName ?? OWNER_NAME, t("ownerPlaceholder")),
             link: (chunks) => <a href={snelvinkUrl("footer")}>{chunks}</a>,
           })}
         </p>

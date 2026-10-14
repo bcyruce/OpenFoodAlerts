@@ -357,5 +357,24 @@
   "AdBox": {
     "body": "HACCP software for food businesses, made by the maker of OpenFoodAlerts.",
     "cta": "Visit SnelVink"
+  },
+  "Legal": {
+    "updated": "Last updated: {date}",
+    "about": {
+      "title": "About",
+      "description": "Who builds OpenFoodAlerts, the founder's interest in SnelVink and the rules that keep it apart from the content."
+    },
+    "privacy": {
+      "title": "Privacy statement",
+      "description": "Which personal data OpenFoodAlerts processes for email subscriptions, why, for how long, and your rights. No cookies."
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "description": "OpenFoodAlerts is not an official source and is not affiliated with NVWA, the European Commission or FDA."
+    },
+    "colofon": {
+      "title": "Colofon",
+      "description": "Name, address, email, KvK number and VAT identification number of OpenFoodAlerts."
+    }
   }
 }
