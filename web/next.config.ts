@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
       { source: "/api/(manage|unsubscribe|delete)", headers: TOKEN_HEADERS },
     ];
   },
+  // /data exists only in English (spec §9). Temporary, in case a translation follows.
+  redirects() {
+    return [
+      { source: "/:locale(nl|zh)/data", destination: "/en/data", permanent: false },
+    ];
+  },
   partialPrefetching: true,
   experimental: {
     // app/global-not-found.tsx serves URLs outside /en and /nl.

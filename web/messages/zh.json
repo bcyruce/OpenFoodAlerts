@@ -127,5 +127,24 @@
     "errorUnsubscribed": "该订阅已退订，无法再修改。",
     "errorRateLimited": "尝试次数过多，请几分钟后再试。",
     "errorServer": "出了点问题，请稍后再试。"
+  },
+  "Legal": {
+    "updated": "最后更新：{date}",
+    "about": {
+      "title": "关于本站",
+      "description": "谁在开发 OpenFoodAlerts、开发者与 SnelVink 的利益关系，以及把这一利益与内容分开的规则。"
+    },
+    "privacy": {
+      "title": "隐私声明",
+      "description": "OpenFoodAlerts 为邮件订阅处理哪些个人数据、为什么处理、保存多久，以及您的权利。不使用 cookie。"
+    },
+    "disclaimer": {
+      "title": "免责声明",
+      "description": "OpenFoodAlerts 不是官方来源，与 NVWA、欧盟委员会、FDA 无关联。"
+    },
+    "colofon": {
+      "title": "网站信息（Colofon）",
+      "description": "OpenFoodAlerts 的名称、地址、邮箱、KvK 编号和增值税识别号。"
+    }
   }
 }

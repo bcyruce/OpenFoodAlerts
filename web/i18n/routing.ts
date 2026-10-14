@@ -23,11 +23,19 @@ export function isSiteLocale(locale: string): locale is (typeof SITE_LOCALES)[nu
 }
 
 /** First path segments (after the locale) that also exist in zh. */
-const ZH_SECTIONS = ["alerts"];
+const ZH_SECTIONS = ["alerts", "about", "privacy", "disclaimer", "colofon"];
+
+/**
+ * First path segments that exist only in English (spec §9: `/data`). `/nl/data` and
+ * `/zh/data` redirect to `/en/data` (next.config.ts).
+ */
+export const EN_ONLY_SECTIONS = ["data"];
 
 /** The locales a page exists in, from its path without the locale (e.g. "alerts/confirm"). */
 export function localesForPath(rest: string): readonly Locale[] {
-  return ZH_SECTIONS.includes(rest.split("/")[0]) ? routing.locales : SITE_LOCALES;
+  const section = rest.split("/")[0];
+  if (EN_ONLY_SECTIONS.includes(section)) return ["en"];
+  return ZH_SECTIONS.includes(section) ? routing.locales : SITE_LOCALES;
 }
 
 /** `lang` attribute values; Chinese pages are Simplified Chinese (spec §9). */

@@ -306,5 +306,24 @@
     "count": "Meldingen",
     "pair": "Gevarencategorie · land van herkomst",
     "totalColumn": "Totaal"
+  },
+  "Legal": {
+    "updated": "Laatst bijgewerkt: {date}",
+    "about": {
+      "title": "Over OpenFoodAlerts",
+      "description": "Wie OpenFoodAlerts maakt, het belang van de maker bij SnelVink en de regels die dat belang van de inhoud scheiden."
+    },
+    "privacy": {
+      "title": "Privacyverklaring",
+      "description": "Welke persoonsgegevens OpenFoodAlerts voor e-mailabonnementen verwerkt, waarom, hoe lang, en uw rechten. Geen cookies."
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "description": "OpenFoodAlerts is geen officiële bron en is niet verbonden aan de NVWA, de Europese Commissie of de FDA."
+    },
+    "colofon": {
+      "title": "Colofon",
+      "description": "Naam, adres, e-mail, KvK-nummer en btw-identificatienummer van OpenFoodAlerts."
+    }
   }
 }
