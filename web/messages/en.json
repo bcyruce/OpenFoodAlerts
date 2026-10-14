@@ -91,8 +91,35 @@
     "food contact material": "food contact material"
   },
   "Home": {
-    "intro": "The website is under construction. Notification pages are already available.",
-    "subscribe": "Subscribe to a daily Digest by email"
+    "intro": "OpenFoodAlerts collects the food-safety notifications that the EU RASFF, the Dutch NVWA and the U.S. FDA (openFDA) publish, keeps every version, and puts them on one common footing with the RASFF categories. It is free and open source. The official text always comes first.",
+    "subscribe": "Subscribe to a daily Digest by email",
+    "metaDescription": "Official food-safety notifications from RASFF, NVWA and openFDA, archived with their history, searchable and summarised per source.",
+    "heading": "Official food-safety notifications from RASFF, NVWA and openFDA",
+    "pointsHeading": "What you can do here",
+    "pointArchive": "Read every notification with its official fields, a link to the source and its history of changes.",
+    "pointSources": "See statistics per source; the sources are never added up.",
+    "pointAi": "Classifications added by AI are always marked and kept apart from the official values.",
+    "recentHeading": "Last 7 days",
+    "recentIntro": "Notifications published from {from} to {to}, newest first.",
+    "recentCount": "{count, plural, =0 {No notifications} one {# notification} other {# notifications}}",
+    "recentNone": "No notifications from this source in the last 7 days.",
+    "recentMore": "All {count, plural, one {# notification} other {# notifications}} from {source} in search",
+    "notPublished": "Publication date unknown",
+    "chartsHeading": "Last 12 months",
+    "chartsIntro": "Notifications per month and per source (food, feed and food contact material; RASFF News left out).",
+    "timeSeriesHeading": "Notifications per month",
+    "timeSeriesLabel": "Line chart of notifications per month and source over the last 12 months. The numbers are in the data table.",
+    "topHazardsHeading": "Most frequent hazard categories, {source}",
+    "topHazardsLabel": "Bar chart of the most frequent hazard categories in {source} notifications over the last 12 months. The numbers are in the data table.",
+    "topHazardsEmpty": "No hazard categories yet.",
+    "showTable": "Data table",
+    "month": "Month",
+    "category": "Hazard category",
+    "count": "Notifications",
+    "total": "Total",
+    "dashboardLink": "Open the dashboard for all charts and filters",
+    "subscribeHeading": "Daily Digest by email",
+    "subscribeBody": "Choose sources, hazard categories, product categories and countries of origin. You get one email a day with the new notifications that match, and optionally an Instant email for serious ones. Every email has a one-click unsubscribe link."
   },
   "Search": {
     "title": "Search notifications",
@@ -306,5 +333,29 @@
     "count": "Notifications",
     "pair": "Hazard category · country of origin",
     "totalColumn": "Total"
+  },
+  "Nav": {
+    "label": "Main",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "search": "Search",
+    "subscribe": "Subscribe"
+  },
+  "Footer": {
+    "builtBy": "Built by {name}, founder of <link>SnelVink</link>",
+    "ownerPlaceholder": "the maintainer",
+    "disclaimer": "OpenFoodAlerts is not an official source and is not affiliated with NVWA, the European Commission or FDA. Information may be delayed or wrong; check the official notification before acting. AI classifications may be wrong.",
+    "attribution": "Notifications come from the EU RASFF Window (European Commission), the NVWA and openFDA (U.S. FDA); OpenFoodAlerts normalises and classifies them and marks its changes. None of these organisations endorses this site.",
+    "linksLabel": "About this site",
+    "data": "Data and licences",
+    "about": "About",
+    "privacy": "Privacy",
+    "disclaimerLink": "Disclaimer",
+    "colofon": "Colofon",
+    "sourceCode": "Source code"
+  },
+  "AdBox": {
+    "body": "HACCP software for food businesses, made by the maker of OpenFoodAlerts.",
+    "cta": "Visit SnelVink"
   }
 }

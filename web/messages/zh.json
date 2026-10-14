@@ -127,5 +127,29 @@
     "errorUnsubscribed": "该订阅已退订，无法再修改。",
     "errorRateLimited": "尝试次数过多，请几分钟后再试。",
     "errorServer": "出了点问题，请稍后再试。"
+  },
+  "Nav": {
+    "label": "主导航",
+    "home": "首页",
+    "dashboard": "统计",
+    "search": "搜索",
+    "subscribe": "订阅"
+  },
+  "Footer": {
+    "builtBy": "由 {name}（<link>SnelVink</link> 创始人）制作",
+    "ownerPlaceholder": "本站维护者",
+    "disclaimer": "本站非官方来源，与 NVWA、欧盟委员会、FDA 无关联；信息可能延迟或有误；采取任何行动前请核对官方通报；AI 分类字段可能出错。",
+    "attribution": "通报来自欧盟 RASFF Window（欧盟委员会）、荷兰 NVWA 和 openFDA（美国 FDA），由 OpenFoodAlerts 规范化、分类并标明改动。上述机构均未认可本站。",
+    "linksLabel": "关于本站",
+    "data": "数据与许可（英文）",
+    "about": "关于",
+    "privacy": "隐私",
+    "disclaimerLink": "免责声明",
+    "colofon": "版本信息",
+    "sourceCode": "源代码"
+  },
+  "AdBox": {
+    "body": "面向食品企业的 HACCP 软件，由本站作者开发。",
+    "cta": "了解 SnelVink"
   }
 }

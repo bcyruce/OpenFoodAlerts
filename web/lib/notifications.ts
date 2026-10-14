@@ -2,7 +2,7 @@
  * Read access to Notifications for display (spec §4.3, §9). Server-only; pass the
  * database explicitly so callers decide on caching and tests can use a transaction.
  */
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import { notifications, notificationVersions, sources } from "@/db/generated/schema";
 
@@ -140,4 +140,23 @@ export async function listRecentNotificationKeys(
     .where(inArray(notifications.productType, [...DISPLAYED_PRODUCT_TYPES]))
     .orderBy(desc(notifications.publishedAt), desc(notifications.id))
     .limit(limit);
+}
+
+/** Shown Notifications for the sitemap, most recently published first. */
+export async function listSitemapNotifications(
+  db: Reader,
+  limit: number,
+): Promise<{ source: string; key: string; lastChangedAt: string }[]> {
+  const found = await db
+    .select({
+      source: sources.code,
+      key: notifications.sourceKey,
+      lastChangedAt: notifications.lastChangedAt,
+    })
+    .from(notifications)
+    .innerJoin(sources, eq(sources.id, notifications.sourceId))
+    .where(inArray(notifications.productType, [...DISPLAYED_PRODUCT_TYPES]))
+    .orderBy(sql`${notifications.publishedAt} DESC NULLS LAST`, desc(notifications.id))
+    .limit(limit);
+  return found.map((n) => ({ ...n, lastChangedAt: iso(n.lastChangedAt) }));
 }
