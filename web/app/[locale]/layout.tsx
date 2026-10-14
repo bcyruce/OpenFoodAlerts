@@ -4,8 +4,11 @@ import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LanguageSwitch } from "@/components/language-switch";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteNav } from "@/components/site-nav";
 import { homePath, HTML_LANG, routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/site";
+import { navItems } from "@/lib/site-links";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -20,7 +23,10 @@ export const metadata: Metadata = {
 export default async function LocaleLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const t = await getTranslations({ locale, namespace: "Site" });
+  const [t, nav] = await Promise.all([
+    getTranslations({ locale, namespace: "Site" }),
+    getTranslations({ locale, namespace: "Nav" }),
+  ]);
   return (
     <html lang={HTML_LANG[locale]} className="h-full antialiased">
       <body className="flex min-h-full flex-col">
@@ -31,22 +37,26 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
           {t("skipToContent")}
         </a>
         <header className="border-b border-slate-200">
-          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+          <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
             <Link
               href={homePath(locale)}
               className="text-lg font-semibold text-slate-900 no-underline hover:text-slate-900"
             >
               {t("name")}
             </Link>
-            <LanguageSwitch label={t("languageSwitch")} current={locale} />
+            <SiteNav
+              label={nav("label")}
+              items={navItems(locale).map((item) => ({ ...item, label: nav(item.key) }))}
+            />
+            <div className="ml-auto">
+              <LanguageSwitch label={t("languageSwitch")} current={locale} />
+            </div>
           </div>
         </header>
         <main id="main" className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
           {children}
         </main>
-        <footer className="border-t border-slate-200 bg-slate-50">
-          <p className="mx-auto max-w-4xl px-4 py-6 text-sm text-slate-700">{t("disclaimer")}</p>
-        </footer>
+        <SiteFooter locale={locale} />
       </body>
     </html>
   );

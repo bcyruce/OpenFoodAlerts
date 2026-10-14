@@ -91,8 +91,35 @@
     "food contact material": "voedselcontactmateriaal"
   },
   "Home": {
-    "intro": "De website is in aanbouw. Pagina's van meldingen zijn al beschikbaar.",
-    "subscribe": "Abonneer u op een dagelijkse Digest per e-mail"
+    "intro": "OpenFoodAlerts verzamelt de voedselveiligheidsmeldingen die het Europese RASFF, de NVWA en de Amerikaanse FDA (openFDA) publiceren, bewaart elke versie en brengt ze onder één noemer met de RASFF-categorieën. Het is gratis en open source. De officiële tekst gaat altijd voor.",
+    "subscribe": "Abonneer u op een dagelijkse Digest per e-mail",
+    "metaDescription": "Officiële voedselveiligheidsmeldingen van RASFF, NVWA en openFDA, gearchiveerd met hun geschiedenis, doorzoekbaar en per bron samengevat.",
+    "heading": "Officiële voedselveiligheidsmeldingen van RASFF, NVWA en openFDA",
+    "pointsHeading": "Wat u hier kunt doen",
+    "pointArchive": "Elke melding lezen met de officiële gegevens, een link naar de bron en de geschiedenis van wijzigingen.",
+    "pointSources": "Statistieken per bron bekijken; de bronnen worden nooit bij elkaar opgeteld.",
+    "pointAi": "Classificaties door AI zijn altijd gemarkeerd en staan los van de officiële waarden.",
+    "recentHeading": "Afgelopen 7 dagen",
+    "recentIntro": "Meldingen gepubliceerd van {from} tot en met {to}, nieuwste eerst.",
+    "recentCount": "{count, plural, =0 {Geen meldingen} one {# melding} other {# meldingen}}",
+    "recentNone": "Geen meldingen van deze bron in de afgelopen 7 dagen.",
+    "recentMore": "Alle {count, plural, one {# melding} other {# meldingen}} van {source} in zoeken",
+    "notPublished": "Publicatiedatum onbekend",
+    "chartsHeading": "Afgelopen 12 maanden",
+    "chartsIntro": "Meldingen per maand en per bron (levensmiddelen, diervoeder en materialen in contact met levensmiddelen; RASFF News niet meegeteld).",
+    "timeSeriesHeading": "Meldingen per maand",
+    "timeSeriesLabel": "Lijngrafiek van meldingen per maand en bron over de afgelopen 12 maanden. De getallen staan in de datatabel.",
+    "topHazardsHeading": "Meest voorkomende gevarencategorieën, {source}",
+    "topHazardsLabel": "Staafdiagram van de meest voorkomende gevarencategorieën in meldingen van {source} over de afgelopen 12 maanden. De getallen staan in de datatabel.",
+    "topHazardsEmpty": "Nog geen gevarencategorieën.",
+    "showTable": "Datatabel",
+    "month": "Maand",
+    "category": "Gevarencategorie",
+    "count": "Meldingen",
+    "total": "Totaal",
+    "dashboardLink": "Naar het dashboard met alle grafieken en filters",
+    "subscribeHeading": "Dagelijkse Digest per e-mail",
+    "subscribeBody": "Kies bronnen, gevarencategorieën, productcategorieën en landen van herkomst. U krijgt één e-mail per dag met de nieuwe meldingen die daarbij passen, en desgewenst een Instant e-mail bij ernstige meldingen. Elke e-mail heeft een link om met één klik af te melden."
   },
   "Search": {
     "title": "Meldingen zoeken",
@@ -306,5 +333,29 @@
     "count": "Meldingen",
     "pair": "Gevarencategorie · land van herkomst",
     "totalColumn": "Totaal"
+  },
+  "Nav": {
+    "label": "Hoofdmenu",
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "search": "Zoeken",
+    "subscribe": "Abonneren"
+  },
+  "Footer": {
+    "builtBy": "Gemaakt door {name}, oprichter van <link>SnelVink</link>",
+    "ownerPlaceholder": "de beheerder",
+    "disclaimer": "OpenFoodAlerts is geen officiële bron en is niet verbonden aan de NVWA, de Europese Commissie of de FDA. Informatie kan vertraagd of onjuist zijn; controleer de officiële melding voordat u iets onderneemt. AI-classificaties kunnen fout zijn.",
+    "attribution": "De meldingen komen van het EU RASFF Window (Europese Commissie), de NVWA en openFDA (Amerikaanse FDA); OpenFoodAlerts normaliseert en classificeert ze en geeft wijzigingen aan. Geen van deze organisaties onderschrijft deze site.",
+    "linksLabel": "Over deze site",
+    "data": "Data en licenties",
+    "about": "Over",
+    "privacy": "Privacy",
+    "disclaimerLink": "Disclaimer",
+    "colofon": "Colofon",
+    "sourceCode": "Broncode"
+  },
+  "AdBox": {
+    "body": "HACCP-software voor levensmiddelenbedrijven, van de maker van OpenFoodAlerts.",
+    "cta": "Naar SnelVink"
   }
 }
