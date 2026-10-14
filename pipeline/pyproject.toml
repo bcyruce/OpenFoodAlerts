@@ -24,6 +24,11 @@ dev = [
     "mypy>=1.11",
     "pre-commit>=3.8",
 ]
+# The local labelling page (eval/label_app.py); not installed by a plain `uv sync`:
+#   uv run --group eval streamlit run ../eval/label_app.py
+eval = [
+    "streamlit>=1.39",
+]
 
 [build-system]
 requires = ["hatchling"]
