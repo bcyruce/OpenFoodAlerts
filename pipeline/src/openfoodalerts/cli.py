@@ -318,5 +318,206 @@ def taxonomy_draft_cmd(
         typer.echo(f"{r.count:>6}  {r.name}  ->  {r.label}")
 
 
+TaxonomyOption = Annotated[
+    Path | None,
+    typer.Option(help="Taxonomy CSV (default: db/seed/taxonomy/v1.csv, else v1-draft.csv)."),
+]
+EvalDirOption = Annotated[
+    Path | None, typer.Option(help="Directory of items.csv / labels.csv (default: eval/).")
+]
+
+
+def _print_sampling(summary: dict[str, object]) -> None:
+    import json
+
+    keys = ("taxonomy", "splits", "label_counts", "shortfall", "replacements")
+    for key in keys:
+        typer.echo(f"{key}: {json.dumps(summary[key], ensure_ascii=False)}")
+    if summary.get("unknown_exclusions"):
+        typer.echo(f"unknown exclusions: {summary['unknown_exclusions']}", err=True)
+
+
+@app.command("eval-sample")
+def eval_sample_cmd(
+    taxonomy: TaxonomyOption = None,
+    eval_dir: EvalDirOption = None,
+    seed: Annotated[int, typer.Option(help="Sampling seed.")] = 20261025,
+    force: Annotated[
+        bool, typer.Option(help="Write even if labelled items would leave the set.")
+    ] = False,
+) -> None:
+    """Sample the 300-item eval set from the database and write eval/items.csv (spec §7.1).
+
+    Reproducible: the same database contents, taxonomy and seed give identical files.
+    Exclusions in eval/exclusions.csv are replayed. Exit code 3: labelled items would be
+    dropped (nothing written).
+    """
+    from openfoodalerts.eval.job import EvalSetChanged, default_eval_dir, run_sampling
+    from openfoodalerts.eval.labelset import default_taxonomy_path
+    from openfoodalerts.eval.sampling import SamplingConfig
+
+    with connect() as conn:
+        try:
+            _, summary = run_sampling(
+                conn,
+                taxonomy_path=taxonomy or default_taxonomy_path(),
+                eval_dir=eval_dir or default_eval_dir(),
+                config=SamplingConfig(seed=seed),
+                force=force,
+            )
+        except EvalSetChanged as exc:
+            typer.echo(f"error: {exc}", err=True)
+            raise typer.Exit(3) from exc
+    _print_sampling(summary)
+
+
+@app.command("eval-exclude")
+def eval_exclude_cmd(
+    item_ids: Annotated[list[str] | None, typer.Argument(help="Item ids to exclude.")] = None,
+    from_labels: Annotated[
+        bool, typer.Option(help="Also exclude every item labelled non-food in labels.csv.")
+    ] = False,
+    reason: Annotated[str, typer.Option(help="Recorded in exclusions.csv.")] = "non-food",
+    taxonomy: TaxonomyOption = None,
+    eval_dir: EvalDirOption = None,
+    seed: Annotated[int, typer.Option(help="Sampling seed (as for eval-sample).")] = 20261025,
+) -> None:
+    """Remove items from the eval set and draw deterministic replacements.
+
+    Each excluded item is replaced by the next ranked unused Notification of its stratum
+    (else of its Source), with the same split and flags; eval/items.csv is rewritten.
+    """
+    from openfoodalerts.eval.job import default_eval_dir, exclude_items, non_food_items
+    from openfoodalerts.eval.labelset import default_taxonomy_path
+    from openfoodalerts.eval.sampling import SamplingConfig
+
+    directory = eval_dir or default_eval_dir()
+    ids = list(item_ids or []) + (non_food_items(directory) if from_labels else [])
+    if not ids:
+        typer.echo("nothing to exclude", err=True)
+        raise typer.Exit(2)
+    with connect() as conn:
+        _, summary = exclude_items(
+            conn,
+            ids,
+            reason=reason,
+            taxonomy_path=taxonomy or default_taxonomy_path(),
+            eval_dir=directory,
+            config=SamplingConfig(seed=seed),
+        )
+    _print_sampling(summary)
+
+
+@app.command("eval-silver")
+def eval_silver_cmd(
+    taxonomy: TaxonomyOption = None,
+    eval_dir: EvalDirOption = None,
+    size: Annotated[int, typer.Option(help="Notifications in the silver set.")] = 2000,
+    seed: Annotated[int, typer.Option(help="Sampling seed.")] = 20261025,
+    since: Annotated[
+        datetime | None,
+        typer.Option(formats=["%Y-%m-%d"], help="Only count from this date (default 2020-01-01)."),
+    ] = None,
+    stats_only: Annotated[bool, typer.Option(help="Print the statistics, write nothing.")] = False,
+) -> None:
+    """Sample the RASFF silver set (single-label Notifications) into eval/silver.csv.
+
+    Prints the share of Notifications excluded because their Hazards span several T1 labels
+    (for the data card). Eval-set RASFF items are left out.
+    """
+    from openfoodalerts.eval.files import read_items
+    from openfoodalerts.eval.frame import FrameConfig
+    from openfoodalerts.eval.job import default_eval_dir
+    from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
+    from openfoodalerts.eval.silver import build_silver, load_rasff_records, write_silver
+
+    directory = eval_dir or default_eval_dir()
+    items_path = directory / "items.csv"
+    exclude = (
+        {i.source_key for i in read_items(items_path) if i.source == "rasff"}
+        if items_path.exists()
+        else set()
+    )
+    tax = load_taxonomy(taxonomy or default_taxonomy_path())
+    with connect() as conn:
+        records = load_rasff_records(conn, FrameConfig(), start=since.date() if since else None)
+    silver = build_silver(records, tax, size=size, seed=seed, exclude=exclude)
+    s = silver.stats
+    typer.echo(f"RASFF Notifications in range: {s.notifications}")
+    typer.echo(f"  without any Hazard:          {s.no_hazards}")
+    typer.echo(f"  with Hazards:                {s.with_hazards}")
+    typer.echo(
+        f"  several T1 labels (excluded): {s.multi_label} = {s.excluded_share:.1%} of those"
+        " with Hazards"
+    )
+    typer.echo(f"  several RASFF categories:     {s.multi_category} = {s.multi_category_share:.1%}")
+    typer.echo(f"  eligible (one label, not in eval set): {s.eligible}")
+    typer.echo(f"silver set: {len(silver.rows)} of {size} wanted")
+    for label in tax.labels:
+        if label in silver.available:
+            n = sum(1 for r in silver.rows if r.label == label)
+            typer.echo(f"  {n:>5} / {silver.available[label]:>5}  {label}")
+    if not stats_only:
+        write_silver(directory / "silver.csv", silver.rows)
+
+
+@app.command("eval-fetch-rasff")
+def eval_fetch_rasff_cmd(
+    taxonomy: TaxonomyOption = None,
+    seed: Annotated[int, typer.Option(help="Sampling seed (as for eval-sample).")] = 20261025,
+    max_requests: Annotated[
+        int, typer.Option(help="Do nothing if the plan needs more requests than this.")
+    ] = 150,
+    dry_run: Annotated[bool, typer.Option(help="Print the plan only.")] = False,
+) -> None:
+    """Fetch the RASFF Notifications the eval sample needs for its rare labels.
+
+    Only needed while the full RASFF backfill (ticket 08) is missing. Lists by Hazard
+    category and fetches a few details per label (>= 3 s apart, archived like
+    backfill-rasff). Then run `ofa parse --source rasff` and `ofa eval-sample`.
+    Exit code 3: the plan exceeds --max-requests (nothing fetched).
+    """
+    from openfoodalerts.eval.frame import FrameConfig, load_frame
+    from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
+    from openfoodalerts.eval.rasff_fill import (
+        DEFAULT_MARGIN,
+        estimate_requests,
+        fetch_plan,
+        fill_rasff,
+        rasff_demand,
+    )
+    from openfoodalerts.eval.sampling import SamplingConfig
+    from openfoodalerts.sources.rasff.client import RasffClient
+
+    tax = load_taxonomy(taxonomy or default_taxonomy_path())
+    config = SamplingConfig(seed=seed)
+    frame_config = FrameConfig()
+    with connect() as conn:
+        frame = load_frame(conn, tax, frame_config)
+        demand = rasff_demand(frame, tax, config)
+        plan = fetch_plan(frame, demand, margin=DEFAULT_MARGIN, seed=seed)
+        requests = estimate_requests(plan)
+        for label, n in sorted(plan.items(), key=lambda kv: -kv[1]):
+            typer.echo(f"{n:>4}  {label}  (demand {demand[label]})")
+        typer.echo(f"plan: {sum(plan.values())} details, at most {requests} requests")
+        if dry_run or not plan:
+            return
+        if requests > max_requests:
+            typer.echo(f"error: more than --max-requests {max_requests}", err=True)
+            raise typer.Exit(3)
+        with RasffClient.create() as client:
+            result = fill_rasff(
+                conn,
+                client,
+                plan,
+                tax,
+                seed=seed,
+                since=frame_config.rasff_start,
+                until=frame_config.end,
+            )
+    for label, n in result.fetched.items():
+        typer.echo(f"{label}: fetched {n} of {plan[label]} ({result.available[label]} listed)")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
