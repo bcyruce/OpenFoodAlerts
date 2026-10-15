@@ -39,6 +39,8 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# Chinese email strings (mail/messages.py) use full-width punctuation on purpose.
+allowed-confusables = ["（", "）", "：", "，", "。", "；"]
 
 [tool.mypy]
 strict = true

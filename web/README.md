@@ -95,6 +95,8 @@ Put the manage link and the unsubscribe link in the body of every Digest and Ins
 
 **Retention.** `uv run ofa cleanup-subscriptions` (daily) calls the SECURITY DEFINER function `cleanup_subscriptions()` (migration `20261025001100`, EXECUTE for `ofa_mailer` only): pending 7 days after the last request, unsubscribed after 29 days (so always within 30), `email_deliveries` after 12 months. It connects with `MAILER_DATABASE_URL` (falls back to `DATABASE_URL`).
 
+**Digest deliveries.** `uv run ofa send-digest` (pipeline, ticket 30) claims a row in `email_deliveries` before sending: migration `20261025001300` adds `status` (`sending`/`sent`/`failed`, default `sent`, so confirmation rows are unaffected) and the generated `digest_date` (Amsterdam day of `sent_at`, digests only) with a unique index on `(subscription_id, digest_date)` for live digest rows. `ofa_mailer` may UPDATE only `status` and `provider_message_id`. When counting deliveries on the website, ignore `status = 'failed'` rows (never accepted by Brevo).
+
 ## Tests
 
 - `pnpm test` (vitest): data access against `TEST_DATABASE_URL`, each test in a rolled-back transaction.
