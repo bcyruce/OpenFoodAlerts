@@ -170,5 +170,22 @@
       "title": "网站信息（Colofon）",
       "description": "OpenFoodAlerts 的名称、地址、邮箱、KvK 编号和增值税识别号。"
     }
+  },
+  "Zh": {
+    "moduleNavLabel": "中文指南",
+    "draftTitle": "内容待审核",
+    "draftBody": "本页是框架草稿，内容尚未经作者撰写或审核，不能作为依据。请以下方 NVWA 官方页面为准。",
+    "outlineLabel": "本节待写要点（草稿，未审核）",
+    "reviewedOn": "审核日期：<time>{date}</time>",
+    "officialLinksHeading": "官方页面",
+    "officialLinksIntro": "本页内容以下列官方页面为准：",
+    "langNl": "荷兰语",
+    "langEn": "英语",
+    "pagesHeading": "指南",
+    "pageDraft": "草稿，待审核",
+    "pageReviewed": "审核于 {date}",
+    "subscribeHeading": "用中文接收 NVWA 食品警告",
+    "subscribeBody": "订阅时选择语言“中文”：您会收到 NVWA 新发布的食品警告，每条附 AI 生成的中文摘要和官方原文链接，以原文为准。",
+    "subscribeLink": "订阅中文 NVWA 警告"
   }
 }

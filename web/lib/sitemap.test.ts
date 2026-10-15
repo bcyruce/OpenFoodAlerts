@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSitemap } from "./sitemap";
+import { buildSitemap, zhSitemapPages } from "./sitemap";
 
 const SITE = "https://openfoodalerts.nl";
 
@@ -10,8 +10,34 @@ describe("buildSitemap", () => {
       key: "/actueel/nieuws/2026/10/24/veiligheidswaarschuwing-kaas",
       lastChangedAt: "2026-10-24T10:00:00.000Z",
     },
+  ], [
+    { path: "/zh", reviewedOn: "2026-10-20" },
+    { path: "/zh/jinkou", reviewedOn: null },
   ]);
   const byUrl = new Map(entries.map((e) => [e.url, e]));
+
+  it("lists the reviewed Chinese module pages in zh only, with their review date", () => {
+    expect(byUrl.get(`${SITE}/zh`)).toEqual({ url: `${SITE}/zh`, lastModified: "2026-10-20" });
+    // Drafts are noindex until the owner has reviewed them.
+    expect(byUrl.has(`${SITE}/zh/jinkou`)).toBe(false);
+  });
+
+  it("takes the Chinese module pages from content/zh by default", () => {
+    const urls = buildSitemap(SITE, []).map((e) => e.url);
+    expect(urls.filter((u) => u.startsWith(`${SITE}/zh`) && !/(about|privacy|disclaimer|colofon)$/.test(u)))
+      .toEqual(
+        zhSitemapPages()
+          .filter((p) => p.reviewedOn !== null)
+          .map((p) => `${SITE}${p.path}`),
+      );
+    expect(zhSitemapPages().map((p) => p.path)).toEqual([
+      "/zh",
+      "/zh/nvwa-jiancha",
+      "/zh/zhaohui-jinggao",
+      "/zh/jiancha-jieguo-gongkai",
+      "/zh/jinkou",
+    ]);
+  });
 
   it("lists the home page and dashboard in en and nl with hreflang alternates", () => {
     const languages = { en: `${SITE}/en`, nl: `${SITE}/nl` };
@@ -47,7 +73,7 @@ describe("buildSitemap", () => {
   });
 
   it("leaves out pages that are not indexed", () => {
-    expect(entries).toHaveLength(2 + 2 + 1 + 4 * 3 + 2);
+    expect(entries).toHaveLength(2 + 2 + 1 + 4 * 3 + 1 + 2);
     expect(entries.some((e) => /\/(search|alerts)/.test(e.url))).toBe(false);
   });
 });

@@ -376,5 +376,22 @@
       "title": "Colofon",
       "description": "Name, address, email, KvK number and VAT identification number of OpenFoodAlerts."
     }
+  },
+  "Zh": {
+    "moduleNavLabel": "Chinese guide",
+    "draftTitle": "Content awaiting review",
+    "draftBody": "This page is a draft outline; its content has not yet been written or reviewed by the author and cannot be relied on. The official NVWA pages below prevail.",
+    "outlineLabel": "Points this section should cover (draft, not reviewed)",
+    "reviewedOn": "Reviewed on <time>{date}</time>",
+    "officialLinksHeading": "Official pages",
+    "officialLinksIntro": "The official pages below prevail over this page:",
+    "langNl": "Dutch",
+    "langEn": "English",
+    "pagesHeading": "Guide",
+    "pageDraft": "Draft, awaiting review",
+    "pageReviewed": "Reviewed on {date}",
+    "subscribeHeading": "Receive NVWA food warnings in Chinese",
+    "subscribeBody": "Choose Chinese as the language when you subscribe: you receive new NVWA food warnings, each with an AI-generated Chinese summary and a link to the official text, which prevails.",
+    "subscribeLink": "Subscribe to NVWA warnings in Chinese"
   }
 }
