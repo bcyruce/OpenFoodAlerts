@@ -223,6 +223,63 @@ def cleanup_subscriptions_cmd() -> None:
     typer.echo(", ".join(f"{key}: {value}" for key, value in counts.items()))
 
 
+@app.command("send-digest")
+def send_digest_cmd(
+    day: Annotated[
+        str | None,
+        typer.Option(
+            "--date",
+            help="Amsterdam day (YYYY-MM-DD) to send for; default today. A past day covers"
+            " the window up to the end of that day.",
+        ),
+    ] = None,
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Build every Digest but send and record nothing.")
+    ] = False,
+) -> None:
+    """Send the daily Digest to every sendable Subscription (spec §10.3); daily 07:00
+    Europe/Amsterdam. At most one per Subscription per day; safe to re-run after a crash.
+
+    Connects with MAILER_DATABASE_URL; sends through EMAIL_TRANSPORT (brevo, outbox, log).
+    """
+    from datetime import UTC, timedelta
+    from datetime import datetime as dt
+    from datetime import time as dtime
+
+    from openfoodalerts.db.connection import mailer_database_url
+    from openfoodalerts.mail.digest import DigestSettings, amsterdam_day, send_digest
+    from openfoodalerts.mail.templates import AMSTERDAM
+    from openfoodalerts.mail.transport import LogTransport, transport_from_env
+
+    now = dt.now(UTC)
+    if day is not None:
+        try:
+            chosen = dt.strptime(day, "%Y-%m-%d").date()
+        except ValueError:
+            raise typer.BadParameter("use YYYY-MM-DD", param_hint="--date") from None
+        if chosen > amsterdam_day(now):
+            raise typer.BadParameter("cannot send a future day's Digest", param_hint="--date")
+        end_of_day = dt.combine(chosen + timedelta(days=1), dtime(), AMSTERDAM)
+        now = min(now, end_of_day - timedelta(microseconds=1))
+    try:
+        transport = LogTransport() if dry_run else transport_from_env()
+        settings = DigestSettings.from_env()
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from None
+    with connect(mailer_database_url()) as conn:
+        result = send_digest(conn, transport, settings, now=now, dry_run=dry_run)
+    if dry_run:
+        for sid, new, updated, news in result.planned:
+            typer.echo(f"{sid}: new {new}, updated {updated}, RASFF News {news}")
+        typer.echo(f"{result.day}: would send {result.would_send}, nothing to send {result.empty}")
+        return
+    typer.echo(
+        f"{result.day}: sent {result.sent}, nothing to send {result.empty},"
+        f" already sent {result.already}, no longer sendable {result.unsendable},"
+        f" failed {result.failed}, uncertain {result.uncertain}"
+    )
+
+
 @app.command("role-login")
 def role_login_cmd(
     role: Annotated[str, typer.Argument(help="ofa_pipeline, ofa_web or ofa_mailer.")],
