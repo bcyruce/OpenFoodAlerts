@@ -44,12 +44,45 @@ Next.js App Router site (Next 16, Cache Components, next-intl, Drizzle, Tailwind
 - Reusable chart parts: `getStats` (e.g. `{filters: NO_FILTERS, months: 12}`), `<Chart>`, `timeSeriesOption`/`heatmapOption`/`topOption` and `SOURCE_COLORS` in `components/dashboard/options.ts`, and the exported `Results` component. Options contain functions, so build them in a client component (as `components/home-charts.tsx` does).
 - `/{locale}/alerts`: subscription form; `/{locale}/alerts/confirm#token=…`: confirmation landing page (button → `/api/confirm`). Both `noindex`, available in en/nl/zh.
 - `POST /api/subscribe`, `POST /api/confirm`: JSON only (also blocks cross-site form posts). See the route files for bodies and status codes.
-- Locales: `en` (default), `nl` and `zh`, always prefixed; `/` redirects by Accept-Language to en/nl only. zh exists only for the sections listed in `localesForPath` (`i18n/routing.ts`, now just `alerts`); other pages call `notFound()` unless `isSiteLocale(locale)`. No locale cookie.
+- Locales: `en` (default), `nl` and `zh`, always prefixed; `/` redirects by Accept-Language to en/nl only. zh exists only for the sections listed in `localesForPath` (`i18n/routing.ts`, now just `alerts`); other pages call `notFound()` unless `isSiteLocale(locale)`. The Chinese module (`/zh` and `ZH_MODULE_PAGES`) exists only in zh; see below. No locale cookie.
 - `/{locale}` (en/nl; ticket 26): home page. Value proposition, "last 7 days" per Source (`getRecentNotifications(db, {locale, now?, perSource?})` in `lib/home.ts`: same scope and `from` filter as search, so each "all … in search" link shows the same Notifications), two chart thumbnails with data tables (monthly time series, RASFF top hazard categories; `components/home-charts.tsx` reuses the dashboard's `<Chart>` and options) and the subscription entry, then the ad box. ISR: the data is loaded in one `'use cache'` function with `cacheLife("hours")` (revalidate 1 h) and `cacheTag("home")`; the page is prerendered at build.
-- `/sitemap.xml` (`app/sitemap.ts`, entries from `buildSitemap` in `lib/sitemap.ts`, cached for an hour): home and dashboard (en/nl), `/en/data`, about/privacy/disclaimer/colofon (en/nl/zh), and the 5,000 most recently published shown Notifications (`listSitemapNotifications`) in en and nl with `lastModified` = `last_changed_at`; every multi-locale page carries hreflang alternates (`zh-Hans` for zh). Search and subscription pages are `noindex` and not listed. `/robots.txt` (`app/robots.ts`): allow everything except `/api/`, plus the sitemap URL. Both use `SITE_URL`.
-- Layout (`app/[locale]/layout.tsx`): skip link, site name, `SiteNav` (`components/site-nav.tsx`, items from `navItems(locale)` in `lib/site-links.ts`: Home, Dashboard, Search, Subscribe; zh only Subscribe until ticket 32), `LanguageSwitch` (keeps the query string, read when the link is followed, so dashboard filters set with `replaceState` survive) and `SiteFooter` (`components/site-footer.tsx`: links from `footerLinks(locale)`, the disclaimer, Source attribution and "Built by {OWNER_NAME}, founder of SnelVink" with UTM medium `footer`).
+- `/sitemap.xml` (`app/sitemap.ts`, entries from `buildSitemap` in `lib/sitemap.ts`, cached for an hour): home and dashboard (en/nl), `/en/data`, about/privacy/disclaimer/colofon (en/nl/zh), the reviewed Chinese module pages (zh only, `lastModified` = review date; drafts are left out), and the 5,000 most recently published shown Notifications (`listSitemapNotifications`) in en and nl with `lastModified` = `last_changed_at`; every multi-locale page carries hreflang alternates (`zh-Hans` for zh). Search and subscription pages are `noindex` and not listed. `/robots.txt` (`app/robots.ts`): allow everything except `/api/`, plus the sitemap URL. Both use `SITE_URL`.
+- Layout (`app/[locale]/layout.tsx`): skip link, site name, `SiteNav` (`components/site-nav.tsx`, items from `navItems(locale)` in `lib/site-links.ts`: Home, Dashboard, Search, Subscribe; zh: Home = `/zh`, Subscribe), `LanguageSwitch` (keeps the query string, read when the link is followed, so dashboard filters set with `replaceState` survive) and `SiteFooter` (`components/site-footer.tsx`: links from `footerLinks(locale)`, the disclaimer, Source attribution and "Built by {OWNER_NAME}, founder of SnelVink" with UTM medium `footer`).
 - **SnelVink referral rules (spec §11.3).** `snelvinkUrl(medium)` in `lib/referral.ts` builds every SnelVink link (`utm_source=openfoodalerts.nl&utm_medium={footer|about|home_box|zh_box}&utm_campaign=v1`; base `SNELVINK_URL`). The only ad is `<AdBox locale={locale} />` (`components/ad-box.tsx`, server component): place it as the last element of the page content. It renders through `AdBoxGuard`, a client component that checks the real pathname with `isAdBoxAllowed` (`lib/ad-box.ts`) and renders nothing elsewhere: allowed on `/en`, `/nl` and `/zh/*` except the shared zh sections (alerts, legal and data pages). The UTM medium is `zh_box` on zh pages, else `home_box`. `e2e/home.spec.ts` checks that no other page shows it.
 - `GET /api/health` (`app/api/health/route.ts`, logic in `lib/health.ts` → `getHealth(db, now)`): per Source `ok`, `problems[]`, `lastSuccessAt`, `lastErrorAt`, `fresh` (last successful ingest ≤ `FRESH_HOURS` = 36 h), `contract {status ok|failed|unreachable|unchecked, checkedAt, error}` (from `ofa probe-contracts`; a passing probe older than 36 h is `contract_stale`), `newNotifications {days: 7, count, lastFirstSeenAt}` and `silent` (RASFF only: 0 new Notifications in 7 days). 200 when every Source is ok, else 503 (also when the database is down). Dynamic (`connection()`), `Cache-Control: no-store`. The text of `sources.last_error` is never exposed.
+
+## Chinese module (ticket 32)
+
+`/zh` (landing page) and the guide pages `/zh/nvwa-jiancha`, `/zh/zhaohui-jinggao`, `/zh/jiancha-jieguo-gongkai`, `/zh/jinkou` (spec §9): zh only (`lang="zh-Hans"`, en/nl 404), static, no hreflang alternates. `/zh` is rendered by `app/[locale]/page.tsx` (zh branch); each guide page is a three-line `app/[locale]/<slug>/page.tsx`. Layout and rendering: `components/zh-page.tsx` (`ZhHome`, `ZhGuidePage`, `zhHomeMetadata`, `zhGuideMetadata`): module navigation between the guide pages, title, review date or the draft notice, sections, the official links, then `<AdBox locale="zh" />` (UTM medium `zh_box`). UI strings: `Zh` in `messages/*.json`.
+
+**Content** lives in `content/zh/<slug>.ts` (`home.ts` for `/zh`), one TypeScript object per page typed `ZhPage` (`lib/zh-pages.ts`), so the owner edits prose without touching components:
+
+```ts
+export default {
+  title: "…",            // <h1> and <title>
+  navLabel: "…",         // short name in the module navigation
+  description: "…",      // meta description and the card on /zh
+  reviewedOn: null,      // required: "YYYY-MM-DD" once written/reviewed by the owner, null = draft
+  officialLinks: [       // required, ≥ 1, the first must be an NVWA page
+    { title: "…", url: "https://www.nvwa.nl/…", lang: "nl" },
+  ],
+  sections: [
+    {
+      heading: "…",
+      body: [
+        "A paragraph with a [link](https://www.nvwa.nl/…).",
+        { list: ["a bullet", "another [link](/zh/alerts)"] },
+      ],
+      outline: ["draft only: what the section should cover"],
+    },
+  ],
+} satisfies ZhPage;
+```
+
+- `reviewedOn` and `officialLinks` are required by the type (`pnpm typecheck` fails without them). `reviewedOn: null` marks a draft: the page shows the "内容待审核" notice and the outline boxes, is `noindex`, and is left out of the sitemap. With a date, the page shows "审核日期" and must have no outline and no empty section.
+- Links: only `[text](url)` is parsed. Allowed targets are NVWA (`*.nvwa.nl`), `wetten.overheid.nl`, `www.rijksoverheid.nl`, `www.government.nl` and this site's `/zh…` pages.
+- `pnpm test zh-content` (`lib/zh-content.test.ts`, no database needed) checks every page with `zhPageProblems` (real, non-future review date; no draft leftovers on reviewed pages; links only to official pages). `e2e/zh.spec.ts` reads the same content and checks each page (draft notice or review date, official links, ad box, keyboard, axe).
+- A new guide page: add the slug to `ZH_MODULE_PAGES` (`i18n/routing.ts`), the content file to `content/zh/index.ts`, and copy one of the `app/[locale]/<slug>/page.tsx` files.
 
 ## Subscriptions (ticket 28)
 

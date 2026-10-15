@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { homePath, localesForPath } from "@/i18n/routing";
 import { footerLinks, isCurrentNav, navItems } from "./site-links";
 
 describe("navItems", () => {
@@ -11,8 +12,23 @@ describe("navItems", () => {
     ]);
   });
 
-  it("only links pages that exist in zh", () => {
-    expect(navItems("zh")).toEqual([{ key: "subscribe", href: "/zh/alerts" }]);
+  it("links the Chinese module and the subscription flow in zh", () => {
+    expect(navItems("zh")).toEqual([
+      { key: "home", href: "/zh" },
+      { key: "subscribe", href: "/zh/alerts" },
+    ]);
+  });
+});
+
+describe("zh routing", () => {
+  it("keeps the Chinese module pages in zh only and links every home page", () => {
+    expect(localesForPath("nvwa-jiancha")).toEqual(["zh"]);
+    expect(localesForPath("jinkou/x")).toEqual(["zh"]);
+    expect(localesForPath("")).toEqual(["en", "nl", "zh"]);
+    expect(localesForPath("alerts/confirm")).toEqual(["en", "nl", "zh"]);
+    expect(localesForPath("dashboard")).toEqual(["en", "nl"]);
+    expect(homePath("zh")).toBe("/zh");
+    expect(homePath("nl")).toBe("/nl");
   });
 });
 

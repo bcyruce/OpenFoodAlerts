@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { AdBox } from "@/components/ad-box";
 import { SOURCE_COLORS } from "@/components/dashboard/options";
 import { TimeSeriesThumbnail, TopThumbnail } from "@/components/home-charts";
+import { ZhHome, zhHomeMetadata } from "@/components/zh-page";
 import { isSiteLocale, SITE_LOCALES } from "@/i18n/routing";
 import { getDb } from "@/lib/db";
 import { NO_FILTERS } from "@/lib/filters";
@@ -33,6 +34,7 @@ async function loadHome(locale: "en" | "nl") {
 
 export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
   const { locale } = await params;
+  if (locale === "zh") return zhHomeMetadata();
   if (!isSiteLocale(locale)) return {};
   const t = await getTranslations({ locale, namespace: "Home" });
   return {
@@ -45,9 +47,10 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">): Prom
   };
 }
 
-// Not available in zh (spec §9).
+// zh: the landing page of the Chinese module (ticket 32), static, no data.
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
+  if (locale === "zh") return <ZhHome />;
   if (!isSiteLocale(locale)) notFound();
   const [{ recent, stats }, t] = await Promise.all([
     loadHome(locale),

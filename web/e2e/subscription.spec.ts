@@ -176,8 +176,8 @@ test("filter groups open with the keyboard", async ({ page }) => {
   await expect(page.getByRole("checkbox", { name: "Netherlands", exact: true })).toBeChecked();
 });
 
-test("zh exists only for the subscription flow", async ({ page }) => {
-  expect((await page.goto("/zh"))?.status()).toBe(404);
+test("zh exists only for the subscription flow and the Chinese module", async ({ page }) => {
+  expect((await page.goto("/zh"))?.status()).toBe(200);
   expect((await page.goto("/zh/n/openfda/H-0015-2027"))?.status()).toBe(404);
   await page.goto("/en/alerts");
   await expect(page.getByRole("link", { name: "中文" })).toHaveAttribute("href", "/zh/alerts");

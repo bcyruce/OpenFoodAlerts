@@ -6,9 +6,17 @@ import { isSiteLocale } from "@/i18n/routing";
 
 export type NavItem = { key: "home" | "dashboard" | "search" | "subscribe"; href: string };
 
-/** The main sections; zh has only the subscription flow until the Chinese module (ticket 32). */
+/**
+ * The main sections. zh has the Chinese module (`/zh`, whose pages carry their own module
+ * navigation) and the subscription flow.
+ */
 export function navItems(locale: string): NavItem[] {
-  if (!isSiteLocale(locale)) return [{ key: "subscribe", href: `/${locale}/alerts` }];
+  if (!isSiteLocale(locale)) {
+    return [
+      { key: "home", href: `/${locale}` },
+      { key: "subscribe", href: `/${locale}/alerts` },
+    ];
+  }
   return [
     { key: "home", href: `/${locale}` },
     { key: "dashboard", href: `/${locale}/dashboard` },
