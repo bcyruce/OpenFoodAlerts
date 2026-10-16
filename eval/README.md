@@ -17,7 +17,9 @@ CC0 text, openFDA: US public domain). Code (`label_app.py`) is Apache-2.0 like t
 | `exclusions.csv` | Items removed while labelling (non-food) and their replacements | `ofa eval-exclude` |
 | `sampling.json` | Parameters and counts of the sample (frame sizes, allocation, shortfall) | `ofa eval-sample` |
 | `silver.csv` | RASFF silver set | `ofa eval-silver` |
-| `cache/`, `results/` | Model outputs and metrics | ticket 15 |
+| `cache/{model}/{prompt_version}.jsonl` | Cached model outputs, one line per item and task | `make eval-refresh` (ticket 16) |
+| `results/latest.json` | Metrics of the latest `make eval` (both splits) | `make eval` |
+| `results/example.json` | **Synthetic** example report for building `/evaluation` | `make eval-example` |
 
 All CSVs: UTF-8 without BOM, LF, comma-separated, minimal quoting, header row, fixed column
 order. Re-running a command on the same database gives byte-identical files (no
@@ -71,8 +73,10 @@ be a verbatim substring of one field.
 | `labelled_at` | ISO 8601 UTC |
 
 Rows are only appended. For one `(item_id, annotator, guideline_version)` the last row wins
-(corrections). `unsure` means the annotator could not decide; the harness (ticket 15) is
-expected to leave such items out of that task's metrics and report how many.
+(corrections). For scoring, each item uses the annotator's row under the **highest guideline
+version** that annotator used for it (`v10` > `v9`), so items relabelled under a new
+guideline switch over one by one. `unsure` (and a blank value) means the annotator could not
+decide: the harness leaves the item out of that task's metrics and reports it as `n_unsure`.
 
 ## Commands
 
@@ -144,6 +148,166 @@ to the source page, the five tasks. "Save and next" validates (T3 must be copied
 from one field) and appends to `labels.csv`. Close the tab whenever; the next start resumes
 at the first item without your Label. Annotator B sees only the agreement subset and never
 A's Labels. Commit `labels.csv` as you go.
+
+## Scoring: `make eval`
+
+```bash
+make eval                 # dev split (default); offline, no API key, no network
+make eval SPLIT=test      # the test split, only when asked for (release tags)
+make eval-refresh SPLIT=dev   # call the classifiers and refresh cache/ (paid API, ticket 16)
+make eval-example         # regenerate the synthetic results/example.json
+```
+
+`make eval` (`ofa eval-run`) reads `items.csv`, `labels.csv`, every `cache/*/*.jsonl` and
+`silver.csv`, scores each cached model and the two baselines on one split and writes
+`results/latest.json`. Runs of the other split already in that file are kept, so dev and
+test results live side by side. When `DATABASE_URL` answers it also inserts one `eval_runs`
+row per (model or baseline, task, split) and rebuilds `eval_labels` from `labels.csv` (for
+items in `eval_items`); without a database it prints a notice and still succeeds. With no
+Labels yet, every run is listed under `skipped` and `runs` is empty: that is the state of
+the committed `latest.json` until labelling starts.
+
+Code: `pipeline/src/openfoodalerts/eval/` (`harness.py`, `metrics.py`, `labels.py`,
+`cache.py`, `baselines.py`, `store.py`, `refresh.py`, `synthetic.py`).
+
+### Model output cache
+
+`cache/{model}/{prompt_version}.jsonl`, one JSON object per line and per (item, task),
+sorted by (task, item_id), UTF-8, LF. Keys, in this order:
+
+| Key | Value |
+|---|---|
+| `item_id` | from `items.csv` |
+| `task` | `hazard_category`, `product_category`, `hazard`, `origin_country`, `product_type` |
+| `value` | the output as text (T1 label, RASFF Product category, verbatim span, ISO2 or `unknown`, Product type); `null` when abstained |
+| `confidence` | `high`, `medium`, `low`; `null` when abstained |
+| `abstained` | `true` / `false` |
+| `evidence_span` | substring of the input, or `null` |
+| `input_hash` | `openfoodalerts.classify.input_hash.input_hash(input, prompt_version=…, model=…, taxonomy_version=…)` |
+| `model`, `prompt_version` | must match the file's path |
+| `schema_version`, `taxonomy_version` | as in `ai_classifications` |
+| `created_at` | ISO 8601 |
+
+`input_hash` = sha256 of the item's `input` as compact JSON (keys in order, strings NFC) +
+`\n` + prompt_version + `\n` + model + `\n` + taxonomy_version. A cached line whose hash no
+longer matches the item (the item's input changed, or the taxonomy did) is **stale**: it is
+ignored and counted as an abstention (`n_stale`). An item without a cached line counts as
+an abstention too (`n_missing`), so an incomplete cache cannot look better than a complete
+one.
+
+### Plugging in a classifier (ticket 16)
+
+Register a function under its model name in `openfoodalerts.eval.refresh.CLASSIFIERS`. It
+receives the `ItemRow`s of the split and yields one `ModelOutput` per item and task (it may
+skip items whose cached `input_hash` is unchanged); `make eval-refresh` writes them with
+`cache.write_outputs` (a new line replaces the cached one for the same item and task). Until
+a classifier is registered, `make eval-refresh` exits 2 with "no classifier configured".
+
+### Metrics
+
+Which items count:
+
+- Labels are annotator A's (see `labels.csv` above). Items without A's Label for a task, or
+  with `unsure`, are left out of that task (`n_unlabelled`, `n_unsure`).
+- T1 is scored on all three Sources (RASFF from the subject only); T2-T5 on NVWA and openFDA
+  only (spec §6.1). Every task is reported per Source (`by_source`) and overall.
+- Agreement and noise audit use all flagged items regardless of split (they compare Labels
+  with Labels, not models).
+
+Definitions (`metrics.py`, each checked against scikit-learn in the unit tests):
+
+- **Abstention** = wrong. `accuracy` is over all scored items, abstentions included;
+  `accuracy_answered` is over the answered ones; `abstention_rate` = abstained / n.
+- **macro-F1 / weighted-F1** average over the labels present in the Labels or the outputs
+  (scikit-learn's default label set), `abstain` excluded; a 0/0 precision or recall is 0, so
+  a label that is output but never correct has F1 0. Weighted-F1 weights by Label support.
+- **per_class**: precision, recall, F1, support per label (overall only).
+- **confusion_matrix**: rows = Labels, columns = outputs; T1 labels in taxonomy order, T5 in
+  Product type order, others sorted, `abstain` as the last row/column (its row is zero).
+- **coverage_accuracy**: one point per confidence level: answer only when confidence ≥ the
+  level (high; high+medium; all). `coverage` = answered / n, `accuracy` = correct /
+  answered. Used to choose the "low confidence" threshold (ticket 21).
+- **95% CIs** (`*_ci95`): percentile bootstrap over items, 1,000 resamples, seed 20261025
+  (Python's `random`, so identical on every platform).
+- **T3 hazard**: `exact_match` (identical strings) and `normalized_match` (NFKC, casefold,
+  every Unicode punctuation character → space, whitespace collapsed: "E. coli O157:H7" =
+  "e coli o157 h7"). A Label `none` (no Hazard named) is matched only by an abstention; an
+  abstention matches nothing else.
+- **T4 origin_country**: `exact_match`, and `normalized_match` after mapping both sides to
+  ISO2 (case, the EU codes UK → GB, EL → GR, XI → GB, English RASFF country names). An
+  abstention counts as `unknown`.
+- **T5 product_type**: the classification metrics above (accuracy, confusion matrix, ...).
+- **Agreement**: Cohen's κ between A and B on the agreement subset, per task (T1, T2, T4
+  after ISO2, T5; pairs where either is `unsure` left out); the top-level value is T1's.
+  `null` when undefined (no pairs, or both used a single category).
+- **Noise audit**: on the RASFF items, the share where A's T1 Label is one of the T1 labels
+  of the official RASFF categories (`official_categories` mapped through the taxonomy).
+  `n_multi_label` counts items whose official categories map to more than one label;
+  `n_unmapped` those with no mappable category.
+
+Metrics are not reweighted to the frame: the label floors over-sample rare hazards
+(`sampling.json` has what reweighting would need).
+
+### Baselines (T1 only)
+
+- `baseline-keywords` / `kw1`: the keyword rules of `keywords.py` (the same rules that made
+  the NVWA / openFDA strata) mapped to T1 labels. Match in the hazard-bearing fields =
+  confidence high, elsewhere in the input = medium, no match = abstain; the evidence span is
+  the matched text. **Caveat:** the NVWA / openFDA eval sample is stratified by this rule's
+  own output, which favours it.
+- `baseline-tfidf-lr` / `silver1`: TF-IDF over character 2-5-grams + LogisticRegression
+  (class-balanced, `random_state` 20261025) trained on `silver.csv` (RASFF subject → label)
+  and applied to each item's whole input. Never abstains; confidence from the predicted
+  probability (≥ 0.6 high, ≥ 0.3 medium). **Domain and language shift:** it learns from
+  one-line, mostly English RASFF subjects and is tested on Dutch NVWA pages and long English
+  openFDA recall texts, and the silver set has only 64 rows until the backfill. Skipped with
+  a notice when the silver set has fewer than two labels.
+
+Both are computed on the fly from the committed files (deterministic, ~seconds), not cached.
+
+### `results/latest.json`
+
+The spec §7.3 shape, extended only by added fields:
+
+```jsonc
+{
+  "git_sha": "…", "created_at": "…",
+  "taxonomy_version": 1,              // an integer once frozen; "v1-draft" until then
+  "synthetic": false,                 // added: true only in example.json
+  "bootstrap": {"resamples": 1000, "seed": 20261025, "level": 0.95},     // added
+  "label_status": {"dev": {"items": 100, "labelled": 0}, "test": {…}},   // added
+  "runs": [{
+    "model": "…", "prompt_version": "…", "split": "dev", "task": "hazard_category",
+    "kind": "model",                  // added: "model" or "baseline"
+    "schema_version": "1", "taxonomy_version": 1,                         // added
+    "by_source": {"nvwa": {…block…}, "openfda": {…}, "rasff": {…}},
+    "overall": {…block…, "n_unsure": 0, "n_unlabelled": 0},
+    "per_class": {"allergens": {"precision": 0.0, "recall": 0.0, "f1": 0.0, "support": 0}},
+    "confusion_matrix": {"labels": ["…", "abstain"], "matrix": [[0]]}
+  }],
+  "skipped": [{"model": "…", "prompt_version": "…", "split": "dev", "task": "…",
+               "reason": "no Labels"}],                                   // added
+  "agreement": {"cohens_kappa": 0.0, "n": 60,
+                "task": "hazard_category", "subset_size": 60, "by_task": {…}},  // added keys
+  "noise_audit": {"agreement_with_official": 0.0, "n": 60,
+                  "n_unsure": 0, "n_unmapped": 0, "n_multi_label": 0}    // added keys
+}
+```
+
+A classification block (T1, T2, T5) has `n, accuracy, accuracy_ci95, accuracy_answered,
+macro_f1, macro_f1_ci95, weighted_f1, abstention_rate, coverage_accuracy, n_missing,
+n_stale`; a span block (T3, T4) has `n, exact_match, exact_match_ci95, normalized_match,
+normalized_match_ci95, abstention_rate, n_missing, n_stale` and no per_class / confusion
+matrix. Undefined values (n = 0) are `null`. `per_class` and `confusion_matrix` are overall
+only.
+
+`results/example.json` has the same shape with **invented** Labels and an invented
+`synthetic-model` (`"synthetic": true`, `"git_sha": "synthetic"`); only the items and the
+baselines' outputs are real. It exists so `/evaluation` (ticket 25) can be built now.
+
+CI runs `make eval` on every PR with the committed files and does not compare the result
+with the committed `latest.json` (`created_at` and `git_sha` always differ); the
+regression gate is `eval.yml` (ticket 19).
 
 ## Re-running
 

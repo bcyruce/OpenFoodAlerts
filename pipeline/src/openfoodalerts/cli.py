@@ -519,5 +519,161 @@ def eval_fetch_rasff_cmd(
         typer.echo(f"{label}: fetched {n} of {plan[label]} ({result.available[label]} listed)")
 
 
+SplitOption = Annotated[
+    str, typer.Option(help="dev (default) or test; test only when explicitly asked for.")
+]
+
+
+def _check_split(split: str) -> None:
+    if split not in ("dev", "test"):
+        typer.echo(f"error: --split must be dev or test, not {split!r}", err=True)
+        raise typer.Exit(2)
+
+
+def _fmt(value: object) -> str:
+    return f"{value:.3f}" if isinstance(value, float) else "-" if value is None else str(value)
+
+
+@app.command("eval-run")
+def eval_run_cmd(
+    split: SplitOption = "dev",
+    taxonomy: TaxonomyOption = None,
+    eval_dir: EvalDirOption = None,
+    output: Annotated[
+        Path | None, typer.Option(help="Report to write (default: eval/results/latest.json).")
+    ] = None,
+    store: Annotated[
+        bool, typer.Option(help="Write eval_runs and mirror eval_labels if a database answers.")
+    ] = True,
+) -> None:
+    """Score cached model outputs and the baselines on one split (`make eval`).
+
+    Offline: no API calls, no network. Reads eval/items.csv, eval/labels.csv, eval/cache/
+    and eval/silver.csv; writes eval/results/latest.json (runs of the other split are kept).
+    With a reachable DATABASE_URL, also inserts one eval_runs row per run; without one it
+    says so and still exits 0. Tasks without gold Labels are listed as skipped.
+    """
+    from datetime import UTC
+    from datetime import datetime as dt
+
+    from openfoodalerts.eval.harness import current_git_sha, run_eval
+    from openfoodalerts.eval.job import REPO_ROOT, default_eval_dir
+    from openfoodalerts.eval.labelset import default_taxonomy_path
+
+    _check_split(split)
+    directory = eval_dir or default_eval_dir()
+    out = output or directory / "results" / "latest.json"
+    report, notices = run_eval(
+        directory,
+        split=split,
+        taxonomy_path=taxonomy or default_taxonomy_path(),
+        output=out,
+        created_at=dt.now(UTC).isoformat(timespec="seconds"),
+        git_sha=current_git_sha(REPO_ROOT),
+    )
+    for notice in notices:
+        typer.echo(f"notice: {notice}")
+    status = report["label_status"].get(split, {})
+    typer.echo(
+        f"split {split}: {status.get('labelled', 0)} of {status.get('items', 0)} items labelled"
+    )
+    for run in (r for r in report["runs"] if r["split"] == split):
+        o = run["overall"]
+        if "macro_f1" in o:
+            scores = f"accuracy {_fmt(o['accuracy'])}  macro_f1 {_fmt(o['macro_f1'])}"
+        else:
+            scores = f"exact {_fmt(o['exact_match'])}  normalized {_fmt(o['normalized_match'])}"
+        typer.echo(
+            f"{run['model']}/{run['prompt_version']}  {run['task']}  n={o['n']}  {scores}"
+            f"  abstained {_fmt(o['abstention_rate'])}"
+        )
+    for s in (s for s in report["skipped"] if s["split"] == split):
+        typer.echo(f"skipped {s['model']}/{s['prompt_version']} {s['task']}: {s['reason']}")
+    agreement, audit = report["agreement"], report["noise_audit"]
+    typer.echo(f"agreement: kappa {_fmt(agreement['cohens_kappa'])} (n={agreement['n']})")
+    typer.echo(
+        f"noise audit: {_fmt(audit['agreement_with_official'])} with official (n={audit['n']})"
+    )
+    typer.echo(f"wrote {out}")
+    if store:
+        _store_eval(report, split, directory)
+
+
+def _store_eval(report: dict[str, object], split: str, eval_dir: Path) -> None:
+    import psycopg
+
+    from openfoodalerts.eval.files import read_labels
+    from openfoodalerts.eval.store import store_runs, sync_labels
+
+    try:
+        with connect() as conn:
+            runs = store_runs(conn, report, split)
+            labels = sync_labels(conn, read_labels(eval_dir / "labels.csv"))
+    except psycopg.Error as exc:
+        typer.echo(f"notice: eval_runs not written ({type(exc).__name__}: database not usable)")
+        return
+    typer.echo(f"eval_runs: {runs} rows written; eval_labels: {labels} Labels mirrored")
+
+
+@app.command("eval-refresh")
+def eval_refresh_cmd(
+    split: SplitOption = "dev",
+    eval_dir: EvalDirOption = None,
+    model: Annotated[
+        list[str] | None, typer.Option(help="Only these classifiers (default: all).")
+    ] = None,
+) -> None:
+    """Call the configured classifiers on one split and refresh eval/cache/ (paid API).
+
+    `make eval` afterwards scores the refreshed cache. Exit code 2: no classifier is
+    configured yet (ticket 16) or an unknown --model.
+    """
+    from openfoodalerts.eval.files import read_items
+    from openfoodalerts.eval.job import default_eval_dir
+    from openfoodalerts.eval.refresh import NoClassifierConfigured, refresh_cache
+
+    _check_split(split)
+    directory = eval_dir or default_eval_dir()
+    try:
+        written = refresh_cache(
+            read_items(directory / "items.csv"),
+            split=split,
+            cache_dir=directory / "cache",
+            models=model,
+        )
+    except (NoClassifierConfigured, KeyError) as exc:
+        typer.echo(f"error: {exc.args[0]}", err=True)
+        raise typer.Exit(2) from exc
+    for path, n in written.items():
+        typer.echo(f"{path}: {n} predictions")
+
+
+@app.command("eval-example")
+def eval_example_cmd(
+    eval_dir: EvalDirOption = None,
+    taxonomy: TaxonomyOption = None,
+    output: Annotated[Path | None, typer.Option(help="Default: eval/results/example.json.")] = None,
+) -> None:
+    """Write the synthetic example report (invented Labels and model; "synthetic": true).
+
+    For building the /evaluation page before real Labels exist. Reproducible.
+    """
+    from openfoodalerts.eval.files import read_items
+    from openfoodalerts.eval.harness import write_report
+    from openfoodalerts.eval.job import default_eval_dir
+    from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
+    from openfoodalerts.eval.synthetic import example_report
+
+    directory = eval_dir or default_eval_dir()
+    out = output or directory / "results" / "example.json"
+    report = example_report(
+        read_items(directory / "items.csv"),
+        load_taxonomy(taxonomy or default_taxonomy_path()),
+        directory / "silver.csv",
+    )
+    write_report(out, report)
+    typer.echo(f"wrote {out} ({len(report['runs'])} runs, synthetic)")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

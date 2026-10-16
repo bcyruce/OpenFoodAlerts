@@ -11,6 +11,7 @@ dependencies = [
     "pydantic>=2.8",
     "psycopg[binary]>=3.2",
     "selectolax>=0.3.21",
+    "scikit-learn>=1.5",
 ]
 
 [project.scripts]
@@ -49,6 +50,11 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
 strict = true
 python_version = "3.12"
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# scikit-learn ships no type information
+module = ["sklearn", "sklearn.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
