@@ -1,0 +1,17 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: ingest NVWA safety warnings, then parse and classify
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# every 2 hours (spec §5); the 06:05 run lands before the 07:00 Digest.
+OnCalendar=*-*-* 00/2:05:00 Europe/Amsterdam
+RandomizedDelaySec=5min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-ingest-nvwa.service
+
+[Install]
+WantedBy=timers.target

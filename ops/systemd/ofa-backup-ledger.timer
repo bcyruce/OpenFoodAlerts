@@ -1,0 +1,18 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: encrypted do-not-send ledger (suppressions + unsubscribes) for restores
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# hourly: after a restore, unsubscribes and deletions newer than the restored
+# dump are re-applied from this ledger (docs/privacy/ropa.md §2.6).
+OnCalendar=*-*-* *:20:00 Europe/Amsterdam
+RandomizedDelaySec=5min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-backup-ledger.service
+
+[Install]
+WantedBy=timers.target

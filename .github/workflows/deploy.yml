@@ -1,0 +1,112 @@
+# Manual deploy to the server (ticket 34). Disabled until the owner has chosen the hosting
+# (docs/deploy-proposal.md) and set it up (docs/runbook.md):
+#   - runs only on "Run workflow" (workflow_dispatch), never on push;
+#   - and only when the repository variable DEPLOY_ENABLED is "true".
+#
+# What it does: checks that CI passed for the commit, then over SSH runs the root-owned
+# /usr/local/sbin/ofa-deploy <sha> on the server, which builds a new release (uv sync,
+# backup if migrations are pending, dbmate up, load-seeds, pnpm build with the full
+# checkout), switches to it, restarts ofa-web and rolls back if the site does not answer.
+# Building on the server rather than here: `next build` prerenders pages from the
+# production database, and the server keeps the database closed to the internet.
+#
+# Settings (names only; values live in GitHub, never in the repository):
+#   vars.DEPLOY_ENABLED       "true" to allow the workflow to run
+#   vars.DEPLOY_HOST          server name or IP
+#   vars.DEPLOY_USER          SSH user on the server (default: ofa)
+#   vars.SITE_URL             public site URL, for the check after the deploy
+#   secrets.DEPLOY_SSH_KEY    private key of a deploy-only SSH key pair (ed25519)
+#   secrets.DEPLOY_KNOWN_HOSTS  the server's host key line(s) (ssh-keyscan, verified by hand)
+# Use a GitHub environment "production" with yourself as required reviewer for an extra
+# confirmation step.
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit SHA or tag to deploy (must be on main or tagged)"
+        required: true
+        default: main
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Resolve the commit and require it to be on main
+        id: commit
+        run: |
+          sha=$(git rev-parse --verify "HEAD^{commit}")
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$sha" origin/main && [ -z "$(git tag --points-at "$sha")" ]; then
+            echo "::error::$sha is neither on main nor tagged"
+            exit 1
+          fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Deploying $sha"
+
+      - name: Require a green CI run for this commit
+        uses: actions/github-script@v7
+        env:
+          SHA: ${{ steps.commit.outputs.sha }}
+        with:
+          script: |
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              ...context.repo, workflow_id: "ci.yml", head_sha: process.env.SHA, per_page: 20,
+            });
+            const ok = data.workflow_runs.some((r) => r.status === "completed" && r.conclusion === "success");
+            if (!ok) core.setFailed(`no successful ci.yml run for ${process.env.SHA}`);
+
+      - name: Set up SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          if [ -z "$DEPLOY_SSH_KEY" ] || [ -z "$DEPLOY_KNOWN_HOSTS" ]; then
+            echo "::error::SSH secrets missing"
+            exit 1
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
+
+      - name: Build, migrate and restart on the server
+        env:
+          HOST: ${{ vars.DEPLOY_HOST }}
+          USER_NAME: ${{ vars.DEPLOY_USER || 'ofa' }}
+          SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 "$USER_NAME@$HOST" sudo -n /usr/local/sbin/ofa-deploy "$SHA"
+
+      - name: Check the public site
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          [ -n "$SITE_URL" ] || { echo "SITE_URL not set; skipped"; exit 0; }
+          curl --silent --show-error --fail --max-time 30 --retry 3 --retry-delay 10 \
+            --output /dev/null "${SITE_URL%/}/en"
+          code=$(curl --silent --max-time 30 --output health.json --write-out '%{http_code}' "${SITE_URL%/}/api/health")
+          echo "/api/health: HTTP $code"; cat health.json; echo
+          # 503 = data degraded (freshness.yml reports that); the deploy itself succeeded.
+
+      - name: Remove the SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

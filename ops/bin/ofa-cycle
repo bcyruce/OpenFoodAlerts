@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# ofa-cycle: one pipeline cycle for a Source: fetch, then parse, then classify (spec §5).
+#
+#   ofa-cycle rasff            ingest-rasff   -> parse --source rasff   -> classify
+#   ofa-cycle rasff-refresh    refresh-rasff  -> parse --source rasff   -> classify
+#   ofa-cycle nvwa             ingest-nvwa    -> parse --source nvwa    -> classify
+#   ofa-cycle openfda          ingest-openfda -> parse --source openfda -> classify
+#
+# Runs as ofa-pipeline from the ofa-ingest-*/ofa-refresh-rasff units. send-instant is NOT
+# run here: it belongs to another OS user and database role (ofa_mailer, Brevo key), so the
+# ingest units start ofa-send-instant.service through `OnSuccess=` once this script exits 0.
+#
+# parse runs even when the fetch failed part-way: whatever was archived before the error
+# should still become Notifications (both jobs are idempotent; parse is gated per Source by
+# the contract probe, spec §3.4). The exit status is the first non-zero status, so a failed
+# fetch still fails the unit (and pings the heartbeat's /fail endpoint).
+set -uo pipefail
+
+here=$(dirname "$(readlink -f "$0")")
+run=$here/ofa-run
+
+case ${1:-} in
+    rasff) fetch=(ingest-rasff); source=rasff ;;
+    rasff-refresh) fetch=(refresh-rasff); source=rasff ;;
+    nvwa) fetch=(ingest-nvwa); source=nvwa ;;
+    openfda) fetch=(ingest-openfda); source=openfda ;;
+    *)
+        echo "usage: ofa-cycle rasff|rasff-refresh|nvwa|openfda" >&2
+        exit 2
+        ;;
+esac
+
+status=0
+step() {
+    local rc=0
+    "$run" "$@" || rc=$?
+    if [ "$rc" -ne 0 ]; then
+        echo "ofa-cycle: step failed (exit $rc): $*" >&2
+        [ "$status" -ne 0 ] || status=$rc
+    fi
+}
+
+step -l "source-$source" -- "${fetch[@]}"
+step -l parse -- parse --source "$source"
+# classify (ticket 16) works on every Notification without a current result, not per Source.
+step -l parse --if-available -- classify
+
+exit "$status"

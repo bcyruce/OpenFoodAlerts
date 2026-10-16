@@ -1,0 +1,17 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: contract probe of the three Source endpoints (gates parse on failure)
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# daily (spec §3.4, §5), before the morning ingest runs.
+OnCalendar=*-*-* 04:30:00 Europe/Amsterdam
+RandomizedDelaySec=15min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-probe-contracts.service
+
+[Install]
+WantedBy=timers.target

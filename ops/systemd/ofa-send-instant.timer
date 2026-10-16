@@ -1,0 +1,19 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: send Instant emails (ticket 31; skipped while the command does not exist)
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# catch-up only: normally started by OnSuccess= of the ingest units right after
+# classify (spec §10.4). This hourly run covers cycles that failed after parsing
+# something new (OnSuccess= does not fire then). Enable once ticket 31 is merged.
+OnCalendar=*-*-* *:50:00 Europe/Amsterdam
+RandomizedDelaySec=2min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-send-instant.service
+
+[Install]
+WantedBy=timers.target

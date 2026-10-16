@@ -1,0 +1,173 @@
+# Daily data-freshness check of the live site (spec §13, ticket 34).
+#
+# GET ${SITE_URL}/api/health: 200 = every Source fresh and its contract ok; 503 = degraded
+# (stale, contract failed/unreachable, RASFF silent) or the database is down. On anything
+# but 200 this opens an issue labelled "freshness", or comments on the one already open,
+# with the JSON; when the site is healthy again it comments and closes that issue.
+#
+# A second job reminds about the week-12 decision (spec §14.3) once vars.LAUNCH_DATE is set.
+#
+# Repository settings (Settings -> Secrets and variables -> Actions -> Variables):
+#   SITE_URL      e.g. https://openfoodalerts.nl   (unset: both jobs are skipped)
+#   LAUNCH_DATE   public launch date, YYYY-MM-DD   (optional)
+# Note: GitHub disables scheduled workflows after 60 days without repository activity;
+# the heartbeat monitor (docs/runbook.md) does not depend on GitHub.
+name: freshness
+
+on:
+  schedule:
+    # 06:47 UTC = 07:47/08:47 Amsterdam: after the morning ingest runs and the Digest.
+    - cron: "47 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: freshness
+  cancel-in-progress: false
+
+jobs:
+  health:
+    if: ${{ vars.SITE_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: GET /api/health
+        id: health
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          set +e
+          code=$(curl --silent --show-error --max-time 30 --retry 2 --retry-delay 30 \
+            --user-agent "OpenFoodAlerts-freshness/1.0 (+${SITE_URL}/about)" \
+            --output health.json --write-out '%{http_code}' "${SITE_URL%/}/api/health")
+          rc=$?
+          set -e
+          [ -s health.json ] || echo '(empty response)' > health.json
+          echo "HTTP ${code:-000} (curl exit $rc)"
+          head -c 2000 health.json; echo
+          echo "code=${code:-000}" >> "$GITHUB_OUTPUT"
+
+      - name: Open, update or close the freshness issue
+        uses: actions/github-script@v7
+        env:
+          HTTP_CODE: ${{ steps.health.outputs.code }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        with:
+          script: |
+            const fs = require("fs");
+            const label = "freshness";
+            const title = "Data freshness check failed (/api/health)";
+            const code = process.env.HTTP_CODE;
+            const healthy = code === "200";
+            let body = fs.readFileSync("health.json", "utf8");
+            try {
+              body = JSON.stringify(JSON.parse(body), null, 2);
+            } catch {
+              // Not JSON (proxy error page, timeout): keep the raw text.
+            }
+            if (body.length > 60000) body = body.slice(0, 60000) + "\n... (truncated)";
+            const run = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                ...context.repo, name: label, color: "d93f0b",
+                description: "Opened by .github/workflows/freshness.yml",
+              });
+            }
+
+            const open = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo, state: "open", labels: label, per_page: 100,
+            });
+            const existing = open.find((issue) => issue.title === title && !issue.pull_request);
+
+            if (healthy) {
+              if (existing) {
+                await github.rest.issues.createComment({
+                  ...context.repo, issue_number: existing.number,
+                  body: `Healthy again: HTTP 200 at ${new Date().toISOString()} ([run](${run})). Closing.`,
+                });
+                await github.rest.issues.update({
+                  ...context.repo, issue_number: existing.number, state: "closed",
+                  state_reason: "completed",
+                });
+              }
+              core.info("health: 200");
+              return;
+            }
+
+            const report = [
+              `\`GET ${process.env.SITE_URL}/api/health\` returned **HTTP ${code}** at ${new Date().toISOString()} ([run](${run})).`,
+              "",
+              "```json",
+              body,
+              "```",
+              "",
+              "Playbooks: `docs/runbook.md` (stale Source, contract failed, RASFF silent, site down).",
+            ].join("\n");
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: existing.number, body: report,
+              });
+              core.warning(`health: HTTP ${code}; commented on #${existing.number}`);
+            } else {
+              const { data } = await github.rest.issues.create({
+                ...context.repo, title, body: report, labels: [label],
+              });
+              core.warning(`health: HTTP ${code}; opened #${data.number}`);
+            }
+
+  twelve-week-decision:
+    if: ${{ vars.SITE_URL != '' && vars.LAUNCH_DATE != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open the week-12 decision issue once (spec §14.3)
+        uses: actions/github-script@v7
+        env:
+          LAUNCH_DATE: ${{ vars.LAUNCH_DATE }}
+        with:
+          script: |
+            const launch = new Date(`${process.env.LAUNCH_DATE}T00:00:00Z`);
+            if (Number.isNaN(launch.getTime())) {
+              core.setFailed(`LAUNCH_DATE is not YYYY-MM-DD: ${process.env.LAUNCH_DATE}`);
+              return;
+            }
+            const due = new Date(launch.getTime() + 84 * 24 * 3600 * 1000);
+            if (Date.now() < due.getTime()) {
+              core.info(`week 12 is ${due.toISOString().slice(0, 10)}`);
+              return;
+            }
+            const label = "decision-week-12";
+            const all = await github.paginate(github.rest.issues.listForRepo, {
+              ...context.repo, state: "all", labels: label, per_page: 100,
+            });
+            if (all.length > 0) return;
+            try {
+              await github.rest.issues.getLabel({ ...context.repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({ ...context.repo, name: label, color: "5319e7" });
+            }
+            await github.rest.issues.create({
+              ...context.repo,
+              title: "Week-12 decision: continue, maintain or stop (spec §14.3)",
+              labels: [label],
+              body: [
+                `Public launch: ${process.env.LAUNCH_DATE}; week 12 reached on ${due.toISOString().slice(0, 10)}.`,
+                "",
+                "Collect the numbers (docs/runbook.md \"Week-12 decision\") and pick one:",
+                "",
+                "- **Continue (v1.1)**: subscribers >= 50, or monthly visitors >= 1,000, or external reuse.",
+                "- **Maintenance mode**: thresholds not met, but freshness >= 95% of days and maintenance <= 2 h/week. Freeze features.",
+                "- **Stop / archive**: maintenance > 4 h/week for a sustained period, or the RASFF endpoint broken for more than 2 weeks without a fix, or job hunting needs all the time. Static archive with a date; repository archived.",
+                "",
+                "Record the decision and the numbers in docs/implementation-log.md.",
+              ].join("\n"),
+            });

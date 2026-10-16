@@ -1,0 +1,56 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+#
+# The website: `next start` of the release in /opt/openfoodalerts/current, listening on
+# 127.0.0.1 only. nginx in front terminates TLS and sets the client IP headers; the app's
+# rate limiter trusts them (implementation-log ### 28), so the port must not be reachable
+# from outside. One process only: the rate limiter lives in process memory.
+#
+# systemd rather than PM2: the timers already need systemd, so one supervisor, one log
+# (journalctl), the same root-only EnvironmentFile mechanism and the same sandboxing for
+# every process. PM2 equivalents are in docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts website (Next.js on 127.0.0.1:3000)
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+Wants=network-online.target
+After=network-online.target postgresql.service
+
+[Service]
+Type=simple
+User=ofa-web
+Group=ofa-web
+# Database role ofa_web (spec §11.2), subscription secrets, Brevo key. root:root, mode 600.
+EnvironmentFile=/etc/openfoodalerts/web.env
+Environment=NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
+WorkingDirectory=/opt/openfoodalerts/current/web
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000
+Restart=on-failure
+RestartSec=5s
+TimeoutStopSec=20s
+# A small VM shares its memory with Postgres; restart instead of swapping.
+MemoryHigh=900M
+MemoryMax=1200M
+# Next writes regenerated (ISR) pages into the release's .next directory; deploy.sh gives
+# that directory, and nothing else in the release, to ofa-web.
+ReadWritePaths=/opt/openfoodalerts/releases
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

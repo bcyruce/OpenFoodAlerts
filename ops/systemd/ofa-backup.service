@@ -1,0 +1,42 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts: encrypted pg_dump to off-site object storage
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+Wants=network-online.target
+After=network-online.target postgresql.service
+OnSuccess=ofa-heartbeat@%N.service
+OnFailure=ofa-heartbeat-fail@%N.service
+
+[Service]
+Type=oneshot
+# No permanent OS user: pg_dump connects as the read-only role ofa_backup
+# (pg_read_all_data) with BACKUP_DATABASE_URL from the root-only environment file.
+DynamicUser=yes
+EnvironmentFile=/etc/openfoodalerts/backup.env
+CacheDirectory=ofa-backup
+Environment=RCLONE_CACHE_DIR=%C/ofa-backup XDG_CACHE_HOME=%C/ofa-backup RCLONE_CONFIG=/dev/null
+ExecStart=/opt/openfoodalerts/current/ops/backup/backup.sh dump
+TimeoutStartSec=3h
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+# Hardening: no writable paths except its cache directory (and the network).
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+UMask=0077

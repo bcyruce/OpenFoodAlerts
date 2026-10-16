@@ -1,0 +1,17 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: ingest RASFF (last 14 days), then parse and classify
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# every 6 hours (spec §5), at about 00:20, 06:20, 12:20 and 18:20.
+OnCalendar=*-*-* 00/6:20:00 Europe/Amsterdam
+RandomizedDelaySec=10min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-ingest-rasff.service
+
+[Install]
+WantedBy=timers.target
