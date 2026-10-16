@@ -1,0 +1,6 @@
+# /etc/sudoers.d/ofa-deploy (root:root, mode 440). Check before installing:
+#   visudo -cf ops/deploy/sudoers && install -m 440 -o root -g root ops/deploy/sudoers /etc/sudoers.d/ofa-deploy
+# The deploy user (SSH from GitHub Actions or from you) may run the root-owned deploy script
+# and nothing else; ofa-deploy validates its own arguments. Deliberately no journalctl or
+# systemctl entries: both can open a pager, and a pager under sudo is a root shell.
+ofa ALL=(root) NOPASSWD: /usr/local/sbin/ofa-deploy

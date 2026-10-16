@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+# ofa-run: run one `ofa` pipeline subcommand under named locks (ticket 34, docs/runbook.md).
+#
+#   ofa-run [-l LOCK]... [--if-available] [--] SUBCOMMAND [ARGS...]
+#
+#   -l, --lock LOCK   hold /run/lock/openfoodalerts/LOCK.lock while the command runs; may be
+#                     repeated (locks are taken in sorted order, so two jobs never deadlock)
+#   --if-available    exit 0 with a note when this release has no such subcommand yet
+#                     (classify: ticket 16; send-digest: 30; send-instant: 31)
+#
+# systemd never starts a second copy of a unit that is still running, so a job cannot
+# overlap itself; the locks keep *different* jobs apart: one network job per Source at a
+# time (sequential requests, spec §3) and one writer of Notifications at a time (parse,
+# classify). A lock that stays busy for OFA_LOCK_WAIT seconds ends the run with exit 75
+# (EX_TEMPFAIL), which the unit reports as a failure.
+#
+# Environment (all optional): OFA_HOME (default: the release this script belongs to, so a
+# deploy that switches `current` mid-cycle cannot mix two releases), OFA_BIN,
+# OFA_LOCK_DIR (default /run/lock/openfoodalerts), OFA_LOCK_WAIT (default 3600).
+set -euo pipefail
+
+OFA_HOME=${OFA_HOME:-$(cd "$(dirname "$(readlink -f "$0")")/../.." && pwd -P)}
+OFA_BIN=${OFA_BIN:-$OFA_HOME/pipeline/.venv/bin/ofa}
+OFA_LOCK_DIR=${OFA_LOCK_DIR:-/run/lock/openfoodalerts}
+OFA_LOCK_WAIT=${OFA_LOCK_WAIT:-3600}
+EX_TEMPFAIL=75
+
+usage() {
+    echo "usage: ofa-run [-l LOCK]... [--if-available] [--] SUBCOMMAND [ARGS...]" >&2
+    exit 2
+}
+
+locks=()
+optional=0
+while [ $# -gt 0 ]; do
+    case $1 in
+        -l | --lock)
+            [ $# -ge 2 ] || usage
+            case $2 in
+                *[!a-z0-9-]* | '') echo "ofa-run: invalid lock name: $2" >&2; exit 2 ;;
+            esac
+            locks+=("$2")
+            shift 2
+            ;;
+        --if-available) optional=1; shift ;;
+        --) shift; break ;;
+        -*) usage ;;
+        *) break ;;
+    esac
+done
+[ $# -ge 1 ] || usage
+
+if [ ! -x "$OFA_BIN" ]; then
+    echo "ofa-run: $OFA_BIN not found; is a release deployed?" >&2
+    exit 1
+fi
+
+if [ "$optional" -eq 1 ] && ! "$OFA_BIN" "$1" --help >/dev/null 2>&1; then
+    echo "ofa-run: 'ofa $1' does not exist in this release; skipped" >&2
+    exit 0
+fi
+
+cmd=()
+if [ ${#locks[@]} -gt 0 ]; then
+    mapfile -t sorted < <(printf '%s\n' "${locks[@]}" | sort -u)
+    for lock in "${sorted[@]}"; do
+        cmd+=(flock --wait "$OFA_LOCK_WAIT" --conflict-exit-code "$EX_TEMPFAIL"
+            "$OFA_LOCK_DIR/$lock.lock")
+    done
+fi
+cmd+=("$OFA_BIN" "$@")
+
+status=0
+"${cmd[@]}" || status=$?
+if [ "$status" -eq "$EX_TEMPFAIL" ]; then
+    echo "ofa-run: 'ofa $1' gave up after waiting ${OFA_LOCK_WAIT}s for lock(s): ${locks[*]}" >&2
+fi
+exit "$status"

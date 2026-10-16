@@ -1,0 +1,17 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: check openFDA food enforcement (full sync when the snapshot changed), then parse and classify
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# daily check (spec §5); openFDA publishes weekly snapshots.
+OnCalendar=*-*-* 05:10:00 Europe/Amsterdam
+RandomizedDelaySec=10min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-ingest-openfda.service
+
+[Install]
+WantedBy=timers.target

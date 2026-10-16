@@ -1,0 +1,35 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+# Template: started by OnSuccess=/OnFailure= of the job units with the job name as instance.
+[Unit]
+Description=OpenFoodAlerts: report %i failure to the heartbeat monitor
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Service]
+Type=oneshot
+DynamicUser=yes
+# Reads the failed unit's last journal lines for the report.
+SupplementaryGroups=systemd-journal
+# Optional: without it ofa-heartbeat only logs that nothing was reported.
+EnvironmentFile=-/etc/openfoodalerts/heartbeat.env
+ExecStart=/opt/openfoodalerts/current/ops/bin/ofa-heartbeat fail %i
+TimeoutStartSec=2min
+# Hardening: no writable paths (network only).
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+UMask=0077

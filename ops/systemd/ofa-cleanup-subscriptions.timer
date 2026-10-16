@@ -1,0 +1,17 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: delete expired subscription data (pending 7 d, unsubscribed 29 d, deliveries 12 months)
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# daily (spec §5, §11.1).
+OnCalendar=*-*-* 03:10:00 Europe/Amsterdam
+RandomizedDelaySec=10min
+# Same offset on every run on this host, so the load on the Source stays predictable.
+FixedRandomDelay=true
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-cleanup-subscriptions.service
+
+[Install]
+WantedBy=timers.target

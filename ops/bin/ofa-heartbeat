@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# ofa-heartbeat: report a job's outcome to the heartbeat monitor (spec §13, O8).
+#
+#   ofa-heartbeat ok|fail JOB
+#
+# Started by ofa-heartbeat@JOB.service (OnSuccess=) and ofa-heartbeat-fail@JOB.service
+# (OnFailure=) of every timer-driven unit, so crashes, kills and timeouts are reported too.
+#
+# Speaks the Healthchecks.io ping API with slugs (also served by a self-hosted Healthchecks):
+#   success  POST $OFA_HEARTBEAT_BASE/JOB
+#   failure  POST $OFA_HEARTBEAT_BASE/JOB/fail
+# OFA_HEARTBEAT_BASE is https://hc-ping.com/<project ping key> (heartbeat.env). With
+# OFA_HEARTBEAT_CREATE=1 a missing check is created on its first ping (`?create=1`); set its
+# period and grace time afterwards (table in docs/runbook.md). Unset base: does nothing.
+#
+# Never fails: a monitor that is down must not turn a good job run into a failed one.
+set -u
+
+outcome=${1:-}
+job=${2:-}
+case $outcome in ok | fail) ;; *) echo "usage: ofa-heartbeat ok|fail JOB" >&2; exit 0 ;; esac
+case $job in *[!a-z0-9-]* | '') echo "ofa-heartbeat: invalid job name: $job" >&2; exit 0 ;; esac
+
+base=${OFA_HEARTBEAT_BASE:-}
+if [ -z "$base" ]; then
+    echo "ofa-heartbeat: OFA_HEARTBEAT_BASE not set; $job $outcome not reported" >&2
+    exit 0
+fi
+
+url=${base%/}/$job
+[ "$outcome" = ok ] || url=$url/fail
+[ "${OFA_HEARTBEAT_CREATE:-0}" != 1 ] || url="$url?create=1"
+
+# The body shows up in the monitor's event log: the unit's last lines help with triage.
+# httpx error messages can contain request URLs, and openFDA URLs carry the API key, so
+# anything that looks like a key or token parameter is masked before it leaves the server.
+body="$job $outcome on $(hostname)"
+if [ "$outcome" = fail ] && command -v journalctl >/dev/null 2>&1; then
+    tail_lines=$(journalctl --unit "$job.service" --lines 20 --no-pager --output cat 2>/dev/null |
+        sed -E -e 's/((api_)?key|token|secret|password)=[^&[:space:]"]+/\1=[masked]/gI' \
+            -e 's#(://[^:/@[:space:]]+):[^@[:space:]]+@#\1:[masked]@#g' |
+        tail -c 9000)
+    body="$body
+$tail_lines"
+fi
+
+if ! curl --silent --show-error --fail --max-time 10 --retry 3 --retry-delay 5 \
+    --data-raw "$body" --output /dev/null "$url"; then
+    echo "ofa-heartbeat: could not reach the heartbeat monitor ($job $outcome)" >&2
+fi
+exit 0

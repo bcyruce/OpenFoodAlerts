@@ -1,0 +1,16 @@
+# OpenFoodAlerts (ticket 34). Installed to /etc/systemd/system/; see docs/runbook.md.
+[Unit]
+Description=OpenFoodAlerts timer: send the daily Digest (ticket 30; skipped while the command does not exist)
+Documentation=file:/opt/openfoodalerts/current/docs/runbook.md
+
+[Timer]
+# daily at 07:00 Europe/Amsterdam (spec §10.3), on the minute: no random delay.
+# Persistent=true: after downtime the missed Digest goes out at boot rather than
+# not at all (the job sends at most one per Subscription per day).
+OnCalendar=*-*-* 07:00:00 Europe/Amsterdam
+# Catch up a run that was missed while the server was off.
+Persistent=true
+Unit=ofa-send-digest.service
+
+[Install]
+WantedBy=timers.target
