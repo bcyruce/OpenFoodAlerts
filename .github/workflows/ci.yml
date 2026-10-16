@@ -41,8 +41,10 @@ jobs:
       - run: uv --directory pipeline run mypy
       - run: uv --directory pipeline run pytest
       - name: make eval (cached mode)
-        # Enabled by ticket 15.
-        if: ${{ false }}
+        # Offline: scores eval/cache/ and the baselines on dev, no API key needed. Passes with
+        # zero Labels (empty runs). The regenerated latest.json is not compared with the
+        # committed one (created_at / git_sha always differ); the regression gate on T1 dev
+        # macro-F1 is eval.yml (ticket 19).
         run: make eval
 
   web:

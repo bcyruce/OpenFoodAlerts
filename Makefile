@@ -21,7 +21,7 @@ WEB_FIXTURES := $(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/openfda/*.js
 	$(sort $(wildcard $(CURDIR)/web/e2e/fixtures/rasff/*.json)) \
 	$(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/nvwa/detail/*.html))
 
-.PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval smoke
+.PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval eval-refresh eval-example smoke
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -81,8 +81,17 @@ check: lint typecheck test ## Everything CI runs locally
 dev: ## Next.js dev server
 	$(PNPM) dev
 
-eval: ## Offline eval from cached model outputs (enabled by ticket 15)
-	@echo "make eval: not implemented yet (ticket 15)"
+# Eval split: dev unless test is asked for explicitly (make eval SPLIT=test).
+SPLIT ?= dev
+
+eval: ## Offline eval of eval/cache/ + baselines on SPLIT (default dev) -> eval/results/latest.json
+	$(UV) run ofa eval-run --split $(SPLIT)
+
+eval-refresh: ## Call the configured classifiers on SPLIT and refresh eval/cache/ (paid API)
+	$(UV) run ofa eval-refresh --split $(SPLIT)
+
+eval-example: ## Regenerate the synthetic eval/results/example.json (for the /evaluation page)
+	$(UV) run ofa eval-example
 
 smoke: web-fixtures ## Playwright smoke tests: load fixtures, build, start on SMOKE_PORT
 	$(PNPM) build
