@@ -18,6 +18,12 @@ Rules:
 - zh Subscriptions are NVWA only (§10.1); the database enforces it and so does this.
 - RASFF News (`matches_news`) needs only the scope and the source; the hazard, product
   and country filters do not apply (§10.3).
+- Instant email (`matches_instant`, §10.4): the source is in `instant_sources`, the
+  Notification passes its source's trigger rule (`instant_trigger`), and `matches`.
+  Trigger rules: RASFF classification Alert ("alert notification", the official name);
+  FDA Class I; NVWA every food warning (Product type food). NVWA rows still waiting for
+  T5 (product_type NULL) do not trigger: waiting is not abstaining, and they are not
+  shown anywhere yet (ticket 31 log). RASFF News never triggers.
 """
 
 from collections.abc import Iterable, Mapping
@@ -28,6 +34,8 @@ from openfoodalerts.db.connection import Connection
 
 IN_SCOPE_PRODUCT_TYPES = frozenset({"food", "feed", "food contact material"})
 RASFF_NEWS_TYPE = "news"
+RASFF_ALERT_TYPE = "alert notification"
+FDA_CLASS_I = "class i"
 
 
 @dataclass(frozen=True)
@@ -38,6 +46,7 @@ class SubscriptionFilter:
     product_categories: frozenset[int]
     origin_countries: frozenset[str]
     include_unclassified: bool
+    instant_sources: frozenset[str] = frozenset()
 
     @classmethod
     def from_row(cls, row: Mapping[str, Any]) -> "SubscriptionFilter":
@@ -53,6 +62,7 @@ class SubscriptionFilter:
             product_categories=frozenset(int(v) for v in filters.get("product_categories") or []),
             origin_countries=frozenset(str(v) for v in filters.get("origin_countries") or []),
             include_unclassified=bool(row.get("include_unclassified", True)),
+            instant_sources=frozenset(str(v) for v in row.get("instant_sources") or []),
         )
 
 
@@ -67,6 +77,7 @@ class NotificationFacets:
     hazard_categories: frozenset[int]
     product_categories: frozenset[int]
     origin_countries: frozenset[str]
+    risk_official: str | None = None
 
     @property
     def is_rasff_news(self) -> bool:
@@ -107,8 +118,34 @@ def matches_news(s: SubscriptionFilter, n: NotificationFacets) -> bool:
     return n.is_rasff_news and in_scope(n) and _source_ok(s, n)
 
 
+def _rasff_trigger(n: NotificationFacets) -> bool:
+    return n.notification_type.strip().casefold() == RASFF_ALERT_TYPE
+
+
+def _fda_trigger(n: NotificationFacets) -> bool:
+    return (n.risk_official or "").strip().casefold() == FDA_CLASS_I
+
+
+def _nvwa_trigger(n: NotificationFacets) -> bool:
+    return n.product_type == "food"
+
+
+_INSTANT_TRIGGERS = {"rasff": _rasff_trigger, "openfda": _fda_trigger, "nvwa": _nvwa_trigger}
+
+
+def instant_trigger(n: NotificationFacets) -> bool:
+    """The source's own rule for an Instant email (spec §10.4), filters aside."""
+    rule = _INSTANT_TRIGGERS.get(n.source)
+    return rule is not None and not n.is_rasff_news and rule(n)
+
+
+def matches_instant(s: SubscriptionFilter, n: NotificationFacets) -> bool:
+    """An Instant email for this Notification: chosen source, trigger rule, filters."""
+    return n.source in s.instant_sources and instant_trigger(n) and matches(s, n)
+
+
 _FACETS_SQL = """
-SELECT n.id, s.code AS source, n.product_type, n.notification_type,
+SELECT n.id, s.code AS source, n.product_type, n.notification_type, n.risk_official,
     COALESCE((SELECT array_agg(DISTINCT hc.rasff_id) FROM notification_hazards h
               JOIN hazard_categories hc ON hc.id = h.hazard_category_id
               WHERE h.notification_id = n.id), '{}') AS hazard_categories,
@@ -137,6 +174,7 @@ def load_facets(conn: Connection, ids: Iterable[int]) -> dict[int, NotificationF
             hazard_categories=frozenset(r["hazard_categories"]),
             product_categories=frozenset(r["product_categories"]),
             origin_countries=frozenset(r["origin_countries"]),
+            risk_official=r["risk_official"],
         )
         for r in rows
     }

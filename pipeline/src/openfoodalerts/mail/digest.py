@@ -223,15 +223,19 @@ def _labels(
     return {k: tuple(v) for k, v in out.items()}
 
 
-def _items(
+def load_items(
     conn: Connection,
     ids: Sequence[int],
     locale: str,
     site_url: str,
     *,
-    instant: set[int],
-    updated: Mapping[int, datetime],
+    instant: set[int] | None = None,
+    updated: Mapping[int, datetime] | None = None,
 ) -> dict[int, DigestItem]:
+    """The §10.3 fields of these Notifications in a Subscription's language (Digest and
+    Instant email alike)."""
+    instant = instant or set()
+    updated = updated or {}
     wanted = list(ids)
     rows = conn.execute(_DISPLAY_SQL, (wanted,)).fetchall()
     hazards = _labels(
@@ -327,7 +331,7 @@ def send_digest(
                 result,
                 dry_run=dry_run,
             )
-        _log_volume(conn, day)
+        log_volume(conn, day)
         _record(stats, result, transport, dry_run)
     return result
 
@@ -351,7 +355,7 @@ def _digest_one(
         result.empty += 1
         return
     instant = deliveries.sent_instantly(conn, sid, selection.new)
-    items = _items(
+    items = load_items(
         conn, selection.ids, locale, settings.site_url, instant=instant, updated=selection.updated
     )
     token = manage_token(sid, settings.token_secret)
@@ -408,7 +412,8 @@ def _digest_one(
     result.sent += 1
 
 
-def _log_volume(conn: Connection, day: date) -> None:
+def log_volume(conn: Connection, day: date) -> None:
+    """The day's Brevo volume (spec §10.5); every mailer job logs it after its run."""
     by_kind = deliveries.daily_volume(conn, day)
     total = sum(by_kind.values())
     log_event(
