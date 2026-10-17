@@ -130,6 +130,8 @@ Put the manage link and the unsubscribe link in the body of every Digest and Ins
 
 **Digest deliveries.** `uv run ofa send-digest` (pipeline, ticket 30) claims a row in `email_deliveries` before sending: migration `20261025001300` adds `status` (`sending`/`sent`/`failed`, default `sent`, so confirmation rows are unaffected) and the generated `digest_date` (Amsterdam day of `sent_at`, digests only) with a unique index on `(subscription_id, digest_date)` for live digest rows. `ofa_mailer` may UPDATE only `status` and `provider_message_id`. When counting deliveries on the website, ignore `status = 'failed'` rows (never accepted by Brevo).
 
+**Instant email deliveries.** `uv run ofa send-instant` (pipeline, ticket 31) uses the same claim protocol. Migration `20261025001400` requires an `instant` row to name exactly one Notification (`cardinality(notification_ids) = 1`), copies it into the generated `instant_notification_id`, and adds a unique index on `(subscription_id, instant_notification_id)` for live instant rows. No new privileges.
+
 ## Tests
 
 - `pnpm test` (vitest): data access against `TEST_DATABASE_URL`, each test in a rolled-back transaction.

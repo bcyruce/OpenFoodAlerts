@@ -41,6 +41,19 @@ MESSAGES: dict[str, dict[str, str]] = {
         ),
         "links.manage": "Change your filters or language",
         "links.unsubscribe": "Unsubscribe",
+        "instant.subject": "{source}, {classification}: {title}",
+        "instant.nvwaWarning": "safety warning",
+        "instant.intro": (
+            "{source} has published a new notification, classified as {classification},"
+            " that matches your filters. You chose Instant emails for {source}."
+        ),
+        "instant.digestNote": (
+            "It will also be listed in your next Digest. You receive at most 5 Instant emails"
+            " a day; any further notifications appear in the Digest only."
+        ),
+        "instant.reason": (
+            "You receive this Instant email because you turned on Instant emails on {site}."
+        ),
     },
     "nl": {
         "footer": (
@@ -74,6 +87,19 @@ MESSAGES: dict[str, dict[str, str]] = {
         ),
         "links.manage": "Filters of taal wijzigen",
         "links.unsubscribe": "Afmelden",
+        "instant.subject": "{source}, {classification}: {title}",
+        "instant.nvwaWarning": "veiligheidswaarschuwing",
+        "instant.intro": (
+            "{source} heeft een nieuwe melding gepubliceerd, ingedeeld als {classification},"
+            " die bij uw filters past. U hebt Instant e-mail voor {source} aangezet."
+        ),
+        "instant.digestNote": (
+            "De melding staat ook in uw volgende Digest. U ontvangt maximaal 5 Instant"
+            " e-mails per dag; verdere meldingen staan alleen in de Digest."
+        ),
+        "instant.reason": (
+            "U ontvangt deze Instant e-mail omdat u Instant e-mail hebt aangezet op {site}."
+        ),
     },
     "zh": {
         "footer": (
@@ -102,6 +128,17 @@ MESSAGES: dict[str, dict[str, str]] = {
         "item.aiNote": "标有 AI 的内容由 OpenFoodAlerts 的 AI 生成，可能有误，以官方原文为准。",
         "links.manage": "修改筛选条件或语言",
         "links.unsubscribe": "退订",
+        "instant.subject": "{source} {classification}：{title}",
+        "instant.nvwaWarning": "安全警告",
+        "instant.intro": (
+            "{source} 发布了一条符合您筛选条件的新通报，官方分类为 {classification}。"
+            "您为 {source} 开启了 Instant email。"
+        ),
+        "instant.digestNote": (
+            "这条通报也会列在您的下一封 Digest 中。每天最多发送 5 封 Instant email，"
+            "其余通报只列在 Digest 中。"
+        ),
+        "instant.reason": "您收到这封 Instant email，是因为您在 {site} 上开启了 Instant email。",
     },
 }
 

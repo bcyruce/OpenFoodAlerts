@@ -54,24 +54,26 @@ def test_the_window_starts_at_the_last_sent_digest(db: Connection, sid: str) -> 
 
 
 def test_sent_instantly_reads_instant_deliveries(db: Connection, sid: str) -> None:
-    db.execute(
-        "INSERT INTO email_deliveries (subscription_id, kind, notification_ids)"
-        " VALUES (%s, 'instant', '{5,6}')",
-        (sid,),
-    )
+    for nid in (5, 6):
+        db.execute(
+            "INSERT INTO email_deliveries (subscription_id, kind, notification_ids)"
+            " VALUES (%s, 'instant', %s)",
+            (sid, [nid]),
+        )
     assert sent_instantly(db, sid, [5, 7]) == {5}
     assert sent_instantly(db, sid, []) == set()
 
 
 def test_daily_volume_counts_every_kind_in_the_amsterdam_day(db: Connection, sid: str) -> None:
-    for kind, sent_at in (
-        ("confirm", datetime(2026, 10, 24, 22, 30, tzinfo=UTC)),  # 00:30 in Amsterdam
-        ("instant", datetime(2026, 10, 25, 12, 0, tzinfo=UTC)),
-        ("instant", datetime(2026, 10, 24, 21, 30, tzinfo=UTC)),  # the day before
+    for kind, ids, sent_at in (
+        ("confirm", [], datetime(2026, 10, 24, 22, 30, tzinfo=UTC)),  # 00:30 in Amsterdam
+        ("instant", [1], datetime(2026, 10, 25, 12, 0, tzinfo=UTC)),
+        ("instant", [2], datetime(2026, 10, 24, 21, 30, tzinfo=UTC)),  # the day before
     ):
         db.execute(
-            "INSERT INTO email_deliveries (subscription_id, kind, sent_at) VALUES (%s, %s, %s)",
-            (sid, kind, sent_at),
+            "INSERT INTO email_deliveries (subscription_id, kind, notification_ids, sent_at)"
+            " VALUES (%s, %s, %s, %s)",
+            (sid, kind, ids, sent_at),
         )
     failed = claim_digest(db, sid, AS_OF, [1])
     assert failed is not None

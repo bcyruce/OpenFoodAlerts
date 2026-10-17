@@ -280,6 +280,46 @@ def send_digest_cmd(
     )
 
 
+@app.command("send-instant")
+def send_instant_cmd(
+    dry_run: Annotated[
+        bool,
+        typer.Option("--dry-run", help="Work out every Instant email but send and record nothing."),
+    ] = False,
+) -> None:
+    """Send Instant emails (spec §10.4) for new high-priority Notifications; run after
+    `classify`. At most once per (Subscription, Notification) and 5 per Subscription per
+    day; safe to re-run after a crash.
+
+    Connects with MAILER_DATABASE_URL; sends through EMAIL_TRANSPORT (brevo, outbox, log).
+    """
+    from datetime import UTC
+    from datetime import datetime as dt
+
+    from openfoodalerts.db.connection import mailer_database_url
+    from openfoodalerts.mail.digest import DigestSettings
+    from openfoodalerts.mail.instant import send_instant
+    from openfoodalerts.mail.transport import LogTransport, transport_from_env
+
+    try:
+        transport = LogTransport() if dry_run else transport_from_env()
+        settings = DigestSettings.from_env()
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from None
+    with connect(mailer_database_url()) as conn:
+        result = send_instant(conn, transport, settings, now=dt.now(UTC), dry_run=dry_run)
+    if dry_run:
+        for sid, nid in result.planned:
+            typer.echo(f"{sid}: notification {nid}")
+        typer.echo(f"would send {result.would_send}, over the daily cap {result.capped}")
+        return
+    typer.echo(
+        f"sent {result.sent}, over the daily cap {result.capped}, already sent {result.already},"
+        f" no longer sendable {result.unsendable}, failed {result.failed},"
+        f" uncertain {result.uncertain}"
+    )
+
+
 @app.command("role-login")
 def role_login_cmd(
     role: Annotated[str, typer.Argument(help="ofa_pipeline, ofa_web or ofa_mailer.")],
