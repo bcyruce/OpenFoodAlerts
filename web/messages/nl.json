@@ -339,7 +339,8 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "search": "Zoeken",
-    "subscribe": "Abonneren"
+    "subscribe": "Abonneren",
+    "evaluation": "Evaluatie"
   },
   "Footer": {
     "builtBy": "Gemaakt door {name}, oprichter van <link>SnelVink</link>",

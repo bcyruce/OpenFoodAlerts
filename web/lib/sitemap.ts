@@ -30,6 +30,8 @@ const PAGES: { path: string; locales: readonly Locale[] }[] = [
   { path: "/dashboard", locales: SITE_LOCALES },
   // Data and legal pages: ticket 27 (spec §9: /data in English only).
   { path: "/data", locales: ["en"] },
+  // Ticket 25; English only. The synthetic example page (test builds only) is not listed.
+  { path: "/evaluation", locales: ["en"] },
   ...["/about", "/privacy", "/disclaimer", "/colofon"].map((path) => ({
     path,
     locales: routing.locales,

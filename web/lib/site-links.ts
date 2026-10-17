@@ -4,7 +4,12 @@
  */
 import { isSiteLocale } from "@/i18n/routing";
 
-export type NavItem = { key: "home" | "dashboard" | "search" | "subscribe"; href: string };
+export type NavItem = {
+  key: "home" | "dashboard" | "search" | "evaluation" | "subscribe";
+  href: string;
+  /** Set when the target is in another language than the page. */
+  hrefLang?: string;
+};
 
 /**
  * The main sections. zh has the Chinese module (`/zh`, whose pages carry their own module
@@ -21,6 +26,10 @@ export function navItems(locale: string): NavItem[] {
     { key: "home", href: `/${locale}` },
     { key: "dashboard", href: `/${locale}/dashboard` },
     { key: "search", href: `/${locale}/search` },
+    // English only (spec §9).
+    locale === "en"
+      ? { key: "evaluation", href: "/en/evaluation" }
+      : { key: "evaluation", href: "/en/evaluation", hrefLang: "en" },
     { key: "subscribe", href: `/${locale}/alerts` },
   ];
 }

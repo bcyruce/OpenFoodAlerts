@@ -43,8 +43,8 @@ export type Taxonomy = {
   labels: TaxonomyLabel[];
 };
 
-/** RFC 4180 fields: quotes, doubled quotes inside quotes, CRLF or LF. */
-function parseCsv(text: string): string[][] {
+/** RFC 4180 fields: quotes, doubled quotes inside quotes, CRLF or LF. Blank rows dropped. */
+export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";

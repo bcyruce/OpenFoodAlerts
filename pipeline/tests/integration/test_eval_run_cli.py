@@ -82,3 +82,34 @@ def test_eval_example_writes_a_synthetic_report(tmp_path: Path) -> None:
     result = runner.invoke(app, ["eval-example", "--output", str(out)])
     assert result.exit_code == 0, result.output
     assert json.loads(out.read_text(encoding="utf-8"))["synthetic"] is True
+
+
+def test_eval_run_writes_the_badge_next_to_the_report(eval_dir: Path) -> None:
+    out = eval_dir / "results" / "latest.json"
+    args = ["eval-run", "--eval-dir", str(eval_dir), "--output", str(out), "--no-store"]
+    assert runner.invoke(app, args).exit_code == 0
+    badge = json.loads((eval_dir / "results" / "badge.json").read_text(encoding="utf-8"))
+    # Two dev Labels, no model in the cache: no number on the badge.
+    assert badge == {
+        "schemaVersion": 1,
+        "label": "T1 macro-F1 (test)",
+        "message": "no test run yet",
+        "color": "lightgrey",
+    }
+
+
+def test_eval_badge_rebuilds_the_badge_from_a_report(tmp_path: Path) -> None:
+    report = tmp_path / "latest.json"
+    shutil.copy(default_eval_dir() / "results" / "latest.json", report)
+    result = runner.invoke(app, ["eval-badge", "--report", str(report)])
+    assert result.exit_code == 0, result.output
+    assert json.loads((tmp_path / "badge.json").read_text(encoding="utf-8"))["schemaVersion"] == 1
+
+
+def test_eval_badge_refuses_the_synthetic_example(tmp_path: Path) -> None:
+    report = tmp_path / "example.json"
+    shutil.copy(default_eval_dir() / "results" / "example.json", report)
+    result = runner.invoke(app, ["eval-badge", "--report", str(report)])
+    assert result.exit_code == 2
+    assert "synthetic" in result.output
+    assert not (tmp_path / "badge.json").exists()

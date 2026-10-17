@@ -93,6 +93,8 @@ eval-refresh: ## Call the configured classifiers on SPLIT and refresh eval/cache
 eval-example: ## Regenerate the synthetic eval/results/example.json (for the /evaluation page)
 	$(UV) run ofa eval-example
 
+# OFA_EVAL_EXAMPLE=1 adds /en/evaluation/example (the synthetic example.json) to this test
+# build only; deployments never set it, so there the route is a 404.
 smoke: web-fixtures ## Playwright smoke tests: load fixtures, build, start on SMOKE_PORT
-	$(PNPM) build
+	OFA_EVAL_EXAMPLE=1 $(PNPM) build
 	$(PNPM) exec playwright test

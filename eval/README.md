@@ -20,6 +20,7 @@ CC0 text, openFDA: US public domain). Code (`label_app.py`) is Apache-2.0 like t
 | `cache/{model}/{prompt_version}.jsonl` | Cached model outputs, one line per item and task | `make eval-refresh` (ticket 16) |
 | `results/latest.json` | Metrics of the latest `make eval` (both splits) | `make eval` |
 | `results/example.json` | **Synthetic** example report for building `/evaluation` | `make eval-example` |
+| `results/badge.json` | shields.io endpoint for the README badge (T1 macro-F1, test) | `make eval` / `ofa eval-badge` |
 
 All CSVs: UTF-8 without BOM, LF, comma-separated, minimal quoting, header row, fixed column
 order. Re-running a command on the same database gives byte-identical files (no
@@ -300,6 +301,21 @@ n_stale`; a span block (T3, T4) has `n, exact_match, exact_match_ci95, normalize
 normalized_match_ci95, abstention_rate, n_missing, n_stale` and no per_class / confusion
 matrix. Undefined values (n = 0) are `null`. `per_class` and `confusion_matrix` are overall
 only.
+
+Optional, read by `/en/evaluation` when present (ticket 21 adds it): `"thresholds": [{"model",
+"prompt_version", "task", "min_confidence": "high" | "medium" | "low"}]`, the low-confidence
+threshold chosen on the dev coverage–accuracy curve; the page marks it on that run's curves.
+
+### `results/badge.json`
+
+Written by `ofa eval-run` next to the report it writes (`ofa eval-badge [--report PATH]`
+rebuilds it from an existing report; it refuses a synthetic one, exit code 2). The
+[shields.io endpoint schema](https://shields.io/badges/endpoint-badge):
+`{"schemaVersion": 1, "label": "T1 macro-F1 (test)", "message": …, "color": …}`. Message:
+"no labels yet" (no Labels in any split); "no test run yet" (no model run on test, baselines
+do not count); one model: `"<model> 0.71 (95% CI 0.63–0.79)"`; several: every model with its
+value, none picked (`"a 0.71 · b 0.69"`). The colour is a neutral blue (lightgrey without a
+number), not a verdict. Commit it together with `latest.json`.
 
 `results/example.json` has the same shape with **invented** Labels and an invented
 `synthetic-model` (`"synthetic": true`, `"git_sha": "synthetic"`); only the items and the

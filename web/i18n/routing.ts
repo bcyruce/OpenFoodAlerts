@@ -26,10 +26,10 @@ export function isSiteLocale(locale: string): locale is (typeof SITE_LOCALES)[nu
 const ZH_SECTIONS = ["alerts", "about", "privacy", "disclaimer", "colofon"];
 
 /**
- * First path segments that exist only in English (spec §9: `/data`). `/nl/data` and
- * `/zh/data` redirect to `/en/data` (next.config.ts).
+ * First path segments that exist only in English (spec §9: `/data`, `/evaluation`).
+ * `/nl/…` and `/zh/…` redirect to `/en/…` (next.config.ts).
  */
-export const EN_ONLY_SECTIONS = ["data"];
+export const EN_ONLY_SECTIONS = ["data", "evaluation"];
 
 /** The guide pages of the Chinese module (ticket 32): they exist only in zh. */
 export const ZH_MODULE_PAGES = ["nvwa-jiancha", "zhaohui-jinggao", "jiancha-jieguo-gongkai", "jinkou"] as const;
