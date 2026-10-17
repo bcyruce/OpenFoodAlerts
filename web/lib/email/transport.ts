@@ -9,7 +9,7 @@
  *   production). Never use it in production: the log would contain addresses and tokens.
  */
 import { randomUUID } from "node:crypto";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 export type EmailMessage = {
@@ -76,7 +76,9 @@ export function createOutboxTransport(dir: string): EmailTransport {
       mkdirSync(dir, { recursive: true });
       const messageId = `outbox-${randomUUID()}`;
       const file = join(dir, `${Date.now()}-${messageId}.json`);
-      writeFileSync(file, JSON.stringify({ ...message, messageId }, null, 2), "utf8");
+      // Write then rename, so a reader polling the outbox never sees a half-written file.
+      writeFileSync(`${file}.tmp`, JSON.stringify({ ...message, messageId }, null, 2), "utf8");
+      renameSync(`${file}.tmp`, file);
       return { messageId };
     },
   };

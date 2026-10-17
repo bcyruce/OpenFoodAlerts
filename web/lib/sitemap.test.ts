@@ -49,8 +49,12 @@ describe("buildSitemap", () => {
     });
   });
 
-  it("lists /data in English only and the legal pages in en, nl and zh", () => {
+  it("lists /data and /evaluation in English only and the legal pages in en, nl and zh", () => {
     expect(byUrl.get(`${SITE}/en/data`)).toEqual({ url: `${SITE}/en/data` });
+    expect(byUrl.get(`${SITE}/en/evaluation`)).toEqual({ url: `${SITE}/en/evaluation` });
+    expect(byUrl.has(`${SITE}/nl/evaluation`)).toBe(false);
+    // The synthetic example page exists only in test builds and is never listed.
+    expect([...byUrl.keys()].some((u) => u.includes("/evaluation/"))).toBe(false);
     expect(byUrl.has(`${SITE}/nl/data`)).toBe(false);
     expect(byUrl.get(`${SITE}/zh/privacy`)?.alternates?.languages).toEqual({
       en: `${SITE}/en/privacy`,
@@ -73,7 +77,7 @@ describe("buildSitemap", () => {
   });
 
   it("leaves out pages that are not indexed", () => {
-    expect(entries).toHaveLength(2 + 2 + 1 + 4 * 3 + 1 + 2);
+    expect(entries).toHaveLength(2 + 2 + 1 + 1 + 4 * 3 + 1 + 2);
     expect(entries.some((e) => /\/(search|alerts)/.test(e.url))).toBe(false);
   });
 });

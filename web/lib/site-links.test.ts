@@ -3,13 +3,15 @@ import { homePath, localesForPath } from "@/i18n/routing";
 import { footerLinks, isCurrentNav, navItems } from "./site-links";
 
 describe("navItems", () => {
-  it("links the four main sections in en and nl", () => {
+  it("links the main sections in en and nl; Evaluation is English only (spec §9)", () => {
     expect(navItems("nl")).toEqual([
       { key: "home", href: "/nl" },
       { key: "dashboard", href: "/nl/dashboard" },
       { key: "search", href: "/nl/search" },
+      { key: "evaluation", href: "/en/evaluation", hrefLang: "en" },
       { key: "subscribe", href: "/nl/alerts" },
     ]);
+    expect(navItems("en")[3]).toEqual({ key: "evaluation", href: "/en/evaluation" });
   });
 
   it("links the Chinese module and the subscription flow in zh", () => {
@@ -27,6 +29,8 @@ describe("zh routing", () => {
     expect(localesForPath("")).toEqual(["en", "nl", "zh"]);
     expect(localesForPath("alerts/confirm")).toEqual(["en", "nl", "zh"]);
     expect(localesForPath("dashboard")).toEqual(["en", "nl"]);
+    expect(localesForPath("evaluation")).toEqual(["en"]);
+    expect(localesForPath("evaluation/example")).toEqual(["en"]);
     expect(homePath("zh")).toBe("/zh");
     expect(homePath("nl")).toBe("/nl");
   });
@@ -34,7 +38,8 @@ describe("zh routing", () => {
 
 describe("isCurrentNav", () => {
   it("marks home only on the home page and sections on their subpages", () => {
-    const [home, dashboard, , subscribe] = navItems("en");
+    const [home, dashboard, , evaluation, subscribe] = navItems("en");
+    expect(isCurrentNav(evaluation, "/en/evaluation")).toBe(true);
     expect(isCurrentNav(home, "/en")).toBe(true);
     expect(isCurrentNav(home, "/en/dashboard")).toBe(false);
     expect(isCurrentNav(dashboard, "/en/dashboard")).toBe(true);

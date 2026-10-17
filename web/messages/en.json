@@ -339,7 +339,8 @@
     "home": "Home",
     "dashboard": "Dashboard",
     "search": "Search",
-    "subscribe": "Subscribe"
+    "subscribe": "Subscribe",
+    "evaluation": "Evaluation"
   },
   "Footer": {
     "builtBy": "Built by {name}, founder of <link>SnelVink</link>",

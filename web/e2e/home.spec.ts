@@ -84,7 +84,7 @@ test("the ad box is at the bottom of home, labelled, separate and with UTM", asy
 
 // Every other existing page, and the ones still to come (tickets 25 and 27). Until those
 // exist their URLs fall through to app/global-not-found.tsx, which has no site layout.
-const PLANNED = ["/en/evaluation", "/en/data", "/en/about", "/nl/privacy", "/en/disclaimer", "/en/colofon"];
+const PLANNED = ["/en/data", "/en/about", "/nl/privacy", "/en/disclaimer", "/en/colofon"];
 for (const path of [
   "/en/dashboard",
   "/nl/dashboard?months=all",
@@ -96,6 +96,8 @@ for (const path of [
   "/zh/alerts",
   "/en/alerts/confirm",
   "/en/n/openfda/H-9999-2027",
+  "/en/evaluation",
+  "/en/evaluation/example",
   ...PLANNED,
 ]) {
   test(`no ad box on ${path}`, async ({ page }) => {

@@ -17,10 +17,12 @@ const nextConfig: NextConfig = {
       { source: "/api/(manage|unsubscribe|delete)", headers: TOKEN_HEADERS },
     ];
   },
-  // /data exists only in English (spec §9). Temporary, in case a translation follows.
+  // /data and /evaluation exist only in English (spec §9). Temporary, in case a
+  // translation follows.
   redirects() {
     return [
       { source: "/:locale(nl|zh)/data", destination: "/en/data", permanent: false },
+      { source: "/:locale(nl|zh)/evaluation", destination: "/en/evaluation", permanent: false },
     ];
   },
   partialPrefetching: true,

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isCurrentNav, type NavItem } from "@/lib/site-links";
 
-/** The header navigation (Home, Dashboard, Search, Subscribe); marks the current section. */
+/** The header navigation (Home, Dashboard, Search, Evaluation, Subscribe); marks the current section. */
 export function SiteNav({
   label,
   items,
@@ -22,6 +22,7 @@ export function SiteNav({
             <li key={item.key}>
               <Link
                 href={item.href}
+                hrefLang={item.hrefLang}
                 aria-current={current ? "page" : undefined}
                 className={current ? "font-semibold text-slate-900 decoration-2" : undefined}
               >

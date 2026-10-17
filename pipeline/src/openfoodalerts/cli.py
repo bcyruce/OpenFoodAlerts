@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 
@@ -692,8 +692,40 @@ def eval_run_cmd(
         f"noise audit: {_fmt(audit['agreement_with_official'])} with official (n={audit['n']})"
     )
     typer.echo(f"wrote {out}")
+    _write_badge(out, report)
     if store:
         _store_eval(report, split, directory)
+
+
+def _write_badge(report_path: Path, report: dict[str, Any]) -> None:
+    from openfoodalerts.eval.badge import write_badge
+
+    badge = report_path.parent / "badge.json"
+    write_badge(badge, report)
+    typer.echo(f"wrote {badge}")
+
+
+@app.command("eval-badge")
+def eval_badge_cmd(
+    report: Annotated[
+        Path | None, typer.Option(help="Report to read (default: eval/results/latest.json).")
+    ] = None,
+) -> None:
+    """Rebuild the README badge (badge.json, shields.io endpoint) next to a report.
+
+    `ofa eval-run` does this too. Exit code 2: the report is synthetic.
+    """
+    import json
+
+    from openfoodalerts.eval.job import default_eval_dir
+
+    path = report or default_eval_dir() / "results" / "latest.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        _write_badge(path, data)
+    except ValueError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(2) from exc
 
 
 def _store_eval(report: dict[str, object], split: str, eval_dir: Path) -> None:

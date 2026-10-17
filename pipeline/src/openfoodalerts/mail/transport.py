@@ -115,7 +115,10 @@ class OutboxTransport:
         message_id = f"outbox-{uuid.uuid4()}"
         data = {**asdict(message), "messageId": message_id}
         path = self._dir / f"{message_id}.json"
-        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        # Write then rename, so a reader polling the outbox never sees a half-written file.
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(path)
         return SendResult(message_id=message_id)
 
 
