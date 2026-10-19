@@ -1,0 +1,218 @@
+# Eval regression gate and release test run (ticket 19, spec §7.3).
+#
+# Pull requests that touch the prompts, the eval set or the code that scores it re-run the
+# model on the dev split through the API (`make eval-refresh SPLIT=dev`), score it offline
+# (`make eval`) and fail when a model's overall T1 (hazard_category) dev macro-F1 drops more
+# than 2 percentage points below the latest.json committed on the PR's base branch (main).
+# `ofa eval-gate` holds the rule (pipeline/src/openfoodalerts/eval/gate.py; eval/README.md,
+# "CI gate"). The comparison table goes to the job summary; the refreshed results are
+# uploaded as an artifact for the author to commit.
+#
+# Release tags (v*) run the frozen test split (`make eval-refresh SPLIT=test`, `make eval
+# SPLIT=test`) and upload the results as an artifact. Nothing is committed back: commit the
+# artifact's files in a normal PR (eval/README.md, "CI gate").
+#
+# Secrets (names only; values live in GitHub, never in the repository):
+#   secrets.ANTHROPIC_API_KEY   model API key (paid calls; dev ≈ 100 requests per run)
+#
+# Fork safety: the trigger is `pull_request`, never `pull_request_target`, so a fork's PR
+# runs without secrets and with a read-only token. When the PR comes from a fork (or the
+# secret is not available, e.g. Dependabot) the paid steps are skipped with a warning and
+# the job passes ungated: a maintainer has to re-run the PR from a branch of this repo.
+name: eval
+
+on:
+  pull_request:
+    paths:
+      - "prompts/**"
+      - "eval/**"
+      - "db/seed/taxonomy/**"
+      - "pipeline/src/openfoodalerts/classify/**"
+      - "pipeline/src/openfoodalerts/eval/**"
+      - ".github/workflows/eval.yml"
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  dev-gate:
+    name: dev gate (T1 macro-F1 vs base)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_REF: ${{ github.base_ref }}
+    steps:
+      - name: Decide whether the paid run may start
+        id: key
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if [ "$IS_FORK" = true ]; then
+            reason="this PR comes from a fork, which never gets the API key"
+            todo="push the PR's commits to a branch of this repository and open the PR from there"
+          elif [ "$HAS_KEY" != true ]; then
+            reason="the ANTHROPIC_API_KEY secret is not available to this run"
+            todo="set the repository secret ANTHROPIC_API_KEY and re-run this job"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "run=false" >> "$GITHUB_OUTPUT"
+          echo "::warning title=eval gate skipped::Not gated: $reason. To gate it: $todo."
+          {
+            echo "### Eval gate: skipped"
+            echo
+            echo "Not gated: $reason. The dev macro-F1 was **not** checked."
+            echo "Before merging: $todo."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.run == 'true'
+
+      - name: Fetch the baseline (latest.json on the base branch)
+        if: steps.key.outputs.run == 'true'
+        run: |
+          git fetch --no-tags --depth=1 origin "+refs/heads/$BASE_REF:refs/remotes/origin/$BASE_REF"
+          base="$RUNNER_TEMP/base-latest.json"
+          if git show "origin/$BASE_REF:eval/results/latest.json" > "$base" 2>/dev/null; then
+            echo "baseline: eval/results/latest.json at $(git rev-parse --short "origin/$BASE_REF")"
+          else
+            rm -f "$base"
+            echo "::notice::$BASE_REF has no eval/results/latest.json; the gate passes without a baseline"
+          fi
+
+      - uses: astral-sh/setup-uv@v5
+        if: steps.key.outputs.run == 'true'
+        with:
+          enable-cache: true
+
+      - name: Install the pipeline
+        if: steps.key.outputs.run == 'true'
+        run: uv --directory pipeline sync --locked
+
+      - name: Re-run the model on dev (paid API)
+        if: steps.key.outputs.run == 'true'
+        timeout-minutes: 20
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: make eval-refresh SPLIT=dev
+
+      - name: Score dev offline (make eval)
+        # No database here: eval-run prints a notice and skips the eval_runs rows.
+        if: steps.key.outputs.run == 'true'
+        run: make eval SPLIT=dev
+
+      - name: Gate on T1 dev macro-F1 (max drop 2 points)
+        if: steps.key.outputs.run == 'true'
+        run: |
+          uv --directory pipeline run ofa eval-gate \
+            --base "$RUNNER_TEMP/base-latest.json" \
+            --head "$GITHUB_WORKSPACE/eval/results/latest.json" \
+            --task hazard_category --split dev --max-drop 0.02 \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: Explain the artifact
+        if: always() && steps.key.outputs.run == 'true'
+        env:
+          ARTIFACT: eval-dev-pr${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo
+            echo "Refreshed results: artifact \`$ARTIFACT\` (\`results/latest.json\`, \`results/badge.json\`,"
+            echo "\`cache/<model>/<prompt>.jsonl\`). To publish them, unzip it into \`eval/\` and commit."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.key.outputs.run == 'true'
+        with:
+          name: eval-dev-pr${{ github.event.pull_request.number }}
+          path: |
+            eval/results/latest.json
+            eval/results/badge.json
+            eval/cache/
+            !eval/cache/fake/
+          if-no-files-found: warn
+          retention-days: 30
+
+  test-release:
+    name: test split (release tag)
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Require the API key
+        env:
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        run: |
+          if [ "$HAS_KEY" != true ]; then
+            echo "::error::ANTHROPIC_API_KEY is not set: a release tag must run the test split"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the pipeline
+        run: uv --directory pipeline sync --locked
+
+      - name: Run the model on test (paid API)
+        timeout-minutes: 30
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: make eval-refresh SPLIT=test
+
+      - name: Score test offline (make eval SPLIT=test)
+        run: make eval SPLIT=test
+
+      - name: Summarise the test results
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          report=eval/results/latest.json
+          {
+            echo "### Eval on test: $TAG"
+            echo
+            echo "Labelled test items: $(jq -r '.label_status.test.labelled // 0' "$report") of $(jq -r '.label_status.test.items // 0' "$report")"
+            echo
+            echo "| Model | Kind | Prompt | n | T1 macro-F1 | 95% CI | Accuracy | Abstained |"
+            echo "|---|---|---|---|---|---|---|---|"
+            jq -r '
+              def f: if . == null then "–" else (. * 1000 | round / 1000 | tostring) end;
+              .runs[] | select(.split == "test" and .task == "hazard_category")
+              | "| \(.model) | \(.kind) | \(.prompt_version) | \(.overall.n) | \(.overall.macro_f1 | f) | "
+                + (if .overall.macro_f1_ci95 then "\(.overall.macro_f1_ci95[0] | f)–\(.overall.macro_f1_ci95[1] | f)" else "–" end)
+                + " | \(.overall.accuracy | f) | \(.overall.abstention_rate | f) |"
+            ' "$report"
+            echo
+            jq -r '.skipped[] | select(.split == "test") | "- skipped \(.model)/\(.prompt_version) \(.task): \(.reason)"' "$report"
+            echo
+            echo "Results: artifact \`eval-test-$TAG\`. Nothing was committed: unzip it into \`eval/\` and"
+            echo "commit it in a PR to publish the test numbers (/en/evaluation, README badge)."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-test-${{ github.ref_name }}
+          path: |
+            eval/results/latest.json
+            eval/results/badge.json
+            eval/cache/
+            !eval/cache/fake/
+          if-no-files-found: warn
+          retention-days: 90
