@@ -162,4 +162,8 @@ class HazardCategoryTask:
 def make_task(name: str, taxonomy: Taxonomy) -> Task:
     if name == HazardCategoryTask.name:
         return HazardCategoryTask(taxonomy)
+    from openfoodalerts.classify.summary import SUMMARY_TASKS, SummaryTask  # T6, ticket 18
+
+    if name in SUMMARY_TASKS:
+        return SummaryTask(name.removeprefix("summary_"))
     raise ValueError(f"unknown or not yet implemented task {name!r}")

@@ -9,7 +9,9 @@ production database, and never cache it under a real model's name (its cache is
 eval/cache/fake/, which git ignores).
 """
 
+from openfoodalerts.classify.fake_summary import summary_response
 from openfoodalerts.classify.model import ModelRequest, ModelResponse
+from openfoodalerts.classify.summary import SUMMARY_TASKS
 from openfoodalerts.classify.tasks import ABSTAIN, HazardCategoryTask
 from openfoodalerts.eval.keywords import HAZARD_FIELDS, RULES
 from openfoodalerts.eval.labelset import Taxonomy
@@ -28,12 +30,18 @@ def _first_rule(text: str) -> tuple[str, str] | None:
 class KeywordClassifier:
     model = FAKE_MODEL
 
-    def __init__(self, taxonomy: Taxonomy, *, garble_spans: bool = False) -> None:
+    def __init__(
+        self, taxonomy: Taxonomy, *, garble_spans: bool = False, summary_flaw: str | None = None
+    ) -> None:
         self.taxonomy = taxonomy
         # quote spans that are not in the input, to exercise the substring check
         self.garble_spans = garble_spans
+        # T6: break one summary check on purpose (fake_summary.FLAWS), for tests
+        self.summary_flaw = summary_flaw
 
     def complete(self, request: ModelRequest) -> ModelResponse:
+        if request.task in SUMMARY_TASKS:
+            return summary_response(request, self.summary_flaw)
         if request.task != HazardCategoryTask.name:
             raise ValueError(f"the fake model only answers {HazardCategoryTask.name}")
         snapshot = request.snapshot

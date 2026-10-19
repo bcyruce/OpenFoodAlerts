@@ -86,7 +86,8 @@ def test_eval_refresh_with_the_fake_model_writes_its_cache_and_eval_scores_it(
     result = runner.invoke(app, ["eval-refresh", "--eval-dir", str(eval_dir), "--model", "fake"])
     assert result.exit_code == 0, result.output
     cache = eval_dir / "cache" / "fake" / "v1.jsonl"
-    assert len(cache.read_text(encoding="utf-8").splitlines()) == 100  # the dev split
+    lines = [json.loads(line) for line in cache.read_text(encoding="utf-8").splitlines()]
+    assert sum(line["task"] == "hazard_category" for line in lines) == 100  # the dev split
     out = eval_dir / "latest.json"
     args = ["eval-run", "--eval-dir", str(eval_dir), "--output", str(out), "--no-store"]
     assert runner.invoke(app, args).exit_code == 0

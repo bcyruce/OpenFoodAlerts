@@ -6,9 +6,10 @@ One JSON object per line and per (item, task), keys in the order of `ModelOutput
     prompt_version, schema_version, taxonomy_version, created_at
 
 - `task` is a spec §6.1 task name (hazard_category, product_category, hazard,
-  origin_country, product_type).
+  origin_country, product_type), or a T6 summary task (summary_en, summary_nl, summary_zh:
+  not scored by the harness, read by the human fact-check, `eval.factcheck`).
 - `value` is the output as text (a T1 label, a RASFF Product category, a verbatim span, an
-  ISO2 code or "unknown", a Product type), `null` when `abstained` is true.
+  ISO2 code or "unknown", a Product type, a summary), `null` when `abstained` is true.
 - `confidence` is high / medium / low (`null` when abstained).
 - `input_hash` is `openfoodalerts.classify.input_hash.input_hash` of the item's frozen input;
   the harness ignores (and counts as stale) lines whose hash no longer matches items.csv.
@@ -24,6 +25,7 @@ from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any
 
+from openfoodalerts.classify.summary import SUMMARY_TASKS
 from openfoodalerts.eval.files import TASKS
 from openfoodalerts.eval.metrics import CONFIDENCES
 
@@ -75,7 +77,7 @@ def _parse(line: str, where: str, model: str, prompt_version: str) -> ModelOutpu
         raise CacheError(f"{where}: expected the keys {', '.join(FIELDS)}")
     if (data["model"], data["prompt_version"]) != (model, prompt_version):
         raise CacheError(f"{where}: model / prompt_version differ from the file's path")
-    if data["task"] not in TASKS:
+    if data["task"] not in TASKS and data["task"] not in SUMMARY_TASKS:
         raise CacheError(f"{where}: unknown task {data['task']!r}")
     if not isinstance(data["abstained"], bool):
         raise CacheError(f"{where}: abstained must be true or false")

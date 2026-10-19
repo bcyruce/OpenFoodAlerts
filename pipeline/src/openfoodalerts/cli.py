@@ -691,6 +691,12 @@ def eval_run_cmd(
     typer.echo(
         f"noise audit: {_fmt(audit['agreement_with_official'])} with official (n={audit['n']})"
     )
+    for fc in report["t6_factcheck"]["runs"]:
+        typer.echo(
+            f"t6 fact-check {fc['model']}/{fc['prompt_version']} {fc['split']}:"
+            f" {fc['n_checked']} of {fc['n_sampled']} checked, {fc['n_consistent']} consistent"
+            f" (stale {fc['n_stale']})"
+        )
     typer.echo(f"wrote {out}")
     _write_badge(out, report)
     if store:
@@ -780,11 +786,76 @@ def eval_refresh_cmd(
         typer.echo(f"{path}: {n} outputs")
 
 
+@app.command("factcheck-sample")
+def factcheck_sample_cmd(
+    split: SplitOption = "dev",
+    eval_dir: EvalDirOption = None,
+    model: Annotated[str, typer.Option(help="Model whose cached summaries to sample.")] = (
+        "claude-haiku-5-5"
+    ),
+    prompt_version: Annotated[
+        str | None,
+        typer.Option(help="Cache file eval/cache/{model}/{version}.jsonl (default: newest)."),
+    ] = None,
+    n: Annotated[int, typer.Option(min=1, help="Sample size (spec §7.2: 50).")] = 50,
+) -> None:
+    """Sample T6 summaries of eval items for the human fact-check (eval/factcheck/t6.csv).
+
+    Reproducible (fixed seed, equal share per Source x language); judgments already in the
+    file are kept. Judge them with `uv run --group eval streamlit run ../eval/factcheck_app.py`
+    or in the CSV; `make eval` reports them. Offline: reads the cache, calls nothing.
+    Exit code 2: no cached summaries (run `make eval-refresh` first).
+    """
+    from collections import Counter
+
+    from openfoodalerts.classify.prompts import latest_version
+    from openfoodalerts.eval.cache import cache_path, read_run
+    from openfoodalerts.eval.factcheck import (
+        FACTCHECK_FILE,
+        merge_sample,
+        read_factcheck,
+        sample_factcheck,
+        write_factcheck,
+    )
+    from openfoodalerts.eval.files import read_items
+    from openfoodalerts.eval.job import default_eval_dir
+
+    _check_split(split)
+    directory = eval_dir or default_eval_dir()
+    version = prompt_version or latest_version("summary_en")
+    path = cache_path(directory / "cache", model, version)
+    items = read_items(directory / "items.csv")
+    outputs = read_run(path).outputs if path.exists() else []
+    sample = sample_factcheck(items, outputs, model=model, prompt_version=version, split=split, n=n)
+    if not sample:
+        typer.echo(
+            f"error: no cached T6 summaries of {model}/{version} on {split} in {path};"
+            f" run `make eval-refresh SPLIT={split} MODEL={model}` first",
+            err=True,
+        )
+        raise typer.Exit(2)
+    target = directory / FACTCHECK_FILE
+    rows = merge_sample(read_factcheck(target), sample)
+    write_factcheck(target, rows)
+    judged = sum(
+        bool(r.consistent) for r in rows if (r.model, r.prompt_version) == (model, version)
+    )
+    strata = Counter(f"{r.source}/{r.locale}" for r in sample)
+    typer.echo(
+        f"{len(sample)} summaries of {model}/{version} on {split} sampled"
+        f" ({', '.join(f'{k} {v}' for k, v in sorted(strata.items()))}); {judged} judged so far"
+    )
+    typer.echo(f"wrote {target}")
+
+
 @app.command("classify")
 def classify_cmd(
-    task: Annotated[str, typer.Option(help="Task (spec §6.1); only hazard_category so far.")] = (
-        "hazard_category"
-    ),
+    task: Annotated[
+        str,
+        typer.Option(
+            help="Task (spec §6.1): hazard_category, or summary_en / summary_nl / summary_zh (T6)."
+        ),
+    ] = "hazard_category",
     source: Annotated[
         list[str] | None, typer.Option(help="Only these Sources (nvwa, openfda; default both).")
     ] = None,

@@ -1,7 +1,8 @@
-"""The one-line summary seam (spec §10.3): T6 AI summaries once ticket 18 writes them,
-source text (not marked AI) until then."""
+"""The one-line summary seam (spec §10.3): T6 AI summaries (ticket 18) where they exist,
+source text (not marked AI) otherwise."""
 
 import hashlib
+import json
 from datetime import UTC, datetime
 
 from openfoodalerts.db.connection import Connection
@@ -49,19 +50,29 @@ def test_no_ai_summaries_while_ai_classifications_does_not_exist(db: Connection)
 
 
 def add_t6(
-    db: Connection, nid: int, value: str, abstained: bool, reviewed: str | None, created: str
+    db: Connection,
+    nid: int,
+    locale: str,
+    summary: str | None,
+    reviewed: str | None,
+    created: str,
 ) -> None:
-    """A T6 row in the shape `mail/summaries.py` proposes (ticket 18 decides)."""
+    """A T6 row as `ofa classify --task summary_{locale}` writes it (ticket 18): task
+    summary_{locale}, value {"locale", "summary"}; an abstain has summary null."""
+    value: dict[str, object] = {"locale": locale, "summary": summary}
+    if summary is None:
+        value |= {"abstain_reason": "too_long", "model_output": {}}
     db.execute(
         "INSERT INTO ai_classifications (notification_id, task, value, abstained, confidence,"
         " reviewed_value, review_status, created_at, model, prompt_version, schema_version,"
-        " input_hash) VALUES (%s, 't6_summary', %s, %s, %s, %s, %s, %s, 'm', 'v1', '1', %s)",
+        " input_hash) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'm', 'v1', '1', %s)",
         (
             nid,
-            value,
-            abstained,
-            None if abstained else "high",
-            reviewed,
+            f"summary_{locale}",
+            json.dumps(value),
+            summary is None,
+            None if summary is None else "high",
+            None if reviewed is None else json.dumps({"locale": locale, "summary": reviewed}),
             "unreviewed" if reviewed is None else "corrected",
             created,
             hashlib.sha256(f"{value}{created}".encode()).hexdigest(),
@@ -73,23 +84,42 @@ def test_t6_summaries_in_the_subscriptions_language(db: Connection) -> None:
     nid = add_notification(db, "nvwa", "/a", first_seen_at=T)
     other = add_notification(db, "nvwa", "/b", first_seen_at=T)
     rows = [
-        (nid, '{"locale": "nl", "summary": "Oud."}', False, None, "2026-10-24T08:00Z"),
-        (nid, '{"locale": "nl", "summary": "Nieuw."}', False, None, "2026-10-24T09:00Z"),
-        (nid, '{"locale": "en", "summary": "English."}', False, None, "2026-10-24T09:00Z"),
-        (
-            other,
-            '{"locale": "nl", "summary": "Fout."}',
-            False,
-            '{"locale": "nl", "summary": "Goed."}',
-            "2026-10-24T09:00Z",
-        ),
-        (other, '{"locale": "en"}', True, None, "2026-10-24T10:00Z"),
+        # the newest row of a (Notification, language) is the current one
+        (nid, "nl", "Oud.", None, "2026-10-24T08:00Z"),
+        (nid, "nl", "Nieuw.", None, "2026-10-24T09:00Z"),
+        (nid, "en", "English.", None, "2026-10-24T09:00Z"),
+        # a reviewer's correction wins over the model's text
+        (other, "nl", "Fout.", "Goed.", "2026-10-24T09:00Z"),
+        (other, "en", None, None, "2026-10-24T10:00Z"),
     ]
     for row in rows:
         add_t6(db, *row)
     db.commit()
     assert ai_summaries(db, [nid, other], "nl") == {nid: "Nieuw.", other: "Goed."}
     assert ai_summaries(db, [nid, other], "en") == {nid: "English."}
+    assert ai_summaries(db, [nid, other], "zh") == {}
+    db.rollback()
+
+
+def test_a_current_abstain_hides_an_older_summary_unless_a_reviewer_wrote_one(
+    db: Connection,
+) -> None:
+    changed = add_notification(db, "nvwa", "/a", first_seen_at=T)
+    reviewed = add_notification(db, "nvwa", "/b", first_seen_at=T)
+    # the text changed and the summary of the new text failed a check: the old summary
+    # describes the old text, so the source text is shown instead
+    add_t6(db, changed, "zh", "旧摘要。", None, "2026-10-24T08:00Z")
+    add_t6(db, changed, "zh", None, None, "2026-10-24T09:00Z")
+    # a reviewer may write the summary of an abstained row
+    add_t6(db, reviewed, "zh", None, "人工摘要。", "2026-10-24T09:00Z")
+    db.commit()
+    assert ai_summaries(db, [changed, reviewed], "zh") == {reviewed: "人工摘要。"}
+
+
+def test_ofa_mailer_reads_summaries_and_a_missing_grant_means_none(db: Connection) -> None:
+    nid = add_notification(db, "nvwa", "/a", first_seen_at=T)
+    add_t6(db, nid, "nl", "Nieuw.", None, "2026-10-24T09:00Z")
+    db.commit()
     # ofa_mailer may read them (granted by ticket 16's migration) ...
     db.execute("SET ROLE ofa_mailer")
     assert ai_summaries(db, [nid], "nl") == {nid: "Nieuw."}

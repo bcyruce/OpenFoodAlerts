@@ -38,16 +38,17 @@ def test_both_models_are_registered_for_eval_refresh() -> None:
 
 def test_the_fake_model_refreshes_the_dev_cache_through_the_whole_path(tmp_path: Path) -> None:
     written = refresh_cache(ITEMS, split="dev", cache_dir=tmp_path, models=["fake"])
-    assert written == {tmp_path / "fake" / "v1.jsonl": 4}
+    # 4 T1 outputs + 5 T6 summaries (fd-1 en/nl, nv-1 en/nl/zh; see test_summary_eval.py)
+    assert written == {tmp_path / "fake" / "v1.jsonl": 4 + 5}
     [run] = read_cache(tmp_path)
-    by_id = {o.item_id: o for o in run.outputs}
+    outputs = [o for o in run.outputs if o.task == "hazard_category"]
+    by_id = {o.item_id: o for o in outputs}
     assert by_id["fd-1"].value == "pathogenic micro-organisms"
     assert by_id["nv-1"].value == "foreign bodies"
     assert by_id["ra-1"].value == "mycotoxins"  # RASFF is scored on its subject
     assert by_id["ra-2"].abstained and by_id["ra-2"].value is None
     taxonomy = load_taxonomy(default_taxonomy_path())
-    for output in run.outputs:
-        assert output.task == "hazard_category"
+    for output in outputs:
         assert (output.model, output.prompt_version, output.schema_version) == ("fake", "v1", "1")
         assert output.taxonomy_version == taxonomy.version
         source_item = next(i for i in ITEMS if i.item_id == output.item_id)

@@ -32,6 +32,7 @@ from typing import Any
 from openfoodalerts.classify.input_hash import input_hash
 from openfoodalerts.eval import baselines, metrics
 from openfoodalerts.eval.cache import ModelOutput, read_cache
+from openfoodalerts.eval.factcheck import FACTCHECK_FILE, factcheck_report, read_factcheck
 from openfoodalerts.eval.files import ItemRow, read_items, read_labels
 from openfoodalerts.eval.labeling import PRODUCT_TYPES
 from openfoodalerts.eval.labels import label_value, latest_labels
@@ -373,7 +374,8 @@ def run_eval(
         taxonomy,
         created_at=created_at,
     )
-    for cached in read_cache(cache_dir or eval_dir / "cache"):
+    cache = read_cache(cache_dir or eval_dir / "cache")
+    for cached in cache:
         runs.append(RunInput(cached.model, cached.prompt_version, "model", cached.outputs))
     report = build_report(
         items,
@@ -384,6 +386,12 @@ def run_eval(
         git_sha=git_sha,
         created_at=created_at,
         synthetic=synthetic,
+    )
+    # T6 (ticket 18): the human fact-check of summaries, all splits (eval/factcheck/t6.csv)
+    report["t6_factcheck"] = factcheck_report(
+        read_factcheck(eval_dir / FACTCHECK_FILE),
+        items,
+        [o for cached in cache for o in cached.outputs],
     )
     previous = json.loads(output.read_text(encoding="utf-8")) if output.exists() else None
     report = merge_other_split(report, previous, split)
