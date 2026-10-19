@@ -17,8 +17,10 @@ Per task (T1-T5; `--task all` runs them in `tasks.RUN_ORDER`, T5 first):
    inside one run each distinct input is sent once.
 4. Writes, committed per Notification so that an interrupted run keeps what it paid for:
    the ai_classifications row (all versions, value, confidence, evidence_span), then the
-   rows derived from it (`derived.apply_current`: T1 the AI primary hazard, T2 the Product
-   category, T3 the Hazard name, T4 the origin country, T5 the Product type).
+   Notification's derived AI rows of the task are rewritten from its current
+   classification's effective value (`effective.rederive`, shared with the review actions
+   of ticket 20): T1 the AI primary hazard, T2 the Product category, T3 the Hazard name,
+   T4 the origin country, T5 the Product type (see `effective.WRITERS`).
 
 Failures: `ItemFailed` (one request failed after the SDK's retries) skips the Notification
 (nothing stored, next run retries it); after MAX_CONSECUTIVE_FAILURES in a row the run
@@ -32,8 +34,7 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
-from openfoodalerts.classify.derived import apply_current
-from openfoodalerts.classify.derived import primary_category as primary_category
+from openfoodalerts.classify.effective import Derived, rederive
 from openfoodalerts.classify.model import Classifier, ItemFailed, Usage
 from openfoodalerts.classify.prompts import Prompt
 from openfoodalerts.classify.run import Classification, classify, hash_for
@@ -92,7 +93,7 @@ class ClassifyRun:
     classified: int = 0
     abstained: int = 0
     failed: int = 0
-    # derived rows written (`derived.apply_current`: hazards, Product categories, origin
+    # derived rows written (`effective.rederive`: hazards, Product categories, origin
     # countries, Product types); answers without a row to write (T1 `other`)
     written: int = 0
     unmapped: int = 0
@@ -117,6 +118,7 @@ def _store(
     task: Task,
     item: _Item,
     result: Classification,
+    derived: Derived,
     run: ClassifyRun,
 ) -> None:
     v = result.verdict
@@ -141,9 +143,8 @@ def _store(
         return
     if v.abstained:
         run.abstained += 1
-    applied = apply_current(conn, task, item.notification_id)
-    run.written += applied.written
-    run.unmapped += applied.unmapped
+    rederive(conn, task, item.notification_id, derived)
+    run.written, run.unmapped = derived.written, derived.unmapped
     conn.commit()
 
 
@@ -216,6 +217,7 @@ def classify_notifications(
     classifier = make_classifier() if run.to_call else None
     if classifier is not None and classifier.model != model:
         raise ValueError(f"classifier {classifier.model!r} is not model {model!r}")
+    derived = Derived()
     reused = 0
     consecutive_failures = 0
     for item in todo:
@@ -238,6 +240,6 @@ def classify_notifications(
             consecutive_failures = 0
             known[item.input_hash] = result
             run.classified += 1
-        _store(conn, task, item, result, run)
+        _store(conn, task, item, result, derived, run)
     run.reused = reused
     return run

@@ -733,6 +733,57 @@ def eval_badge_cmd(
         raise typer.Exit(2) from exc
 
 
+@app.command("eval-gate")
+def eval_gate_cmd(
+    base: Annotated[
+        Path, typer.Option(help="main's latest.json; a missing file = no baseline (passes).")
+    ],
+    head: Annotated[Path, typer.Option(help="The PR's latest.json (after make eval).")],
+    task: Annotated[str, typer.Option(help="Task to gate.")] = "hazard_category",
+    split: SplitOption = "dev",
+    max_drop: Annotated[
+        float, typer.Option(help="Largest allowed drop in macro-F1 (0.02 = 2 points).")
+    ] = 0.02,
+    summary: Annotated[
+        Path | None,
+        typer.Option(help="Append the Markdown table here (e.g. $GITHUB_STEP_SUMMARY)."),
+    ] = None,
+) -> None:
+    """Regression gate of eval.yml: fail when a model's macro-F1 drops more than max-drop.
+
+    Compares, per model run on both sides (newest prompt version each), the overall
+    point estimate; baselines and confidence intervals are shown, not gated. Prints the
+    Markdown summary. Exit codes: 0 passed (also: no baseline, no Labels, n = 0),
+    1 regression, 2 unreadable or synthetic report.
+    """
+    import json
+
+    from openfoodalerts.eval.gate import compare_reports, render_markdown
+
+    _check_split(split)
+
+    def load(path: Path) -> Any:
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            typer.echo(f"error: cannot read {path}: {exc}", err=True)
+            raise typer.Exit(2) from exc
+
+    base_report = load(base) if base.exists() else None
+    try:
+        result = compare_reports(base_report, load(head), task=task, split=split, max_drop=max_drop)
+    except ValueError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    markdown = render_markdown(result)
+    typer.echo(markdown, nl=False)
+    if summary is not None:
+        with summary.open("a", encoding="utf-8", newline="\n") as file:
+            file.write(markdown)
+    if not result.passed:
+        raise typer.Exit(1)
+
+
 def _store_eval(report: dict[str, object], split: str, eval_dir: Path) -> None:
     import psycopg
 
@@ -937,6 +988,61 @@ def eval_example_cmd(
     )
     write_report(out, report)
     typer.echo(f"wrote {out} ({len(report['runs'])} runs, synthetic)")
+
+
+@app.command("review-stats")
+def review_stats_cmd() -> None:
+    """The human review queue per task (spec §6.5): current AI results, queued (abstained
+    or below the task's threshold, unreviewed) and reviewed.
+
+    Review them on the local page: cd pipeline && uv run --group eval streamlit run
+    ../eval/review_app.py
+    """
+    from openfoodalerts.classify.review_queue import review_stats
+
+    with connect() as conn:
+        stats = review_stats(conn)
+    if not stats:
+        typer.echo("no AI classifications yet")
+    for s in stats:
+        typer.echo(
+            f"{s.task}: {s.current} current, queued"
+            f" {s.queued_abstained + s.queued_low_confidence} ({s.queued_abstained} abstained,"
+            f" {s.queued_low_confidence} below {s.min_confidence}); reviewed"
+            f" {s.approved + s.corrected} ({s.approved} approved, {s.corrected} corrected)"
+        )
+
+
+@app.command("review-threshold")
+def review_threshold_cmd(
+    task: Annotated[str, typer.Argument(help="Task name, e.g. hazard_category.")],
+    min_confidence: Annotated[
+        str | None,
+        typer.Argument(
+            help="low, medium or high: the lowest confidence accepted without review."
+            " Omit to show the current setting."
+        ),
+    ] = None,
+) -> None:
+    """Show or set a task's "low confidence" threshold for the review queue (spec §6.3;
+    ticket 21 picks it from the dev coverage-accuracy curve). Results below it are queued,
+    abstains always are; the default, medium, queues confidence = low."""
+    from openfoodalerts.classify.review_queue import (
+        DEFAULT_MIN_CONFIDENCE,
+        set_threshold,
+        thresholds,
+    )
+
+    with connect() as conn:
+        if min_confidence is not None:
+            try:
+                set_threshold(conn, task, min_confidence)
+            except ValueError as exc:
+                typer.echo(f"error: {exc}", err=True)
+                raise typer.Exit(2) from exc
+        current = thresholds(conn).get(task)
+    shown = f"{current}" if current else f"{DEFAULT_MIN_CONFIDENCE} (default)"
+    typer.echo(f"{task}: min_confidence {shown}")
 
 
 if __name__ == "__main__":  # pragma: no cover

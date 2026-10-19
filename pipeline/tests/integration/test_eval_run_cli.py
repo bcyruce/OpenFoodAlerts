@@ -92,9 +92,7 @@ def test_eval_refresh_with_the_fake_model_writes_its_cache_and_eval_scores_it(
     args = ["eval-run", "--eval-dir", str(eval_dir), "--output", str(out), "--no-store"]
     assert runner.invoke(app, args).exit_code == 0
     report = json.loads(out.read_text(encoding="utf-8"))
-    [fake] = [
-        r for r in report["runs"] if r["model"] == "fake" and r["task"] == "hazard_category"
-    ]
+    [fake] = [r for r in report["runs"] if r["model"] == "fake" and r["task"] == "hazard_category"]
     assert fake["prompt_version"] == "v1" and fake["overall"]["n"] == 2
 
 

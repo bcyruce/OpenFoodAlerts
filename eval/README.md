@@ -150,6 +150,17 @@ from one field) and appends to `labels.csv`. Close the tab whenever; the next st
 at the first item without your Label. Annotator B sees only the agreement subset and never
 A's Labels. Commit `labels.csv` as you go.
 
+## Reviewing production AI classifications (not eval data)
+
+```bash
+cd pipeline
+uv run ofa review-stats                                   # queue size per task
+uv run --group eval streamlit run ../eval/review_app.py   # the review page (DATABASE_URL)
+```
+
+`review_app.py` lives here because it shares the Streamlit dependency group; it works on the
+`review_queue` view of the database, not on these files (spec §6.5, ticket 20).
+
 ## Scoring: `make eval`
 
 ```bash
@@ -350,7 +361,60 @@ baselines' outputs are real. It exists so `/evaluation` (ticket 25) can be built
 
 CI runs `make eval` on every PR with the committed files and does not compare the result
 with the committed `latest.json` (`created_at` and `git_sha` always differ); the
-regression gate is `eval.yml` (ticket 19).
+regression gate is `eval.yml` (ticket 19), below.
+
+## CI gate (`eval.yml`, ticket 19)
+
+`.github/workflows/eval.yml` has two jobs.
+
+**Pull requests** that change `prompts/**`, `eval/**`, `db/seed/taxonomy/**`,
+`pipeline/src/openfoodalerts/classify/**`, `pipeline/src/openfoodalerts/eval/**` or the
+workflow itself: `make eval-refresh SPLIT=dev` (paid API, about 100 requests) → `make eval`
+(no database in that job: the `eval_runs` rows are skipped with a notice) → `ofa eval-gate`
+against `eval/results/latest.json` as committed on the PR's base branch (main). The
+comparison table goes to the job summary; `results/latest.json`, `results/badge.json` and
+`cache/` are uploaded as the artifact `eval-dev-pr<N>` (30 days). The workflow never
+commits: to publish the refreshed numbers, unzip the artifact into `eval/` and commit it on
+the PR (that push re-runs the gate, which then compares the same prompt again).
+
+```bash
+uv run ofa eval-gate --base main-latest.json --head ../eval/results/latest.json \
+  --task hazard_category --split dev --max-drop 0.02 [--summary "$GITHUB_STEP_SUMMARY"]
+```
+
+The rule (`openfoodalerts/eval/gate.py`):
+
+- Only **model** runs of the task and split are gated; baselines are in the table for
+  information. Per model, each side takes its run with the **newest prompt version**
+  (`v10` > `v9`): a PR that adds `v2` still has main's `v1` cache, which `make eval` scores
+  too, so the gate compares the PR's `v2` with main's newest.
+- A model present on both sides with a number on both sides **fails** when
+  main − PR > 0.02 (overall macro-F1, 2 percentage points; exactly 2 passes). Point
+  estimates only: the bootstrap intervals are shown, not used (on 100 dev items they are
+  about ±0.1 wide, so an interval rule would never fire).
+- **Passes with a notice**: main has no `latest.json`; no Labels on the split (today's
+  state: every run is skipped); a run with n = 0 (macro-F1 `null`); a model only on one
+  side (new, or no longer cached).
+- Exit codes: 0 pass, 1 regression, 2 unreadable or synthetic report (`example.json` is
+  refused), unknown split.
+- The baseline is main's committed number, scored on main's Labels. A PR that also changes
+  `labels.csv` compares against Labels it no longer has; the table shows n on both sides.
+
+**Fork safety.** The trigger is `pull_request` (never `pull_request_target`), so a fork's
+PR gets neither secrets nor a writable token. When the PR comes from a fork, or the secret
+is missing (Dependabot, a repository without it), the paid steps are skipped with a
+warning and the job **passes ungated**; the summary says so. Gate such a PR by pushing its
+commits to a branch of this repository.
+
+**Release tags** (`v*`): `make eval-refresh SPLIT=test` → `make eval SPLIT=test` (the dev
+runs already in `latest.json` are kept), a summary of the T1 test numbers, and the artifact
+`eval-test-<tag>` (90 days). Without the secret the job fails. Nothing is committed back
+(a tag is not a branch, and a bot push to main would bypass review): commit the artifact's
+files in a normal PR; that updates `/en/evaluation` and the README badge.
+
+Secret: `ANTHROPIC_API_KEY` (GitHub → Settings → Secrets and variables → Actions). The
+workflow has `contents: read` only, one concurrency group per PR (a new push cancels the
+running job) and job/step timeouts. It has not run on GitHub yet (no remote).
 
 ## Re-running
 
