@@ -905,5 +905,60 @@ def eval_example_cmd(
     typer.echo(f"wrote {out} ({len(report['runs'])} runs, synthetic)")
 
 
+@app.command("review-stats")
+def review_stats_cmd() -> None:
+    """The human review queue per task (spec §6.5): current AI results, queued (abstained
+    or below the task's threshold, unreviewed) and reviewed.
+
+    Review them on the local page: cd pipeline && uv run --group eval streamlit run
+    ../eval/review_app.py
+    """
+    from openfoodalerts.classify.review_queue import review_stats
+
+    with connect() as conn:
+        stats = review_stats(conn)
+    if not stats:
+        typer.echo("no AI classifications yet")
+    for s in stats:
+        typer.echo(
+            f"{s.task}: {s.current} current, queued"
+            f" {s.queued_abstained + s.queued_low_confidence} ({s.queued_abstained} abstained,"
+            f" {s.queued_low_confidence} below {s.min_confidence}); reviewed"
+            f" {s.approved + s.corrected} ({s.approved} approved, {s.corrected} corrected)"
+        )
+
+
+@app.command("review-threshold")
+def review_threshold_cmd(
+    task: Annotated[str, typer.Argument(help="Task name, e.g. hazard_category.")],
+    min_confidence: Annotated[
+        str | None,
+        typer.Argument(
+            help="low, medium or high: the lowest confidence accepted without review."
+            " Omit to show the current setting."
+        ),
+    ] = None,
+) -> None:
+    """Show or set a task's "low confidence" threshold for the review queue (spec §6.3;
+    ticket 21 picks it from the dev coverage-accuracy curve). Results below it are queued,
+    abstains always are; the default, medium, queues confidence = low."""
+    from openfoodalerts.classify.review_queue import (
+        DEFAULT_MIN_CONFIDENCE,
+        set_threshold,
+        thresholds,
+    )
+
+    with connect() as conn:
+        if min_confidence is not None:
+            try:
+                set_threshold(conn, task, min_confidence)
+            except ValueError as exc:
+                typer.echo(f"error: {exc}", err=True)
+                raise typer.Exit(2) from exc
+        current = thresholds(conn).get(task)
+    shown = f"{current}" if current else f"{DEFAULT_MIN_CONFIDENCE} (default)"
+    typer.echo(f"{task}: min_confidence {shown}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

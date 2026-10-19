@@ -150,6 +150,17 @@ from one field) and appends to `labels.csv`. Close the tab whenever; the next st
 at the first item without your Label. Annotator B sees only the agreement subset and never
 A's Labels. Commit `labels.csv` as you go.
 
+## Reviewing production AI classifications (not eval data)
+
+```bash
+cd pipeline
+uv run ofa review-stats                                   # queue size per task
+uv run --group eval streamlit run ../eval/review_app.py   # the review page (DATABASE_URL)
+```
+
+`review_app.py` lives here because it shares the Streamlit dependency group; it works on the
+`review_queue` view of the database, not on these files (spec §6.5, ticket 20).
+
 ## Scoring: `make eval`
 
 ```bash
