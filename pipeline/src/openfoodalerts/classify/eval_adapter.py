@@ -1,7 +1,8 @@
 """The classifiers of `make eval-refresh` (plug-in point `eval.refresh.CLASSIFIERS`).
 
 Each registered model classifies the split's eval items with the current prompt of every
-task it supports (T1 for now), on the Sources the task is scored on, and returns the cache
+task it supports (T1-T5), on the Sources the task is scored on (T1 also RASFF subjects,
+T2-T5 NVWA and openFDA), and returns the cache
 lines (`ModelOutput`) for `eval.cache.write_outputs`. Inputs are the frozen snapshots of
 items.csv, so the outputs and `input_hash` match what `ofa classify` stores for the same
 text. Identical inputs are sent once. Every call is made again on each refresh (that is
@@ -17,6 +18,7 @@ from openfoodalerts.classify.prompts import Prompt, load_prompt
 from openfoodalerts.classify.registry import MODELS, make_classifier
 from openfoodalerts.classify.run import Classification, classify, hash_for
 from openfoodalerts.classify.tasks import HazardCategoryTask, Task
+from openfoodalerts.classify.tasks_t2_t5 import t2_t5_tasks
 from openfoodalerts.eval.cache import ModelOutput
 from openfoodalerts.eval.files import ItemRow
 from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
@@ -69,7 +71,7 @@ def refresh_classifier(model: str) -> Callable[[Sequence[ItemRow]], Iterable[Mod
         created_at = datetime.now(UTC).isoformat(timespec="seconds")
         usage = Usage()
         outputs: list[ModelOutput] = []
-        for task in (HazardCategoryTask(taxonomy),):
+        for task in (HazardCategoryTask(taxonomy), *t2_t5_tasks()):
             prompt = load_prompt(task.name)
             outputs += eval_outputs(
                 items,

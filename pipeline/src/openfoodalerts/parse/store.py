@@ -7,7 +7,10 @@ so replaying the archive reproduces the same history.
 
 Official child records (Hazards, Product categories, countries with roles, measures) are part
 of the observed state: they are compared like any other field and, when anything changed,
-replaced as a whole. AI-made child rows (provenance = 'ai') are left alone.
+replaced as a whole. AI-made child rows (provenance = 'ai') are left alone, and so is a
+Product type set by T5 (provenance 'ai') while the rules still cannot decide: it is
+compared as `pending` (T5 is not a change of the source) and kept on writes
+(`_keep_ai_product_type`); a rule decision replaces it.
 
 Whenever the stored state changes, `search_tsv` is rebuilt from it by the SQL function
 `notification_search_tsv` (migration 20261025000800_search, which also backfilled the rows
@@ -163,9 +166,18 @@ def _write_search_document(conn: Connection, notification_id: int) -> None:
     )
 
 
+def _keep_ai_product_type(parsed: ParsedNotification, ai_type: str | None) -> ParsedNotification:
+    """A Product type set by T5 (provenance ai) belongs to the classifier: it stays while
+    the rules still cannot decide (the parser says `pending`); a rule decision replaces it."""
+    if ai_type is None or parsed.product_type_provenance != "pending":
+        return parsed
+    return parsed.model_copy(update={"product_type": ai_type, "product_type_provenance": "ai"})
+
+
 def _current(
     conn: Connection, source_id: int, source_key: str
-) -> tuple[int, int, ParsedNotification] | None:
+) -> tuple[int, int, ParsedNotification, str | None] | None:
+    """(id, version, the stored state as the parser saw it, T5's Product type or None)."""
     row = conn.execute(
         f"""
         SELECT id, current_version, {", ".join(COLUMNS)} FROM notifications
@@ -176,8 +188,11 @@ def _current(
     if row is None:
         return None
     notification_id = int(row["id"])
+    ai_type = row["product_type"] if row["product_type_provenance"] == "ai" else None
+    if ai_type is not None:  # compare with what the parser wrote: T5 is not a source change
+        row |= {"product_type": None, "product_type_provenance": "pending"}
     state = ParsedNotification.model_validate({**row, **_load_children(conn, notification_id)})
-    return notification_id, int(row["current_version"]), state
+    return notification_id, int(row["current_version"]), state, ai_type
 
 
 def _insert_version(
@@ -222,6 +237,12 @@ def _write_first(
         notification_id = int(row["id"])
     else:
         notification_id = existing_id
+        kept = conn.execute(
+            "SELECT product_type FROM notifications WHERE id = %s"
+            " AND product_type_provenance = 'ai'",
+            (existing_id,),
+        ).fetchone()
+        parsed = _keep_ai_product_type(parsed, kept["product_type"] if kept else None)
         conn.execute(
             f"""
             UPDATE notifications SET {", ".join(f"{f} = %s" for f in COLUMNS)},
@@ -250,7 +271,7 @@ def observe(
     if current is None:
         _write_first(conn, source_id, parsed, raw, parser_version, None)
         return "new"
-    notification_id, version, previous = current
+    notification_id, version, previous, ai_type = current
     changes = diff(previous, parsed)
     if not changes:
         conn.execute(
@@ -266,7 +287,14 @@ def observe(
             raw_record_id = %s, parser_version = %s, current_version = %s, last_changed_at = %s
         WHERE id = %s
         """,
-        [*_values(parsed), raw.id, parser_version, version, raw.fetched_at, notification_id],
+        [
+            *_values(_keep_ai_product_type(parsed, ai_type)),
+            raw.id,
+            parser_version,
+            version,
+            raw.fetched_at,
+            notification_id,
+        ],
     )
     if any(field in changes for field in CHILD_FIELDS):
         _write_children(conn, notification_id, parsed)

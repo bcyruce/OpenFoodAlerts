@@ -1,10 +1,12 @@
 """`ofa classify`: AI classifications of Notifications into ai_classifications (spec §6).
 
-Per task (T1 hazard_category for now):
+Per task (T1-T5; `--task all` runs them in `tasks.RUN_ORDER`, T5 first):
 
 1. Candidates: Notifications of the task's Sources (NVWA, openFDA) whose Product type is
    food, feed or food contact material (spec §4.2: non-food and `pending` are never
-   classified), newest first.
+   classified), newest first. T5 product_type instead takes those the Product type rules
+   could not decide (`pending`) and those it decided before (`ai`, so a changed text or a
+   new prompt is classified again); what it finds non-food leaves the other tasks' scope.
 2. Each candidate's model input is built (`Task.build_input`, the eval snapshot) and its
    `input_hash` computed for the current model, prompt version and taxonomy version.
    A candidate is done when a row with that (task, model, prompt_version, input_hash)
@@ -15,10 +17,8 @@ Per task (T1 hazard_category for now):
    inside one run each distinct input is sent once.
 4. Writes, committed per Notification so that an interrupted run keeps what it paid for:
    the ai_classifications row (all versions, value, confidence, evidence_span), then the
-   Notification's AI primary hazard: earlier T1 AI rows of notification_hazards are
-   removed, and a non-abstained category that maps to a RASFF Hazard category gets a new
-   row (provenance ai, is_primary true, hazard_name NULL, hazard_category_id, the
-   classification's id). See `primary_category` for merged labels and `other`.
+   rows derived from it (`derived.apply_current`: T1 the AI primary hazard, T2 the Product
+   category, T3 the Hazard name, T4 the origin country, T5 the Product type).
 
 Failures: `ItemFailed` (one request failed after the SDK's retries) skips the Notification
 (nothing stored, next run retries it); after MAX_CONSECUTIVE_FAILURES in a row the run
@@ -32,22 +32,26 @@ from typing import Any
 
 from psycopg.types.json import Jsonb
 
+from openfoodalerts.classify.derived import apply_current
+from openfoodalerts.classify.derived import primary_category as primary_category
 from openfoodalerts.classify.model import Classifier, ItemFailed, Usage
 from openfoodalerts.classify.prompts import Prompt
 from openfoodalerts.classify.run import Classification, classify, hash_for
-from openfoodalerts.classify.tasks import HazardCategoryTask, Task, Verdict
+from openfoodalerts.classify.tasks import Task, Verdict
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.parse.model import SHOWN_PRODUCT_TYPES
-from openfoodalerts.sources.rasff.lookups import normalize_name
 
 MAX_CONSECUTIVE_FAILURES = 3
 
 _CANDIDATES = """
 SELECT n.id, s.code AS source, n.title, n.summary_source, n.product_text, n.hazard_text
 FROM notifications n JOIN sources s ON s.id = n.source_id
-WHERE s.code = ANY(%(sources)s) AND n.product_type = ANY(%(product_types)s)
+WHERE s.code = ANY(%(sources)s) AND {scope}
 ORDER BY n.published_at DESC NULLS LAST, n.id DESC
 """
+# T5 runs where the rules could not decide, and again where it decided before.
+_T5_SCOPE = "n.product_type_provenance IN ('pending', 'ai')"
+_SHOWN_SCOPE = "n.product_type = ANY(%(product_types)s)"
 
 _DONE = """
 SELECT notification_id, input_hash FROM ai_classifications
@@ -70,20 +74,6 @@ ON CONFLICT (notification_id, task, model, prompt_version, input_hash) DO NOTHIN
 RETURNING id
 """
 
-# Earlier AI hazard rows that came from this task (T3 rows will have their own task).
-_DELETE_AI_HAZARDS = """
-DELETE FROM notification_hazards h
-USING ai_classifications c
-WHERE h.notification_id = %s AND h.provenance = 'ai' AND c.id = h.ai_classification_id
-  AND c.task = %s
-"""
-
-_INSERT_HAZARD = """
-INSERT INTO notification_hazards (notification_id, position, hazard_name,
-    hazard_category_id, is_primary, provenance, ai_classification_id)
-VALUES (%s, 0, NULL, %s, true, 'ai', %s)
-"""
-
 
 @dataclass
 class ClassifyRun:
@@ -102,8 +92,9 @@ class ClassifyRun:
     classified: int = 0
     abstained: int = 0
     failed: int = 0
-    # notification_hazards rows written; non-abstained categories without a category id
-    hazards_written: int = 0
+    # derived rows written (`derived.apply_current`: hazards, Product categories, origin
+    # countries, Product types); answers without a row to write (T1 `other`)
+    written: int = 0
     unmapped: int = 0
     usage: Usage = field(default_factory=Usage)
     errors: list[str] = field(default_factory=list)
@@ -121,34 +112,11 @@ class _Item:
     input_hash: str
 
 
-def primary_category(conn: Connection, task: HazardCategoryTask, label: str) -> int | None:
-    """hazard_categories.id for a T1 label.
-
-    A label of one RASFF Hazard category maps to it. A merged label maps to the category
-    of the same name ("GMO / novel food" -> RASFF 21806 "GMO / novel food", not "novel
-    food" or "genetically modified"). `other` merges unrelated small categories
-    (packaging, controls, biotoxins), so it has no category: no notification_hazards row,
-    the result stays in ai_classifications.
-    """
-    rasff_ids = task.taxonomy.category_ids(label)
-    if not rasff_ids:
-        return None
-    rows = conn.execute(
-        "SELECT id, rasff_id, name_en FROM hazard_categories WHERE rasff_id = ANY(%s)",
-        (list(rasff_ids),),
-    ).fetchall()
-    if len(rasff_ids) == 1:
-        return rows[0]["id"] if rows else None
-    same_name = [r for r in rows if normalize_name(r["name_en"]) == normalize_name(label)]
-    return same_name[0]["id"] if len(same_name) == 1 else None
-
-
 def _store(
     conn: Connection,
     task: Task,
     item: _Item,
     result: Classification,
-    categories: dict[str, int | None],
     run: ClassifyRun,
 ) -> None:
     v = result.verdict
@@ -173,25 +141,19 @@ def _store(
         return
     if v.abstained:
         run.abstained += 1
-    conn.execute(_DELETE_AI_HAZARDS, (item.notification_id, task.name))
-    if not v.abstained and v.category is not None and isinstance(task, HazardCategoryTask):
-        if v.category not in categories:
-            categories[v.category] = primary_category(conn, task, v.category)
-        category_id = categories[v.category]
-        if category_id is None:
-            run.unmapped += 1
-        else:
-            conn.execute(_INSERT_HAZARD, (item.notification_id, category_id, row["id"]))
-            run.hazards_written += 1
+    applied = apply_current(conn, task, item.notification_id)
+    run.written += applied.written
+    run.unmapped += applied.unmapped
     conn.commit()
 
 
 def _copy(stored: dict[str, Any], task: Task, prompt: Prompt, model: str) -> Classification:
     value = stored["value"]
+    key = getattr(task, "value_key", "category")  # T1: category
     return Classification(
         task=task.name,
         verdict=Verdict(
-            category=None if stored["abstained"] else value.get("category"),
+            category=None if stored["abstained"] else value.get(key),
             confidence=stored["confidence"],
             abstained=stored["abstained"],
             evidence_span=stored["evidence_span"],
@@ -219,8 +181,10 @@ def classify_notifications(
 ) -> ClassifyRun:
     run = ClassifyRun(task.name, model, prompt.version, dry_run=dry_run)
     wanted = [s for s in task.sources if sources is None or s in sources]
+    scope = _T5_SCOPE if task.name == "product_type" else _SHOWN_SCOPE
     rows = conn.execute(
-        _CANDIDATES, {"sources": wanted, "product_types": list(SHOWN_PRODUCT_TYPES)}
+        _CANDIDATES.format(scope=scope),
+        {"sources": wanted, "product_types": list(SHOWN_PRODUCT_TYPES)},
     ).fetchall()
     run.candidates = len(rows)
     done = {
@@ -252,7 +216,6 @@ def classify_notifications(
     classifier = make_classifier() if run.to_call else None
     if classifier is not None and classifier.model != model:
         raise ValueError(f"classifier {classifier.model!r} is not model {model!r}")
-    categories: dict[str, int | None] = {}
     reused = 0
     consecutive_failures = 0
     for item in todo:
@@ -275,6 +238,6 @@ def classify_notifications(
             consecutive_failures = 0
             known[item.input_hash] = result
             run.classified += 1
-        _store(conn, task, item, result, categories, run)
+        _store(conn, task, item, result, run)
     run.reused = reused
     return run

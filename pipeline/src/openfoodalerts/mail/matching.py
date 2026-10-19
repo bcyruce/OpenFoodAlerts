@@ -23,7 +23,9 @@ Rules:
   Trigger rules: RASFF classification Alert ("alert notification", the official name);
   FDA Class I; NVWA every food warning (Product type food). NVWA rows still waiting for
   T5 (product_type NULL) do not trigger: waiting is not abstaining, and they are not
-  shown anywhere yet (ticket 31 log). RASFF News never triggers.
+  shown anywhere yet (ticket 31 log). When T5 abstains it writes product_type food
+  (provenance ai; `classify.derived`), so "T5 弃权时也算" needs nothing here.
+  RASFF News never triggers.
 """
 
 from collections.abc import Iterable, Mapping

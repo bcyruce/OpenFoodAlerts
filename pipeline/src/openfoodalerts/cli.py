@@ -2,13 +2,18 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Any
+from typing import TYPE_CHECKING, Annotated, Any
 
 import typer
 
 from openfoodalerts import __version__
 from openfoodalerts.db.connection import connect
 from openfoodalerts.http import PoliteClient
+
+if TYPE_CHECKING:  # imported lazily at run time (the classify modules are slow to import)
+    from openfoodalerts.classify.prompts import Prompt
+    from openfoodalerts.classify.tasks import Task
+    from openfoodalerts.eval.labelset import Taxonomy
 
 app = typer.Typer(
     name="ofa",
@@ -782,9 +787,13 @@ def eval_refresh_cmd(
 
 @app.command("classify")
 def classify_cmd(
-    task: Annotated[str, typer.Option(help="Task (spec §6.1); only hazard_category so far.")] = (
-        "hazard_category"
-    ),
+    task: Annotated[
+        str,
+        typer.Option(
+            help="Task (spec §6.1): product_type, hazard_category, product_category, hazard,"
+            " origin_country, or all (in that order: T5 first)."
+        ),
+    ] = "hazard_category",
     source: Annotated[
         list[str] | None, typer.Option(help="Only these Sources (nvwa, openfda; default both).")
     ] = None,
@@ -802,37 +811,62 @@ def classify_cmd(
         bool, typer.Option("--dry-run", help="Count what would be classified; call nothing.")
     ] = False,
 ) -> None:
-    """AI classifications of NVWA and openFDA Notifications (food, feed, food contact
-    material) into ai_classifications; T1 also writes the AI primary hazard.
+    """AI classifications of NVWA and openFDA Notifications into ai_classifications, and
+    the rows derived from them (T1 primary hazard, T2 Product category, T3 Hazard name,
+    T4 origin country, T5 Product type).
 
-    Idempotent: Notifications that already have a result for this model, prompt version
-    and input are skipped, and an input that was classified before is copied, not sent
-    again. Exit code 2: the model cannot run (ANTHROPIC_API_KEY not set) or bad options;
-    1: the run stopped after repeated failed requests.
+    T5 runs on what the Product type rules left pending; T1-T4 on food, feed and food
+    contact material. Idempotent: Notifications that already have a result for this model,
+    prompt version and input are skipped, and an input that was classified before is
+    copied, not sent again. `--task all` runs each task in turn, one job log per task
+    (a dry run of all cannot know what T5 would decide). Exit code 2: the model cannot run
+    (ANTHROPIC_API_KEY not set) or bad options; 1: a run stopped after repeated failed
+    requests.
     """
-    from openfoodalerts.classify.job import classify_notifications
-    from openfoodalerts.classify.model import ClassifierUnavailable, ItemFailed
     from openfoodalerts.classify.prompts import PromptError, load_prompt
-    from openfoodalerts.classify.registry import MODELS, make_classifier
-    from openfoodalerts.classify.tasks import make_task
+    from openfoodalerts.classify.registry import MODELS
+    from openfoodalerts.classify.tasks import RUN_ORDER, make_task
     from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
-    from openfoodalerts.jobs import run_job
 
     labels = load_taxonomy(taxonomy or default_taxonomy_path())
+    names = RUN_ORDER if task == "all" else (task,)
+    if task == "all" and prompt_version is not None:
+        typer.echo("error: --prompt-version names one task's prompt; not with --task all", err=True)
+        raise typer.Exit(2)
     try:
-        chosen = make_task(task, labels)
-        prompt = load_prompt(task, prompt_version)
+        chosen = [(make_task(name, labels), load_prompt(name, prompt_version)) for name in names]
     except (ValueError, PromptError) as exc:
         typer.echo(f"error: {exc}", err=True)
         raise typer.Exit(2) from exc
-    unknown = [s for s in source or () if s not in chosen.sources]
+    allowed = chosen[0][0].sources
+    unknown = [s for s in source or () if s not in allowed]
     if unknown or model not in MODELS:
         typer.echo(
-            f"error: --source must be one of {', '.join(chosen.sources)} and --model one of"
+            f"error: --source must be one of {', '.join(allowed)} and --model one of"
             f" {', '.join(MODELS)}",
             err=True,
         )
         raise typer.Exit(2)
+    for one, prompt in chosen:
+        _classify_one(one, prompt, labels, model=model, source=source, limit=limit, dry_run=dry_run)
+
+
+def _classify_one(
+    chosen: "Task",
+    prompt: "Prompt",
+    labels: "Taxonomy",
+    *,
+    model: str,
+    source: list[str] | None,
+    limit: int | None,
+    dry_run: bool,
+) -> None:
+    from openfoodalerts.classify.job import classify_notifications
+    from openfoodalerts.classify.model import ClassifierUnavailable, ItemFailed
+    from openfoodalerts.classify.registry import make_classifier
+    from openfoodalerts.jobs import run_job
+
+    task = chosen.name
     with connect() as conn:
         try:
             with run_job(conn, "classify", None) as stats:
@@ -866,8 +900,8 @@ def classify_cmd(
         f"{task} {model} {prompt.version}: {result.candidates} in scope, {result.done} done;"
         f" {verb} the model for {result.to_call if dry_run else result.classified},"
         f" copied {result.reused} (same input), abstained {result.abstained},"
-        f" failed {result.failed}; AI hazards written {result.hazards_written}"
-        f" (no category: {result.unmapped})"
+        f" failed {result.failed}; derived rows written {result.written}"
+        f" (no row to write: {result.unmapped})"
     )
     u = result.usage
     if u.requests:

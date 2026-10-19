@@ -49,6 +49,8 @@ TASK_SOURCES: dict[str, tuple[str, ...]] = {
     "product_type": ("nvwa", "openfda"),
 }
 CLASSIFICATION_TASKS = ("hazard_category", "product_category", "product_type")
+# Tasks whose outputs depend on the T1 taxonomy (its version is part of their input_hash).
+TAXONOMY_TASKS = ("hazard_category",)
 KAPPA_TASKS = ("hazard_category", "product_category", "origin_country", "product_type")
 
 
@@ -162,7 +164,8 @@ def _score_task(
             it.input,
             prompt_version=run.prompt_version,
             model=run.model,
-            taxonomy_version=taxonomy.version,
+            # only T1 has a taxonomy; T2-T5 hash with an empty taxonomy version
+            taxonomy_version=taxonomy.version if task in TAXONOMY_TASKS else "",
         )
         stale = p is not None and p.input_hash != expected
         usable = p is not None and not stale

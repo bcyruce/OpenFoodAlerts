@@ -190,7 +190,9 @@ sorted by (task, item_id), UTF-8, LF. Keys, in this order:
 | `created_at` | ISO 8601 |
 
 `input_hash` = sha256 of the item's `input` as compact JSON (keys in order, strings NFC) +
-`\n` + prompt_version + `\n` + model + `\n` + taxonomy_version. A cached line whose hash no
+`\n` + prompt_version + `\n` + model + `\n` + taxonomy_version (T1's taxonomy version; empty
+for T2-T5, which have no taxonomy: their fixed lists are part of the prompt version). A
+cached line whose hash no
 longer matches the item (the item's input changed, or the taxonomy did) is **stale**: it is
 ignored and counted as an abstention (`n_stale`). An item without a cached line counts as
 an abstention too (`n_missing`), so an incomplete cache cannot look better than a complete
@@ -205,11 +207,16 @@ make eval-refresh SPLIT=dev MODEL=fake  # keyword rules in the model's place: no
 ```
 
 `ofa eval-refresh --model M` runs model M on the split's items with the newest prompt of
-each task (T1: `prompts/hazard_category/vN.md`) and writes `cache/M/vN.jsonl`. It uses the
+each task (`prompts/{task}/vN.md`: T1 hazard_category, T2 product_category, T3 hazard, T4
+origin_country, T5 product_type; ticket 17) and writes `cache/M/vN.jsonl`. It uses the
 same code as `ofa classify` (`openfoodalerts.classify`): the item's frozen `input` is the
 model input, the output is validated in code (an `evidence_span` that is not in the input
 is an abstention), and `input_hash` is the one `ai_classifications` stores. T1 runs on all
-three Sources (RASFF: subject only). Identical inputs are sent once; every refresh calls
+three Sources (RASFF: subject only), T2-T5 on NVWA and openFDA (T5 on every NVWA / openFDA
+item, although in production it only runs where the Product type rules cannot decide).
+The cache file is per prompt version: all five tasks are v1 now; when one task moves to
+v2 alone its lines go to `v2.jsonl` and are scored as their own run. Identical inputs are
+sent once per task; every refresh calls
 the model again for every item (re-run only when the prompt, the model or the items
 change). Token usage is printed as an `eval_refresh_usage` JSON line on stderr. Without
 `ANTHROPIC_API_KEY` it exits 2 before any call.
