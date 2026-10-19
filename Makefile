@@ -87,8 +87,11 @@ SPLIT ?= dev
 eval: ## Offline eval of eval/cache/ + baselines on SPLIT (default dev) -> eval/results/latest.json
 	$(UV) run ofa eval-run --split $(SPLIT)
 
-eval-refresh: ## Call the configured classifiers on SPLIT and refresh eval/cache/ (paid API)
-	$(UV) run ofa eval-refresh --split $(SPLIT)
+# Model of eval-refresh: claude-haiku-5-5 (needs ANTHROPIC_API_KEY) or fake (keyword rules, no API).
+MODEL ?= claude-haiku-5-5
+
+eval-refresh: ## Call MODEL (default claude-haiku-5-5) on SPLIT and refresh eval/cache/ (paid API)
+	$(UV) run ofa eval-refresh --split $(SPLIT) --model $(MODEL)
 
 eval-example: ## Regenerate the synthetic eval/results/example.json (for the /evaluation page)
 	$(UV) run ofa eval-example

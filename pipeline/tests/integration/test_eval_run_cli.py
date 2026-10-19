@@ -71,10 +71,28 @@ def test_eval_run_test_split_only_when_asked_and_rejects_other_splits(eval_dir: 
     assert runner.invoke(app, [*args, "--split", "all"]).exit_code == 2
 
 
-def test_eval_refresh_fails_clearly_without_a_classifier() -> None:
+def test_eval_refresh_fails_clearly_without_an_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     result = runner.invoke(app, ["eval-refresh", "--split", "dev"])
     assert result.exit_code == 2
-    assert "no classifier configured" in result.output
+    assert "ANTHROPIC_API_KEY is not set" in result.output
+    unknown = runner.invoke(app, ["eval-refresh", "--model", "gpt-5-mini"])
+    assert unknown.exit_code == 2 and "unknown classifier" in unknown.output
+
+
+def test_eval_refresh_with_the_fake_model_writes_its_cache_and_eval_scores_it(
+    eval_dir: Path,
+) -> None:
+    result = runner.invoke(app, ["eval-refresh", "--eval-dir", str(eval_dir), "--model", "fake"])
+    assert result.exit_code == 0, result.output
+    cache = eval_dir / "cache" / "fake" / "v1.jsonl"
+    assert len(cache.read_text(encoding="utf-8").splitlines()) == 100  # the dev split
+    out = eval_dir / "latest.json"
+    args = ["eval-run", "--eval-dir", str(eval_dir), "--output", str(out), "--no-store"]
+    assert runner.invoke(app, args).exit_code == 0
+    report = json.loads(out.read_text(encoding="utf-8"))
+    [fake] = [r for r in report["runs"] if r["model"] == "fake"]
+    assert fake["prompt_version"] == "v1" and fake["overall"]["n"] == 2
 
 
 def test_eval_example_writes_a_synthetic_report(tmp_path: Path) -> None:

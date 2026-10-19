@@ -154,7 +154,7 @@ A's Labels. Commit `labels.csv` as you go.
 ```bash
 make eval                 # dev split (default); offline, no API key, no network
 make eval SPLIT=test      # the test split, only when asked for (release tags)
-make eval-refresh SPLIT=dev   # call the classifiers and refresh cache/ (paid API, ticket 16)
+make eval-refresh SPLIT=dev   # call MODEL (default claude-haiku-5-5) and refresh cache/ (paid API)
 make eval-example         # regenerate the synthetic results/example.json
 ```
 
@@ -195,13 +195,33 @@ ignored and counted as an abstention (`n_stale`). An item without a cached line 
 an abstention too (`n_missing`), so an incomplete cache cannot look better than a complete
 one.
 
-### Plugging in a classifier (ticket 16)
+### Refreshing the cache: `make eval-refresh` (ticket 16)
 
-Register a function under its model name in `openfoodalerts.eval.refresh.CLASSIFIERS`. It
-receives the `ItemRow`s of the split and yields one `ModelOutput` per item and task (it may
-skip items whose cached `input_hash` is unchanged); `make eval-refresh` writes them with
-`cache.write_outputs` (a new line replaces the cached one for the same item and task). Until
-a classifier is registered, `make eval-refresh` exits 2 with "no classifier configured".
+```bash
+export ANTHROPIC_API_KEY=...            # or put it in .env
+make eval-refresh SPLIT=dev             # MODEL=claude-haiku-5-5 (default): paid API
+make eval-refresh SPLIT=dev MODEL=fake  # keyword rules in the model's place: no API, no cost
+```
+
+`ofa eval-refresh --model M` runs model M on the split's items with the newest prompt of
+each task (T1: `prompts/hazard_category/vN.md`) and writes `cache/M/vN.jsonl`. It uses the
+same code as `ofa classify` (`openfoodalerts.classify`): the item's frozen `input` is the
+model input, the output is validated in code (an `evidence_span` that is not in the input
+is an abstention), and `input_hash` is the one `ai_classifications` stores. T1 runs on all
+three Sources (RASFF: subject only). Identical inputs are sent once; every refresh calls
+the model again for every item (re-run only when the prompt, the model or the items
+change). Token usage is printed as an `eval_refresh_usage` JSON line on stderr. Without
+`ANTHROPIC_API_KEY` it exits 2 before any call.
+
+`fake` exists to exercise the whole path offline (tests, demos). Its cache, `cache/fake/`,
+is git-ignored and must not be committed; `make eval` scores it like any model, so remove
+`cache/fake/` (or restore `results/latest.json`) before committing results.
+
+Registration: `openfoodalerts.eval.refresh.CLASSIFIERS` maps a model name to a function
+that receives the split's `ItemRow`s and yields one `ModelOutput` per item and task; the
+models come from `openfoodalerts.classify.registry` via `classify/eval_adapter.py`.
+`make eval-refresh` writes them with `cache.write_outputs` (a new line replaces the cached
+one for the same item and task).
 
 ### Metrics
 

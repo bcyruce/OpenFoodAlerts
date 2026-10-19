@@ -25,3 +25,6 @@ Thumbs.db
 
 # Claude Code local state and agent worktrees
 .claude/
+
+# outputs of the stand-in model (`make eval-refresh MODEL=fake`); never committed
+eval/cache/fake/

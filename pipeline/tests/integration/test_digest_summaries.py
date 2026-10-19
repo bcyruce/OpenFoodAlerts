@@ -1,10 +1,8 @@
 """The one-line summary seam (spec §10.3): T6 AI summaries once ticket 18 writes them,
 source text (not marked AI) until then."""
 
-from collections.abc import Iterator
+import hashlib
 from datetime import UTC, datetime
-
-import pytest
 
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.mail.summaries import ai_summaries, one_line, summary_line
@@ -41,34 +39,37 @@ def test_summary_line_per_source() -> None:
 
 def test_no_ai_summaries_while_ai_classifications_does_not_exist(db: Connection) -> None:
     nid = add_notification(db, "nvwa", "/a", first_seen_at=T)
-    assert ai_summaries(db, [nid], "nl") == {}
     assert ai_summaries(db, [], "nl") == {}
-
-
-@pytest.fixture
-def t6_table(db: Connection) -> Iterator[Connection]:
-    """A stand-in for ticket 16/18's table, with the columns of spec §4.1 used here."""
-    db.execute(
-        """
-        CREATE TABLE ai_classifications (
-            id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-            notification_id bigint NOT NULL, task text NOT NULL, value jsonb,
-            abstained boolean NOT NULL DEFAULT false, reviewed_value jsonb,
-            created_at timestamptz NOT NULL DEFAULT now())
-        """
-    )
-    db.commit()
+    # as before ticket 16 created the table
+    db.execute("ALTER TABLE ai_classifications RENAME TO ai_classifications_hidden")
     try:
-        yield db
+        assert ai_summaries(db, [nid], "nl") == {}
     finally:
         db.rollback()
-        db.execute("RESET ROLE")
-        db.execute("DROP TABLE ai_classifications")
-        db.commit()
 
 
-def test_t6_summaries_in_the_subscriptions_language(t6_table: Connection) -> None:
-    db = t6_table
+def add_t6(
+    db: Connection, nid: int, value: str, abstained: bool, reviewed: str | None, created: str
+) -> None:
+    """A T6 row in the shape `mail/summaries.py` proposes (ticket 18 decides)."""
+    db.execute(
+        "INSERT INTO ai_classifications (notification_id, task, value, abstained, confidence,"
+        " reviewed_value, review_status, created_at, model, prompt_version, schema_version,"
+        " input_hash) VALUES (%s, 't6_summary', %s, %s, %s, %s, %s, %s, 'm', 'v1', '1', %s)",
+        (
+            nid,
+            value,
+            abstained,
+            None if abstained else "high",
+            reviewed,
+            "unreviewed" if reviewed is None else "corrected",
+            created,
+            hashlib.sha256(f"{value}{created}".encode()).hexdigest(),
+        ),
+    )
+
+
+def test_t6_summaries_in_the_subscriptions_language(db: Connection) -> None:
     nid = add_notification(db, "nvwa", "/a", first_seen_at=T)
     other = add_notification(db, "nvwa", "/b", first_seen_at=T)
     rows = [
@@ -85,13 +86,18 @@ def test_t6_summaries_in_the_subscriptions_language(t6_table: Connection) -> Non
         (other, '{"locale": "en"}', True, None, "2026-10-24T10:00Z"),
     ]
     for row in rows:
-        db.execute(
-            "INSERT INTO ai_classifications (notification_id, task, value, abstained,"
-            " reviewed_value, created_at) VALUES (%s, 't6_summary', %s, %s, %s, %s)",
-            row,
-        )
+        add_t6(db, *row)
+    db.commit()
     assert ai_summaries(db, [nid, other], "nl") == {nid: "Nieuw.", other: "Goed."}
     assert ai_summaries(db, [nid, other], "en") == {nid: "English."}
-    # Not granted to ofa_mailer: no summaries rather than a failed Digest.
+    # ofa_mailer may read them (granted by ticket 16's migration) ...
     db.execute("SET ROLE ofa_mailer")
-    assert ai_summaries(db, [nid], "nl") == {}
+    assert ai_summaries(db, [nid], "nl") == {nid: "Nieuw."}
+    db.rollback()
+    # ... and without the grant there are no summaries rather than a failed Digest.
+    db.execute("REVOKE SELECT ON ai_classifications FROM ofa_mailer")
+    db.execute("SET ROLE ofa_mailer")
+    try:
+        assert ai_summaries(db, [nid], "nl") == {}
+    finally:
+        db.rollback()

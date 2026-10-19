@@ -1,22 +1,25 @@
 """`make eval-refresh SPLIT=dev`: call the configured classifiers and refresh eval/cache/.
 
 This is the only eval step that may call a paid API. A classifier is registered under its
-model name in CLASSIFIERS (ticket 16 adds the first one, Claude Haiku 5.5): a function that
-takes the eval items of the split and yields one `ModelOutput` per item and task, with
-`input_hash` from `openfoodalerts.classify.input_hash` (and may skip items whose cached hash
-is unchanged). Until one is registered, refresh fails with "no classifier configured".
+model name in CLASSIFIERS: a function that takes the eval items of the split and yields one
+`ModelOutput` per item and task, with `input_hash` from `openfoodalerts.classify.input_hash`.
+Ticket 16 registers every model of `openfoodalerts.classify.registry` (Claude Haiku 5.5 and
+the keyword-based `fake`) through `openfoodalerts.classify.eval_adapter`; a model that
+cannot run (no API key) raises `ClassifierUnavailable` before any call. With an empty
+registry, refresh fails with "no classifier configured".
 """
 
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
 
+from openfoodalerts.classify.eval_adapter import eval_classifiers
 from openfoodalerts.eval.cache import ModelOutput, write_outputs
 from openfoodalerts.eval.files import ItemRow
 
 Classifier = Callable[[Sequence[ItemRow]], Iterable[ModelOutput]]
 
-CLASSIFIERS: dict[str, Classifier] = {}
+CLASSIFIERS: dict[str, Classifier] = eval_classifiers()
 
 
 class NoClassifierConfigured(RuntimeError):
@@ -35,7 +38,7 @@ def refresh_cache(
     registry = CLASSIFIERS if classifiers is None else classifiers
     if not registry:
         raise NoClassifierConfigured(
-            "no classifier configured: eval-refresh needs a Classifier (ticket 16); "
+            "no classifier configured: eval-refresh needs a registered classifier; "
             "`make eval` scores the existing cache and the baselines"
         )
     for name in models or ():
