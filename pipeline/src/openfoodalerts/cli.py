@@ -728,6 +728,57 @@ def eval_badge_cmd(
         raise typer.Exit(2) from exc
 
 
+@app.command("eval-gate")
+def eval_gate_cmd(
+    base: Annotated[
+        Path, typer.Option(help="main's latest.json; a missing file = no baseline (passes).")
+    ],
+    head: Annotated[Path, typer.Option(help="The PR's latest.json (after make eval).")],
+    task: Annotated[str, typer.Option(help="Task to gate.")] = "hazard_category",
+    split: SplitOption = "dev",
+    max_drop: Annotated[
+        float, typer.Option(help="Largest allowed drop in macro-F1 (0.02 = 2 points).")
+    ] = 0.02,
+    summary: Annotated[
+        Path | None,
+        typer.Option(help="Append the Markdown table here (e.g. $GITHUB_STEP_SUMMARY)."),
+    ] = None,
+) -> None:
+    """Regression gate of eval.yml: fail when a model's macro-F1 drops more than max-drop.
+
+    Compares, per model run on both sides (newest prompt version each), the overall
+    point estimate; baselines and confidence intervals are shown, not gated. Prints the
+    Markdown summary. Exit codes: 0 passed (also: no baseline, no Labels, n = 0),
+    1 regression, 2 unreadable or synthetic report.
+    """
+    import json
+
+    from openfoodalerts.eval.gate import compare_reports, render_markdown
+
+    _check_split(split)
+
+    def load(path: Path) -> Any:
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:
+            typer.echo(f"error: cannot read {path}: {exc}", err=True)
+            raise typer.Exit(2) from exc
+
+    base_report = load(base) if base.exists() else None
+    try:
+        result = compare_reports(base_report, load(head), task=task, split=split, max_drop=max_drop)
+    except ValueError as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    markdown = render_markdown(result)
+    typer.echo(markdown, nl=False)
+    if summary is not None:
+        with summary.open("a", encoding="utf-8", newline="\n") as file:
+            file.write(markdown)
+    if not result.passed:
+        raise typer.Exit(1)
+
+
 def _store_eval(report: dict[str, object], split: str, eval_dir: Path) -> None:
     import psycopg
 
