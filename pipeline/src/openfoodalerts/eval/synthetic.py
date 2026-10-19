@@ -18,7 +18,14 @@ from typing import Any
 from openfoodalerts.classify.input_hash import input_hash
 from openfoodalerts.eval.cache import ModelOutput
 from openfoodalerts.eval.files import ItemRow
-from openfoodalerts.eval.harness import RunInput, baseline_runs, build_report, merge_other_split
+from openfoodalerts.eval.harness import (
+    TASK_ORDER,
+    TAXONOMY_TASKS,
+    RunInput,
+    baseline_runs,
+    build_report,
+    merge_other_split,
+)
 from openfoodalerts.eval.labeling import NO_HAZARD, UNKNOWN_COUNTRY, UNSURE
 from openfoodalerts.eval.labelset import Taxonomy
 from openfoodalerts.eval.metrics import CONFIDENCES
@@ -118,13 +125,9 @@ def _model_outputs(
 ) -> list[ModelOutput]:
     out = []
     for item in items:
-        h = input_hash(
-            item.input,
-            prompt_version=SYNTHETIC_PROMPT,
-            model=SYNTHETIC_MODEL,
-            taxonomy_version=taxonomy.version,
-        )
-        for task in ("hazard_category", "product_category", "hazard", "origin_country"):
+        for task in TASK_ORDER:
+            # only T1 has a taxonomy; T2-T5 hash with an empty taxonomy version (ticket 17)
+            version = taxonomy.version if task in TAXONOMY_TASKS else ""
             value, confidence = _model_value(item, task, labels[item.item_id][task], taxonomy)
             out.append(
                 ModelOutput(
@@ -134,33 +137,19 @@ def _model_outputs(
                     confidence=confidence,
                     abstained=value is None,
                     evidence_span=None,
-                    input_hash=h,
+                    input_hash=input_hash(
+                        item.input,
+                        prompt_version=SYNTHETIC_PROMPT,
+                        model=SYNTHETIC_MODEL,
+                        taxonomy_version=version,
+                    ),
                     model=SYNTHETIC_MODEL,
                     prompt_version=SYNTHETIC_PROMPT,
                     schema_version="1",
-                    taxonomy_version=taxonomy.version,
+                    taxonomy_version=version,
                     created_at=CREATED_AT,
                 )
             )
-        value, confidence = _model_value(
-            item, "product_type", labels[item.item_id]["product_type"], taxonomy
-        )
-        out.append(
-            ModelOutput(
-                item.item_id,
-                "product_type",
-                value,
-                confidence,
-                value is None,
-                None,
-                h,
-                SYNTHETIC_MODEL,
-                SYNTHETIC_PROMPT,
-                "1",
-                taxonomy.version,
-                CREATED_AT,
-            )
-        )
     return out
 
 

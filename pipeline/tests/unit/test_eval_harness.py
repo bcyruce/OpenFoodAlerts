@@ -77,8 +77,10 @@ def pred(
     value: str | None,
     task: str = "hazard_category",
     confidence: str | None = "high",
-    taxonomy_version: str = "1",
+    taxonomy_version: str | None = None,
 ) -> ModelOutput:
+    if taxonomy_version is None:  # only T1 has a taxonomy (ticket 17)
+        taxonomy_version = "1" if task == "hazard_category" else ""
     return ModelOutput(
         item_id=it.item_id,
         task=task,

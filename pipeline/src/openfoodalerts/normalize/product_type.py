@@ -224,21 +224,25 @@ _NVWA_FOOD = re.compile(
 )
 
 
+# The keyword patterns per Product type (also used by the fake model's T5 answers).
+NVWA_PATTERNS: tuple[tuple[ProductType, re.Pattern[str]], ...] = (
+    ("non-food", _NVWA_NON_FOOD),
+    ("food contact material", _NVWA_FOOD_CONTACT),
+    ("feed", _NVWA_FEED),
+    ("food", _NVWA_FOOD),
+)
+OPENFDA_PATTERNS: tuple[tuple[ProductType, re.Pattern[str]], ...] = (
+    ("non-food", _NON_FOOD),
+    ("feed", _FEED),
+)
+
+
 def nvwa_product_type(
     title: str, summary: str | None, product_text: str | None
 ) -> ProductType | None:
     """Return "food" or "non-food" when the rules are sure, else None ("ask T5")."""
     text = "\n".join(t for t in (title, summary, product_text) if t)
-    hits = {
-        kind
-        for kind, pattern in (
-            ("non-food", _NVWA_NON_FOOD),
-            ("food contact material", _NVWA_FOOD_CONTACT),
-            ("feed", _NVWA_FEED),
-            ("food", _NVWA_FOOD),
-        )
-        if pattern.search(text)
-    }
+    hits = {kind for kind, pattern in NVWA_PATTERNS if pattern.search(text)}
     if hits == {"food"}:
         return "food"
     if hits == {"non-food"}:

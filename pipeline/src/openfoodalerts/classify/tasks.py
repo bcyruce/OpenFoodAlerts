@@ -77,14 +77,15 @@ def nfc_snapshot(snapshot: Mapping[str, str]) -> dict[str, str]:
     return {key: unicodedata.normalize("NFC", value) for key, value in snapshot.items()}
 
 
-def abstain(reason: str, output: object) -> Verdict:
+def abstain(reason: str, output: object, *, key: str = "category") -> Verdict:
+    """An abstained Verdict; `key` is the task's value key (T1 and T2: category)."""
     return Verdict(
         category=None,
         confidence=None,
         abstained=True,
         evidence_span=None,
         abstain_reason=reason,
-        value={"category": None, "abstain_reason": reason, "model_output": output},
+        value={key: None, "abstain_reason": reason, "model_output": output},
     )
 
 
@@ -159,7 +160,22 @@ class HazardCategoryTask:
         )
 
 
+# `ofa classify --task all` runs the tasks in this order (spec §4.2): T5 first, because a
+# Notification it finds non-food gets no other task; then T1-T4. T6 follows when it exists.
+RUN_ORDER: tuple[str, ...] = (
+    "product_type",
+    "hazard_category",
+    "product_category",
+    "hazard",
+    "origin_country",
+)
+
+
 def make_task(name: str, taxonomy: Taxonomy) -> Task:
     if name == HazardCategoryTask.name:
         return HazardCategoryTask(taxonomy)
+    from openfoodalerts.classify.tasks_t2_t5 import T2_T5_TASKS  # imports this module
+
+    if name in T2_T5_TASKS:
+        return T2_T5_TASKS[name]()
     raise ValueError(f"unknown or not yet implemented task {name!r}")

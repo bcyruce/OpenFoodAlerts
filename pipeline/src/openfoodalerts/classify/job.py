@@ -1,10 +1,12 @@
 """`ofa classify`: AI classifications of Notifications into ai_classifications (spec §6).
 
-Per task (T1 hazard_category for now):
+Per task (T1-T5; `--task all` runs them in `tasks.RUN_ORDER`, T5 first):
 
 1. Candidates: Notifications of the task's Sources (NVWA, openFDA) whose Product type is
    food, feed or food contact material (spec §4.2: non-food and `pending` are never
-   classified), newest first.
+   classified), newest first. T5 product_type instead takes those the Product type rules
+   could not decide (`pending`) and those it decided before (`ai`, so a changed text or a
+   new prompt is classified again); what it finds non-food leaves the other tasks' scope.
 2. Each candidate's model input is built (`Task.build_input`, the eval snapshot) and its
    `input_hash` computed for the current model, prompt version and taxonomy version.
    A candidate is done when a row with that (task, model, prompt_version, input_hash)
@@ -17,9 +19,8 @@ Per task (T1 hazard_category for now):
    the ai_classifications row (all versions, value, confidence, evidence_span), then the
    Notification's derived AI rows of the task are rewritten from its current
    classification's effective value (`effective.rederive`, shared with the review actions
-   of ticket 20). T1: the AI primary hazard (provenance ai, is_primary true, hazard_name
-   NULL, hazard_category_id, the classification's id); see `effective.primary_category`
-   for merged labels and `other`.
+   of ticket 20): T1 the AI primary hazard, T2 the Product category, T3 the Hazard name,
+   T4 the origin country, T5 the Product type (see `effective.WRITERS`).
 
 Failures: `ItemFailed` (one request failed after the SDK's retries) skips the Notification
 (nothing stored, next run retries it); after MAX_CONSECUTIVE_FAILURES in a row the run
@@ -46,9 +47,12 @@ MAX_CONSECUTIVE_FAILURES = 3
 _CANDIDATES = """
 SELECT n.id, s.code AS source, n.title, n.summary_source, n.product_text, n.hazard_text
 FROM notifications n JOIN sources s ON s.id = n.source_id
-WHERE s.code = ANY(%(sources)s) AND n.product_type = ANY(%(product_types)s)
+WHERE s.code = ANY(%(sources)s) AND {scope}
 ORDER BY n.published_at DESC NULLS LAST, n.id DESC
 """
+# T5 runs where the rules could not decide, and again where it decided before.
+_T5_SCOPE = "n.product_type_provenance IN ('pending', 'ai')"
+_SHOWN_SCOPE = "n.product_type = ANY(%(product_types)s)"
 
 _DONE = """
 SELECT notification_id, input_hash FROM ai_classifications
@@ -89,8 +93,9 @@ class ClassifyRun:
     classified: int = 0
     abstained: int = 0
     failed: int = 0
-    # notification_hazards rows written; non-abstained categories without a category id
-    hazards_written: int = 0
+    # derived rows written (`effective.rederive`: hazards, Product categories, origin
+    # countries, Product types); answers without a row to write (T1 `other`)
+    written: int = 0
     unmapped: int = 0
     usage: Usage = field(default_factory=Usage)
     errors: list[str] = field(default_factory=list)
@@ -139,16 +144,17 @@ def _store(
     if v.abstained:
         run.abstained += 1
     rederive(conn, task, item.notification_id, derived)
-    run.hazards_written, run.unmapped = derived.written, derived.unmapped
+    run.written, run.unmapped = derived.written, derived.unmapped
     conn.commit()
 
 
 def _copy(stored: dict[str, Any], task: Task, prompt: Prompt, model: str) -> Classification:
     value = stored["value"]
+    key = getattr(task, "value_key", "category")  # T1: category
     return Classification(
         task=task.name,
         verdict=Verdict(
-            category=None if stored["abstained"] else value.get("category"),
+            category=None if stored["abstained"] else value.get(key),
             confidence=stored["confidence"],
             abstained=stored["abstained"],
             evidence_span=stored["evidence_span"],
@@ -176,8 +182,10 @@ def classify_notifications(
 ) -> ClassifyRun:
     run = ClassifyRun(task.name, model, prompt.version, dry_run=dry_run)
     wanted = [s for s in task.sources if sources is None or s in sources]
+    scope = _T5_SCOPE if task.name == "product_type" else _SHOWN_SCOPE
     rows = conn.execute(
-        _CANDIDATES, {"sources": wanted, "product_types": list(SHOWN_PRODUCT_TYPES)}
+        _CANDIDATES.format(scope=scope),
+        {"sources": wanted, "product_types": list(SHOWN_PRODUCT_TYPES)},
     ).fetchall()
     run.candidates = len(rows)
     done = {

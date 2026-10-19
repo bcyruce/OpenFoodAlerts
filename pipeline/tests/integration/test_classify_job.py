@@ -112,7 +112,7 @@ def test_a_result_is_stored_with_its_provenance_and_as_the_primary_ai_hazard(
     db.commit()
     model = Counting()
     result = run(db, model)
-    assert (result.classified, result.hazards_written, model.calls) == (1, 1, 1)
+    assert (result.classified, result.written, model.calls) == (1, 1, 1)
     [row] = rows(db, "SELECT * FROM ai_classifications")
     snapshot = {"product_description": "Cookies", "reason_for_recall": "Undeclared peanut."}
     prompt = load_prompt(TASK.name)
@@ -210,7 +210,7 @@ def test_abstains_are_stored_for_review_without_a_hazard(db: Connection) -> None
     vague = fda(db, "F-1", "Recalled as a precaution.")
     db.commit()
     result = run(db)
-    assert (result.classified, result.abstained, result.hazards_written) == (1, 1, 0)
+    assert (result.classified, result.abstained, result.written) == (1, 1, 0)
     [row] = rows(db, "SELECT * FROM ai_classifications")
     assert row["notification_id"] == vague and row["abstained"] is True
     assert row["confidence"] is None and row["evidence_span"] is None
@@ -242,7 +242,7 @@ def test_merged_labels_map_to_one_category_and_other_to_none(db: Connection) -> 
     other = fda(db, "F-2", "Product not adequately pasteurized")
     db.commit()
     result = run(db)
-    assert (result.classified, result.hazards_written, result.unmapped) == (2, 1, 1)
+    assert (result.classified, result.written, result.unmapped) == (2, 1, 1)
     [hazard] = rows(
         db,
         "SELECT h.notification_id, c.rasff_id FROM notification_hazards h"
