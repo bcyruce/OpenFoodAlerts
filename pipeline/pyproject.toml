@@ -12,6 +12,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "selectolax>=0.3.21",
     "scikit-learn>=1.5",
+    "anthropic>=2.3.0",
 ]
 
 [project.scripts]

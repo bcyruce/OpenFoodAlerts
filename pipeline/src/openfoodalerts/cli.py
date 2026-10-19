@@ -749,14 +749,17 @@ def eval_refresh_cmd(
     split: SplitOption = "dev",
     eval_dir: EvalDirOption = None,
     model: Annotated[
-        list[str] | None, typer.Option(help="Only these classifiers (default: all).")
+        list[str] | None,
+        typer.Option(help="Classifier(s) to run (default: claude-haiku-5-5; fake: no API)."),
     ] = None,
 ) -> None:
-    """Call the configured classifiers on one split and refresh eval/cache/ (paid API).
+    """Call the classifiers on one split and refresh eval/cache/ (paid API).
 
-    `make eval` afterwards scores the refreshed cache. Exit code 2: no classifier is
-    configured yet (ticket 16) or an unknown --model.
+    `make eval` afterwards scores the refreshed cache. Exit code 2: the model cannot run
+    (ANTHROPIC_API_KEY not set, unknown --model) or no classifier is configured.
     """
+    from openfoodalerts.classify.model import ClassifierUnavailable
+    from openfoodalerts.classify.registry import DEFAULT_MODEL
     from openfoodalerts.eval.files import read_items
     from openfoodalerts.eval.job import default_eval_dir
     from openfoodalerts.eval.refresh import NoClassifierConfigured, refresh_cache
@@ -768,13 +771,111 @@ def eval_refresh_cmd(
             read_items(directory / "items.csv"),
             split=split,
             cache_dir=directory / "cache",
-            models=model,
+            models=model or [DEFAULT_MODEL],
         )
-    except (NoClassifierConfigured, KeyError) as exc:
+    except (NoClassifierConfigured, KeyError, ClassifierUnavailable) as exc:
         typer.echo(f"error: {exc.args[0]}", err=True)
         raise typer.Exit(2) from exc
     for path, n in written.items():
-        typer.echo(f"{path}: {n} predictions")
+        typer.echo(f"{path}: {n} outputs")
+
+
+@app.command("classify")
+def classify_cmd(
+    task: Annotated[str, typer.Option(help="Task (spec §6.1); only hazard_category so far.")] = (
+        "hazard_category"
+    ),
+    source: Annotated[
+        list[str] | None, typer.Option(help="Only these Sources (nvwa, openfda; default both).")
+    ] = None,
+    limit: Annotated[
+        int | None, typer.Option(min=1, help="At most this many Notifications get a result.")
+    ] = None,
+    model: Annotated[
+        str, typer.Option(help="claude-haiku-5-5 (default) or fake (keyword rules, no API).")
+    ] = "claude-haiku-5-5",
+    prompt_version: Annotated[
+        str | None, typer.Option(help="Prompt file prompts/{task}/vN.md (default: newest).")
+    ] = None,
+    taxonomy: TaxonomyOption = None,
+    dry_run: Annotated[
+        bool, typer.Option("--dry-run", help="Count what would be classified; call nothing.")
+    ] = False,
+) -> None:
+    """AI classifications of NVWA and openFDA Notifications (food, feed, food contact
+    material) into ai_classifications; T1 also writes the AI primary hazard.
+
+    Idempotent: Notifications that already have a result for this model, prompt version
+    and input are skipped, and an input that was classified before is copied, not sent
+    again. Exit code 2: the model cannot run (ANTHROPIC_API_KEY not set) or bad options;
+    1: the run stopped after repeated failed requests.
+    """
+    from openfoodalerts.classify.job import classify_notifications
+    from openfoodalerts.classify.model import ClassifierUnavailable, ItemFailed
+    from openfoodalerts.classify.prompts import PromptError, load_prompt
+    from openfoodalerts.classify.registry import MODELS, make_classifier
+    from openfoodalerts.classify.tasks import make_task
+    from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
+    from openfoodalerts.jobs import run_job
+
+    labels = load_taxonomy(taxonomy or default_taxonomy_path())
+    try:
+        chosen = make_task(task, labels)
+        prompt = load_prompt(task, prompt_version)
+    except (ValueError, PromptError) as exc:
+        typer.echo(f"error: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    unknown = [s for s in source or () if s not in chosen.sources]
+    if unknown or model not in MODELS:
+        typer.echo(
+            f"error: --source must be one of {', '.join(chosen.sources)} and --model one of"
+            f" {', '.join(MODELS)}",
+            err=True,
+        )
+        raise typer.Exit(2)
+    with connect() as conn:
+        try:
+            with run_job(conn, "classify", None) as stats:
+                try:
+                    result = classify_notifications(
+                        conn,
+                        task=chosen,
+                        prompt=prompt,
+                        model=model,
+                        make_classifier=lambda: make_classifier(model, labels),
+                        sources=source,
+                        limit=limit,
+                        dry_run=dry_run,
+                    )
+                finally:
+                    stats.extra = {"task": task, "model": model, "prompt_version": prompt.version}
+                stats.new = 0 if dry_run else result.classified + result.reused
+                stats.unchanged = result.done
+                stats.errors.extend(result.errors)
+                # model requests go in the job log's own `requests` field
+                stats.requests = result.usage.requests
+                stats.extra |= {k: v for k, v in result.as_log().items() if k != "requests"}
+        except ClassifierUnavailable as exc:
+            typer.echo(f"error: {exc}", err=True)
+            raise typer.Exit(2) from exc
+        except ItemFailed as exc:
+            typer.echo(f"error: stopped after repeated failures: {exc}", err=True)
+            raise typer.Exit(1) from exc
+    verb = "would call" if dry_run else "called"
+    typer.echo(
+        f"{task} {model} {prompt.version}: {result.candidates} in scope, {result.done} done;"
+        f" {verb} the model for {result.to_call if dry_run else result.classified},"
+        f" copied {result.reused} (same input), abstained {result.abstained},"
+        f" failed {result.failed}; AI hazards written {result.hazards_written}"
+        f" (no category: {result.unmapped})"
+    )
+    u = result.usage
+    if u.requests:
+        typer.echo(
+            f"usage: {u.requests} requests, input {u.input_tokens}, output {u.output_tokens},"
+            f" cache write {u.cache_creation_input_tokens}, cache read {u.cache_read_input_tokens}"
+            " tokens"
+        )
 
 
 @app.command("eval-example")

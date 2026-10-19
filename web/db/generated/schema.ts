@@ -7,6 +7,42 @@ const tsvector = customType<{ data: string }>({ dataType: () => "tsvector" });
 
 
 
+export const aiClassifications = pgTable("ai_classifications", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "ai_classifications_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	notificationId: bigint("notification_id", { mode: "number" }).notNull(),
+	task: text().notNull(),
+	value: jsonb().notNull(),
+	confidence: text(),
+	abstained: boolean().notNull(),
+	evidenceSpan: text("evidence_span"),
+	model: text().notNull(),
+	promptVersion: text("prompt_version").notNull(),
+	schemaVersion: text("schema_version").notNull(),
+	taxonomyVersion: text("taxonomy_version"),
+	inputHash: text("input_hash").notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	reviewStatus: text("review_status").default('unreviewed').notNull(),
+	reviewedValue: jsonb("reviewed_value"),
+	reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("ai_classifications_current_idx").using("btree", table.notificationId.asc().nullsLast().op("int8_ops"), table.task.asc().nullsLast().op("int8_ops"), table.createdAt.desc().nullsFirst().op("timestamptz_ops")),
+	index("ai_classifications_hash_idx").using("btree", table.task.asc().nullsLast().op("text_ops"), table.model.asc().nullsLast().op("text_ops"), table.promptVersion.asc().nullsLast().op("text_ops"), table.inputHash.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.notificationId],
+			foreignColumns: [notifications.id],
+			name: "ai_classifications_notification_id_fkey"
+		}).onDelete("cascade"),
+	unique("ai_classifications_notification_id_task_model_prompt_versio_key").on(table.notificationId, table.task, table.model, table.promptVersion, table.inputHash),
+	check("ai_classifications_input_hash_check", sql`input_hash ~ '^[0-9a-f]{64}$'::text`),
+	check("ai_classifications_task_check", sql`task ~ '^[a-z][a-z0-9_]*$'::text`),
+	check("ai_classifications_confidence_check", sql`confidence = ANY (ARRAY['high'::text, 'medium'::text, 'low'::text])`),
+	check("ai_classifications_review_status_check", sql`review_status = ANY (ARRAY['unreviewed'::text, 'approved'::text, 'corrected'::text])`),
+	check("ai_classifications_check", sql`abstained OR (confidence IS NOT NULL)`),
+	check("ai_classifications_check1", sql`(review_status <> 'corrected'::text) OR (reviewed_value IS NOT NULL)`),
+]);
+
 export const countries = pgTable("countries", {
 	iso2: text().primaryKey().notNull(),
 	rasffId: integer("rasff_id").notNull(),
@@ -175,9 +211,10 @@ export const notificationCountries = pgTable("notification_countries", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	aiClassificationId: bigint("ai_classification_id", { mode: "number" }),
 }, (table) => [
+	index("notification_countries_ai_classification_idx").using("btree", table.aiClassificationId.asc().nullsLast().op("int8_ops")).where(sql`(ai_classification_id IS NOT NULL)`),
 	index("notification_countries_country_idx").using("btree", table.countryIso2.asc().nullsLast().op("text_ops"), table.role.asc().nullsLast().op("text_ops")),
 	index("notification_countries_notification_idx").using("btree", table.notificationId.asc().nullsLast().op("int8_ops")),
-	uniqueIndex("notification_countries_official_uq").using("btree", table.notificationId.asc().nullsLast().op("text_ops"), table.countryIso2.asc().nullsLast().op("text_ops"), table.role.asc().nullsLast().op("text_ops")).where(sql`(provenance = 'official'::text)`),
+	uniqueIndex("notification_countries_official_uq").using("btree", table.notificationId.asc().nullsLast().op("text_ops"), table.countryIso2.asc().nullsLast().op("int8_ops"), table.role.asc().nullsLast().op("text_ops")).where(sql`(provenance = 'official'::text)`),
 	foreignKey({
 			columns: [table.notificationId],
 			foreignColumns: [notifications.id],
@@ -188,6 +225,11 @@ export const notificationCountries = pgTable("notification_countries", {
 			foreignColumns: [countries.iso2],
 			name: "notification_countries_country_iso2_fkey"
 		}),
+	foreignKey({
+			columns: [table.aiClassificationId],
+			foreignColumns: [aiClassifications.id],
+			name: "notification_countries_ai_classification_fk"
+		}).onDelete("cascade"),
 	check("notification_countries_role_check", sql`role = ANY (ARRAY['origin'::text, 'notifying'::text, 'distribution'::text, 'operator'::text, 'recalling_firm'::text])`),
 	check("notification_countries_provenance_check", sql`provenance = ANY (ARRAY['official'::text, 'ai'::text])`),
 ]);
@@ -209,6 +251,7 @@ export const notificationHazards = pgTable("notification_hazards", {
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	aiClassificationId: bigint("ai_classification_id", { mode: "number" }),
 }, (table) => [
+	index("notification_hazards_ai_classification_idx").using("btree", table.aiClassificationId.asc().nullsLast().op("int8_ops")).where(sql`(ai_classification_id IS NOT NULL)`),
 	index("notification_hazards_category_idx").using("btree", table.hazardCategoryId.asc().nullsLast().op("int4_ops")),
 	index("notification_hazards_notification_idx").using("btree", table.notificationId.asc().nullsLast().op("int8_ops")),
 	foreignKey({
@@ -221,6 +264,11 @@ export const notificationHazards = pgTable("notification_hazards", {
 			foreignColumns: [hazardCategories.id],
 			name: "notification_hazards_hazard_category_id_fkey"
 		}),
+	foreignKey({
+			columns: [table.aiClassificationId],
+			foreignColumns: [aiClassifications.id],
+			name: "notification_hazards_ai_classification_fk"
+		}).onDelete("cascade"),
 	check("notification_hazards_provenance_check", sql`provenance = ANY (ARRAY['official'::text, 'ai'::text])`),
 ]);
 
@@ -235,9 +283,10 @@ export const notificationProductCategories = pgTable("notification_product_categ
 	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
 	aiClassificationId: bigint("ai_classification_id", { mode: "number" }),
 }, (table) => [
+	index("notification_product_categories_ai_classification_idx").using("btree", table.aiClassificationId.asc().nullsLast().op("int8_ops")).where(sql`(ai_classification_id IS NOT NULL)`),
 	index("notification_product_categories_category_idx").using("btree", table.productCategoryId.asc().nullsLast().op("int4_ops")),
 	index("notification_product_categories_notification_idx").using("btree", table.notificationId.asc().nullsLast().op("int8_ops")),
-	uniqueIndex("notification_product_categories_official_uq").using("btree", table.notificationId.asc().nullsLast().op("int4_ops"), table.productCategoryId.asc().nullsLast().op("int4_ops")).where(sql`(provenance = 'official'::text)`),
+	uniqueIndex("notification_product_categories_official_uq").using("btree", table.notificationId.asc().nullsLast().op("int8_ops"), table.productCategoryId.asc().nullsLast().op("int4_ops")).where(sql`(provenance = 'official'::text)`),
 	foreignKey({
 			columns: [table.notificationId],
 			foreignColumns: [notifications.id],
@@ -248,6 +297,11 @@ export const notificationProductCategories = pgTable("notification_product_categ
 			foreignColumns: [productCategories.id],
 			name: "notification_product_categories_product_category_id_fkey"
 		}),
+	foreignKey({
+			columns: [table.aiClassificationId],
+			foreignColumns: [aiClassifications.id],
+			name: "notification_product_categories_ai_classification_fk"
+		}).onDelete("cascade"),
 	check("notification_product_categories_provenance_check", sql`provenance = ANY (ARRAY['official'::text, 'ai'::text])`),
 ]);
 
