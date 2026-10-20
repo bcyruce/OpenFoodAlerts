@@ -88,9 +88,7 @@ _DIGITS = re.compile(r"[0-9]+")
 # a URL, "www." or an e-mail address; and a bare domain name, which is allowed only when
 # the source has it (a brand such as "Nuts.com")
 _LINK = re.compile(r"https?://|\bwww\.|[\w.+-]+@[\w-]+\.\w", re.IGNORECASE)
-_DOMAIN = re.compile(
-    r"\b[\w-]+\.(?:nl|com|org|net|gov|eu|be|de|fr|uk|us|info|io)\b", re.IGNORECASE
-)
+_DOMAIN = re.compile(r"\b[\w-]+\.(?:nl|com|org|net|gov|eu|be|de|fr|uk|us|info|io)\b", re.IGNORECASE)
 
 # CJK Unified Ideographs (+ extension A and compatibility ideographs)
 _CJK = re.compile(r"[㐀-䶿一-鿿豈-﫿]")
@@ -206,7 +204,10 @@ class SummaryTask:
         if not isinstance(output, Mapping):
             return _abstain(self.locale, failure or INVALID_OUTPUT, output)
         out = dict(output)
-        flag, summary, confidence = out.get("abstain"), out.get("summary"), out.get("confidence")
+        # A reviewer's correction (classify.review.check_correction) comes without
+        # `abstain` (and with an evidence_span, which T6 ignores): a summary is not one.
+        flag = out.get("abstain", False)
+        summary, confidence = out.get("summary"), out.get("confidence")
         if (
             not isinstance(flag, bool)
             or not isinstance(summary, str)

@@ -96,6 +96,12 @@ eval-refresh: ## Call MODEL (default claude-haiku-5-5) on SPLIT and refresh eval
 eval-example: ## Regenerate the synthetic eval/results/example.json (for the /evaluation page)
 	$(UV) run ofa eval-example
 
+factcheck-sample: ## Sample 50 cached T6 summaries of MODEL on SPLIT into eval/factcheck/t6.csv (offline)
+	$(UV) run ofa factcheck-sample --split $(SPLIT) --model $(MODEL)
+
+factcheck-app: ## Local Streamlit page to judge the sampled T6 summaries (writes eval/factcheck/t6.csv)
+	$(UV) run --group eval streamlit run ../eval/factcheck_app.py
+
 # OFA_EVAL_EXAMPLE=1 adds /en/evaluation/example (the synthetic example.json) to this test
 # build only; deployments never set it, so there the route is a 404.
 smoke: web-fixtures ## Playwright smoke tests: load fixtures, build, start on SMOKE_PORT

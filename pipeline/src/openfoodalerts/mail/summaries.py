@@ -23,16 +23,14 @@ MAX_CHARS = 200
 
 # T6 rows (ticket 18, `classify.summary`): one task per language, task 'summary_{locale}',
 # value {"locale": "nl", "summary": "..."} (summary null when abstained). The newest row
-# per (Notification, task) is the current one: when it is an abstain (e.g. the source text
-# changed and the new summary failed a check) there is no summary, rather than an older
-# summary of an older text. A reviewer's reviewed_value (same shape) wins, also on an
-# abstained row.
+# per (Notification, task) is the current one, and its effective value counts
+# (`ai_effective_value`, ticket 20, = classify.effective.effective_value): a reviewer's
+# correction wins, also on an abstained row; a model or reviewer abstain means no summary
+# (rather than an older summary of an older text).
 _T6_SQL = """
-SELECT notification_id,
-    CASE WHEN reviewed_value IS NOT NULL THEN reviewed_value ->> 'summary'
-         WHEN NOT abstained THEN value ->> 'summary' END AS summary
+SELECT notification_id, ai_effective_value(current) ->> 'summary' AS summary
 FROM (
-    SELECT DISTINCT ON (notification_id) notification_id, value, abstained, reviewed_value
+    SELECT DISTINCT ON (notification_id) *
     FROM ai_classifications
     WHERE task = %s AND notification_id = ANY(%s)
     ORDER BY notification_id, created_at DESC, id DESC

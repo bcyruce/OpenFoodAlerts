@@ -4,6 +4,7 @@ import json
 
 import pytest
 
+from openfoodalerts.classify.review import ReviewError, check_correction, value_fields
 from openfoodalerts.classify.summary import SUMMARY_TASKS, SummaryTask, word_count
 from openfoodalerts.classify.tasks import Verdict, make_task
 from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
@@ -248,6 +249,18 @@ def test_the_output_schema_has_no_unsupported_keywords() -> None:
     assert schema["additionalProperties"] is False
     # structured outputs do not take string length limits: the code checks the length
     assert "maxLength" not in json.dumps(schema)
+
+
+def test_a_reviewers_summary_is_checked_like_the_models() -> None:
+    task = SummaryTask("nl")
+    good = "Melkunie roept Protein Pudding terug omdat er glas in kan zitten."
+    assert check_correction(task, {"summary": good}, NVWA) == {"locale": "nl", "summary": good}
+    with pytest.raises(ReviewError, match="too_long"):
+        check_correction(task, {"summary": " ".join(["glas"] * 41)}, NVWA)
+    abstain = check_correction(task, None, NVWA)
+    assert abstain["summary"] is None and abstain["abstain_reason"] == "reviewer_abstained"
+    # the reviewer writes only the summary (abstaining is the review page's own action)
+    assert list(value_fields(task)) == ["summary"]
 
 
 def test_forty_words_is_still_a_summary() -> None:

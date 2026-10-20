@@ -116,6 +116,20 @@ def test_a_current_abstain_hides_an_older_summary_unless_a_reviewer_wrote_one(
     assert ai_summaries(db, [changed, reviewed], "zh") == {reviewed: "人工摘要。"}
 
 
+def test_a_reviewer_abstain_hides_the_models_summary(db: Connection) -> None:
+    from openfoodalerts.classify.review import correct
+    from openfoodalerts.classify.summary import SummaryTask
+
+    nid = add_notification(db, "nvwa", "/a", first_seen_at=T, summary_source="Bevat glas.")
+    add_t6(db, nid, "nl", "Bevat glas.", None, "2026-10-24T08:00Z")
+    db.commit()
+    [row] = db.execute("SELECT id FROM ai_classifications").fetchall()
+    correct(db, SummaryTask("nl"), row["id"], None, now=T)
+    assert ai_summaries(db, [nid], "nl") == {}
+    correct(db, SummaryTask("nl"), row["id"], {"summary": "Het product bevat glas."}, now=T)
+    assert ai_summaries(db, [nid], "nl") == {nid: "Het product bevat glas."}
+
+
 def test_ofa_mailer_reads_summaries_and_a_missing_grant_means_none(db: Connection) -> None:
     nid = add_notification(db, "nvwa", "/a", first_seen_at=T)
     add_t6(db, nid, "nl", "Nieuw.", None, "2026-10-24T09:00Z")

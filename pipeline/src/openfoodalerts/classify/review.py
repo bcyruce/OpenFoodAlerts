@@ -42,7 +42,8 @@ from openfoodalerts.db.connection import Connection
 
 # abstain_reason of a reviewer's "the text does not say"
 REVIEWER_ABSTAINED = "reviewer_abstained"
-_MODEL_ONLY = ("evidence_span", "confidence")
+# fields only the model fills in (T6's `abstain` flag: a reviewer abstains with None)
+_MODEL_ONLY = ("evidence_span", "confidence", "abstain")
 
 _NOTIFICATION = """
 SELECT s.code AS source, n.title, n.summary_source, n.product_text, n.hazard_text
