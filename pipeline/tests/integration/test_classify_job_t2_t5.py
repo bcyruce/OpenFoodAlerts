@@ -111,7 +111,17 @@ def test_non_food_gets_no_other_task_and_t5s_food_does(db: Connection) -> None:
     ).fetchall()
     assert {r["notification_id"]: r["tasks"] for r in tasks} == {
         toy: ["product_type"],
-        vague: ["hazard", "hazard_category", "origin_country", "product_category", "product_type"],
+        # T1-T4 and, for an NVWA food warning, the T6 summaries in en, nl and zh
+        vague: [
+            "hazard",
+            "hazard_category",
+            "origin_country",
+            "product_category",
+            "product_type",
+            "summary_en",
+            "summary_nl",
+            "summary_zh",
+        ],
     }
     [hazard] = db.execute(
         "SELECT hazard_name FROM notification_hazards WHERE hazard_name IS NOT NULL"

@@ -161,13 +161,16 @@ class HazardCategoryTask:
 
 
 # `ofa classify --task all` runs the tasks in this order (spec §4.2): T5 first, because a
-# Notification it finds non-food gets no other task; then T1-T4. T6 follows when it exists.
+# Notification it finds non-food gets no other task; then T1-T4; then the T6 summaries.
 RUN_ORDER: tuple[str, ...] = (
     "product_type",
     "hazard_category",
     "product_category",
     "hazard",
     "origin_country",
+    "summary_en",
+    "summary_nl",
+    "summary_zh",
 )
 
 
@@ -178,4 +181,9 @@ def make_task(name: str, taxonomy: Taxonomy) -> Task:
 
     if name in T2_T5_TASKS:
         return T2_T5_TASKS[name]()
+
+    from openfoodalerts.classify.summary import SUMMARY_TASKS, SummaryTask  # T6, ticket 18
+
+    if name in SUMMARY_TASKS:
+        return SummaryTask(name.removeprefix("summary_"))
     raise ValueError(f"unknown or not yet implemented task {name!r}")

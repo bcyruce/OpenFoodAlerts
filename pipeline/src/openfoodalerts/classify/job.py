@@ -1,6 +1,6 @@
 """`ofa classify`: AI classifications of Notifications into ai_classifications (spec §6).
 
-Per task (T1-T5; `--task all` runs them in `tasks.RUN_ORDER`, T5 first):
+Per task (T1-T6; `--task all` runs them in `tasks.RUN_ORDER`, T5 first):
 
 1. Candidates: Notifications of the task's Sources (NVWA, openFDA) whose Product type is
    food, feed or food contact material (spec §4.2: non-food and `pending` are never

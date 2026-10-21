@@ -17,6 +17,7 @@ from openfoodalerts.classify.model import Classifier, Usage
 from openfoodalerts.classify.prompts import Prompt, load_prompt
 from openfoodalerts.classify.registry import MODELS, make_classifier
 from openfoodalerts.classify.run import Classification, classify, hash_for
+from openfoodalerts.classify.summary import summary_tasks
 from openfoodalerts.classify.tasks import HazardCategoryTask, Task
 from openfoodalerts.classify.tasks_t2_t5 import t2_t5_tasks
 from openfoodalerts.eval.cache import ModelOutput
@@ -71,7 +72,9 @@ def refresh_classifier(model: str) -> Callable[[Sequence[ItemRow]], Iterable[Mod
         created_at = datetime.now(UTC).isoformat(timespec="seconds")
         usage = Usage()
         outputs: list[ModelOutput] = []
-        for task in (HazardCategoryTask(taxonomy), *t2_t5_tasks()):
+        # T6: the summaries are cached for the human fact-check (eval.factcheck), not scored
+        tasks: tuple[Task, ...] = (HazardCategoryTask(taxonomy), *t2_t5_tasks(), *summary_tasks())
+        for task in tasks:
             prompt = load_prompt(task.name)
             outputs += eval_outputs(
                 items,

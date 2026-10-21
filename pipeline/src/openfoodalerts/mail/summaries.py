@@ -2,35 +2,39 @@
 
 - RASFF: its `subject`, which is already the item's title (the parser stores subject as
   `title`), so no separate line is shown. T6 never runs for RASFF (spec §6.1).
-- NVWA and FDA: the T6 AI summary in the Subscription's language, marked AI.
-- Until T6 exists (ticket 18): a line of source text, *not* marked AI, labelled as source
-  text: NVWA `summary_source` (the page's intro, Dutch), FDA `hazard_text` (the reason
-  for recall, English).
+- NVWA and FDA: the T6 AI summary in the Subscription's language (ticket 18), marked AI.
+- Without one (not summarized yet, abstained, no grant): a line of source text, *not*
+  marked AI, labelled as source text: NVWA `summary_source` (the page's intro, Dutch),
+  FDA `hazard_text` (the reason for recall, English).
 
-`ai_summaries` is the single seam ticket 18 fills in; everything else (choosing it over
-the fallback, the AI label in the templates) is already wired.
+`ai_summaries` reads the T6 rows; choosing it over the fallback and the AI label are in
+the templates.
 """
 
 import re
 from collections.abc import Sequence
 
+from openfoodalerts.classify.summary import summary_task_name
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.mail.templates import Summary
 
 MAX_CHARS = 200
 
 
-# Proposed T6 row shape (spec §4.1 ai_classifications); ticket 18 may change it, and only
-# this query has to follow: task 't6_summary', value {"locale": "nl", "summary": "..."},
-# a reviewer's correction in reviewed_value (same shape) wins, abstained rows are skipped,
-# the newest row per (notification, locale) counts.
+# T6 rows (ticket 18, `classify.summary`): one task per language, task 'summary_{locale}',
+# value {"locale": "nl", "summary": "..."} (summary null when abstained). The newest row
+# per (Notification, task) is the current one, and its effective value counts
+# (`ai_effective_value`, ticket 20, = classify.effective.effective_value): a reviewer's
+# correction wins, also on an abstained row; a model or reviewer abstain means no summary
+# (rather than an older summary of an older text).
 _T6_SQL = """
-SELECT DISTINCT ON (notification_id) notification_id,
-    COALESCE(reviewed_value, value) ->> 'summary' AS summary
-FROM ai_classifications
-WHERE task = 't6_summary' AND NOT abstained
-  AND notification_id = ANY(%s) AND COALESCE(reviewed_value, value) ->> 'locale' = %s
-ORDER BY notification_id, created_at DESC
+SELECT notification_id, ai_effective_value(current) ->> 'summary' AS summary
+FROM (
+    SELECT DISTINCT ON (notification_id) *
+    FROM ai_classifications
+    WHERE task = %s AND notification_id = ANY(%s)
+    ORDER BY notification_id, created_at DESC, id DESC
+) AS current
 """
 
 
@@ -49,7 +53,7 @@ def ai_summaries(conn: Connection, notification_ids: Sequence[int], locale: str)
     ).fetchone()
     if row is None or not row["ok"]:
         return {}
-    rows = conn.execute(_T6_SQL, (list(notification_ids), locale)).fetchall()
+    rows = conn.execute(_T6_SQL, (summary_task_name(locale), list(notification_ids))).fetchall()
     return {r["notification_id"]: r["summary"] for r in rows if r["summary"]}
 
 

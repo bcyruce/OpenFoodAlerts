@@ -53,7 +53,7 @@ def test_the_fake_model_classifies_and_logs_the_run(db: Connection) -> None:
     assert finished["requests"] == 1 and "cache_read_input_tokens" in finished
 
 
-def test_task_all_runs_t5_first_then_t1_to_t4(db: Connection) -> None:
+def test_task_all_runs_t5_first_then_t1_to_t4_then_t6(db: Connection) -> None:
     add_notification(
         db, "nvwa", "/a", first_seen_at=T, product_type=None, summary_source="Bevat Listeria."
     )
@@ -62,14 +62,15 @@ def test_task_all_runs_t5_first_then_t1_to_t4(db: Connection) -> None:
     assert result.exit_code == 0, result.output
     tasks = [line.split()[0] for line in result.output.splitlines() if " fake v1: " in line]
     assert tasks == ["product_type", "hazard_category", "product_category", "hazard",
-                     "origin_country"]  # fmt: skip
+                     "origin_country", "summary_en", "summary_nl", "summary_zh"]  # fmt: skip
     log = [json.loads(line) for line in result.stderr.splitlines() if line.startswith("{")]
     finished = [e["task"] for e in log if e["event"] == "job_finished"]
     assert finished == tasks
     assert db.execute(
         "SELECT product_type, product_type_provenance FROM notifications"
     ).fetchone() == {"product_type": "food", "product_type_provenance": "ai"}
-    assert db.execute("SELECT count(*) AS n FROM ai_classifications").fetchone() == {"n": 5}
+    # T5, T1-T4 and the three T6 summaries of the one NVWA food warning
+    assert db.execute("SELECT count(*) AS n FROM ai_classifications").fetchone() == {"n": 8}
     # one prompt version cannot name five prompts
     assert (
         runner.invoke(app, ["classify", "--task", "all", "--prompt-version", "v1"]).exit_code == 2

@@ -3,7 +3,7 @@
 The hand-labelled evaluation set of OpenFoodAlerts (spec §7), the RASFF silver set and the
 local labelling page. **Data in this directory (`*.csv`, `sampling.json`) is licensed
 CC BY 4.0**; the source texts inside it keep their Sources' terms (RASFF: CC BY 4.0, NVWA:
-CC0 text, openFDA: US public domain). Code (`label_app.py`) is Apache-2.0 like the repo.
+CC0 text, openFDA: US public domain). Code (`label_app.py`, `factcheck_app.py`, `review_app.py`) is Apache-2.0 like the repo.
 
 > Status (2026-10-25): sampled on the **draft** taxonomy (`db/seed/taxonomy/v1-draft.csv`)
 > and on a local database without the full RASFF backfill. Re-run after ticket 11 (freeze)
@@ -21,6 +21,7 @@ CC0 text, openFDA: US public domain). Code (`label_app.py`) is Apache-2.0 like t
 | `results/latest.json` | Metrics of the latest `make eval` (both splits) | `make eval` |
 | `results/example.json` | **Synthetic** example report for building `/evaluation` | `make eval-example` |
 | `results/badge.json` | shields.io endpoint for the README badge (T1 macro-F1, test) | `make eval` / `ofa eval-badge` |
+| `factcheck/t6.csv` | Sampled T6 summaries and the owner's factual-consistency judgments | `make factcheck-sample` + `factcheck_app.py` |
 
 All CSVs: UTF-8 without BOM, LF, comma-separated, minimal quoting, header row, fixed column
 order. Re-running a command on the same database gives byte-identical files (no
@@ -190,8 +191,8 @@ sorted by (task, item_id), UTF-8, LF. Keys, in this order:
 | Key | Value |
 |---|---|
 | `item_id` | from `items.csv` |
-| `task` | `hazard_category`, `product_category`, `hazard`, `origin_country`, `product_type` |
-| `value` | the output as text (T1 label, RASFF Product category, verbatim span, ISO2 or `unknown`, Product type); `null` when abstained |
+| `task` | `hazard_category`, `product_category`, `hazard`, `origin_country`, `product_type`; T6 `summary_en`, `summary_nl`, `summary_zh` (not scored, see [T6 fact-check](#t6-summaries-the-human-fact-check)) |
+| `value` | the output as text (T1 label, RASFF Product category, verbatim span, ISO2 or `unknown`, Product type, summary); `null` when abstained |
 | `confidence` | `high`, `medium`, `low`; `null` when abstained |
 | `abstained` | `true` / `false` |
 | `evidence_span` | substring of the input, or `null` |
@@ -226,8 +227,9 @@ is an abstention), and `input_hash` is the one `ai_classifications` stores. T1 r
 three Sources (RASFF: subject only), T2-T5 on NVWA and openFDA (T5 on every NVWA / openFDA
 item, although in production it only runs where the Product type rules cannot decide).
 The cache file is per prompt version: all five tasks are v1 now; when one task moves to
-v2 alone its lines go to `v2.jsonl` and are scored as their own run. Identical inputs are
-sent once per task; every refresh calls
+v2 alone its lines go to `v2.jsonl` and are scored as their own run. T6 (ticket 18) writes one summary per item and
+language (NVWA en/nl/zh, openFDA en/nl, never RASFF) into the same file, `taxonomy_version`
+"", `evidence_span` null. Identical inputs are sent once per task; every refresh calls
 the model again for every item (re-run only when the prompt, the model or the items
 change). Token usage is printed as an `eval_refresh_usage` JSON line on stderr. Without
 `ANTHROPIC_API_KEY` it exits 2 before any call.
@@ -340,9 +342,64 @@ normalized_match_ci95, abstention_rate, n_missing, n_stale` and no per_class / c
 matrix. Undefined values (n = 0) are `null`. `per_class` and `confusion_matrix` are overall
 only.
 
+Added by ticket 18, always present: `"t6_factcheck"` (the human fact-check of T6 summaries,
+all splits, see below):
+
+```jsonc
+"t6_factcheck": {
+  "file": "eval/factcheck/t6.csv", "sample_size": 50,
+  "runs": [{                           // one per (model, prompt_version, split) in t6.csv
+    "model": "claude-haiku-5-5", "prompt_version": "v1", "split": "dev",
+    "n_sampled": 50,                   // rows whose text is still current (stale ones left out)
+    "n_checked": 50, "n_consistent": 47,
+    "consistency_rate": 0.94,          // n_consistent / n_checked; null when nothing checked
+    "consistency_rate_ci95": [0.86, 1.0],  // percentile bootstrap, same settings as above
+    "n_stale": 0,                      // judged texts that are no longer current (see below)
+    "by_locale": {"en": {"n_checked": 20, "n_consistent": 19}, "nl": {…}, "zh": {…}},
+    "by_source": {"nvwa": {…}, "openfda": {…}},
+    "failures": [{"item_id": "…", "source": "nvwa", "locale": "zh",   // at most 10
+                  "summary": "…", "problem": "the owner's note"}]
+  }]
+}
+```
+
+`runs` is `[]` until a sample exists.
+
 Optional, read by `/en/evaluation` when present (ticket 21 adds it): `"thresholds": [{"model",
 "prompt_version", "task", "min_confidence": "high" | "medium" | "low"}]`, the low-confidence
 threshold chosen on the dev coverage–accuracy curve; the page marks it on that run's curves.
+
+### T6 summaries: the human fact-check
+
+Spec §7.2: T6 is evaluated by a factual-consistency check of 50 summaries by the owner, not
+by ROUGE. Steps (offline after the refresh):
+
+```bash
+make eval-refresh SPLIT=dev                  # caches T6 summaries next to T1 (paid API)
+make factcheck-sample SPLIT=dev              # 50 summaries -> factcheck/t6.csv (MODEL=…)
+make factcheck-app                           # judge them (Streamlit), or edit the CSV
+make eval                                    # latest.json "t6_factcheck"; commit t6.csv
+```
+
+- **Sample** (`openfoodalerts.eval.factcheck.sample_factcheck`): the non-abstained summaries
+  of one model and prompt version on one split whose `input_hash` matches the item's
+  frozen input; split into the five strata NVWA en / nl / zh and openFDA en / nl and taken
+  round-robin (10 each when every stratum has 10), each stratum in a fixed order
+  (sha256 of seed 20261025, item and task). Same cache → same sample. Sampling again keeps
+  every judgment whose summary text is unchanged, keeps judged rows that fell out of the
+  sample, and drops unjudged ones.
+- **Judgment**: `consistent` = `yes` when every statement of the summary is supported by
+  the source text and nothing is added (no new facts, numbers, advice or severity
+  judgement); `no` with a `problem` note otherwise; empty = not checked. Abstained
+  summaries are not sampled (they are shown as source text, not as AI text).
+- **`factcheck/t6.csv`** columns: `item_id, split, source, task, locale, model,
+  prompt_version, input_hash, input` (the frozen input as JSON) `, summary, consistent,
+  problem, checker, checked_at`. The CSV carries the judged text, so it stays meaningful
+  without the cache (fake-model caches are not committed).
+- **Stale**: a judged row whose item input has changed since (the hash no longer matches
+  items.csv), or whose summary differs from the cached one for that model, prompt version,
+  item and task (a refresh produced a new text). Stale rows are reported as `n_stale` and
+  left out of the counts; re-sample and judge again.
 
 ### `results/badge.json`
 

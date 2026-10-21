@@ -86,8 +86,11 @@ def test_eval_refresh_with_the_fake_model_writes_its_cache_and_eval_scores_it(
     result = runner.invoke(app, ["eval-refresh", "--eval-dir", str(eval_dir), "--model", "fake"])
     assert result.exit_code == 0, result.output
     cache = eval_dir / "cache" / "fake" / "v1.jsonl"
-    # the dev split: T1 on all 100 items, T2-T5 on its 80 NVWA and openFDA items
-    assert len(cache.read_text(encoding="utf-8").splitlines()) == 100 + 4 * 80
+    lines = [json.loads(line) for line in cache.read_text(encoding="utf-8").splitlines()]
+    # the dev split: T1 on all 100 items, T2-T5 on its 80 NVWA and openFDA items, plus T6
+    assert sum(line["task"] == "hazard_category" for line in lines) == 100
+    t2_t5 = {"product_category", "hazard", "origin_country", "product_type"}
+    assert sum(line["task"] in t2_t5 for line in lines) == 4 * 80
     out = eval_dir / "latest.json"
     args = ["eval-run", "--eval-dir", str(eval_dir), "--output", str(out), "--no-store"]
     assert runner.invoke(app, args).exit_code == 0

@@ -10,7 +10,8 @@ go through exactly the same checks, storage and caching:
 - T4 origin_country: "Product of X" / "Made in X" / "afkomstig uit X"-style phrases with a
   country name (RASFF English names, a few Dutch ones) or a two-letter code, else unknown;
 - T5 product_type: the Product type rules (`normalize.product_type`); for openFDA no hit
-  means food, as the rules default.
+  means food, as the rules default;
+- T6 summary_en/nl/zh: `fake_summary.summary_response` (optionally with one deliberate flaw).
 
 The evidence span is always the matched text. It makes no network calls and reports zero
 tokens. Its results are not AI classifications of any real model: do not run it on a
@@ -21,7 +22,9 @@ eval/cache/fake/, which git ignores).
 import re
 from collections.abc import Callable, Mapping
 
+from openfoodalerts.classify.fake_summary import summary_response
 from openfoodalerts.classify.model import ModelRequest, ModelResponse
+from openfoodalerts.classify.summary import SUMMARY_TASKS
 from openfoodalerts.classify.tasks import ABSTAIN, HazardCategoryTask
 from openfoodalerts.eval.keywords import HAZARD_FIELDS, RULES
 from openfoodalerts.eval.labelset import Taxonomy
@@ -145,11 +148,15 @@ def _country_names() -> dict[str, str]:
 class KeywordClassifier:
     model = FAKE_MODEL
 
-    def __init__(self, taxonomy: Taxonomy, *, garble_spans: bool = False) -> None:
+    def __init__(
+        self, taxonomy: Taxonomy, *, garble_spans: bool = False, summary_flaw: str | None = None
+    ) -> None:
         self.taxonomy = taxonomy
         # quote spans that are not in the input, to exercise the substring check
         self.garble_spans = garble_spans
         self._countries = _country_names()
+        # T6: break one summary check on purpose (fake_summary.FLAWS), for tests
+        self.summary_flaw = summary_flaw
         self._answers: dict[str, Callable[[str, Mapping[str, str]], Answer]] = {
             HazardCategoryTask.name: self._hazard_category,
             "product_category": self._product_category,
@@ -159,6 +166,8 @@ class KeywordClassifier:
         }
 
     def complete(self, request: ModelRequest) -> ModelResponse:
+        if request.task in SUMMARY_TASKS:
+            return summary_response(request, self.summary_flaw)
         answer = self._answers.get(request.task)
         if answer is None:
             raise ValueError(f"the fake model does not answer {request.task}")

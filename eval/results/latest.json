@@ -1,6 +1,6 @@
 {
-  "git_sha": "3980f8c49ae4e15d42c747c7e001cec1abb272ef",
-  "created_at": "2026-10-25T05:08:40+00:00",
+  "git_sha": "99b776c39f4a1559d57ebfb30085196857dea937",
+  "created_at": "2026-10-25T07:33:04+00:00",
   "taxonomy_version": "v1-draft",
   "synthetic": false,
   "bootstrap": {
@@ -79,5 +79,10 @@
     "n_unsure": 0,
     "n_unmapped": 0,
     "n_multi_label": 0
+  },
+  "t6_factcheck": {
+    "file": "eval/factcheck/t6.csv",
+    "sample_size": 50,
+    "runs": []
   }
 }

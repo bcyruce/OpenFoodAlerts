@@ -39,8 +39,9 @@ def test_both_models_are_registered_for_eval_refresh() -> None:
 
 def test_the_fake_model_refreshes_the_dev_cache_through_the_whole_path(tmp_path: Path) -> None:
     written = refresh_cache(ITEMS, split="dev", cache_dir=tmp_path, models=["fake"])
-    # T1 on the 4 dev items, T2-T5 on the 2 NVWA / openFDA ones
-    assert written == {tmp_path / "fake" / "v1.jsonl": 4 + 4 * 2}
+    # T1 on the 4 dev items, T2-T5 on the 2 NVWA / openFDA ones, 5 T6 summaries
+    # (fd-1 en/nl, nv-1 en/nl/zh; see test_summary_eval.py)
+    assert written == {tmp_path / "fake" / "v1.jsonl": 4 + 4 * 2 + 5}
     [run] = read_cache(tmp_path)
     t1 = [o for o in run.outputs if o.task == "hazard_category"]
     by_id = {o.item_id: o for o in t1}
