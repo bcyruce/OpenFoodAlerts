@@ -204,20 +204,20 @@ describe("getStats", () => {
       const rasff = source(await getStats(tx, query(), { locale: "en", now: NOW }), "rasff");
       // CHILLI_IN has two pesticide hazards and counts once for that category.
       expect(rasff.top.hazard).toEqual([
-        { value: String(PATHOGENS), label: "pathogenic micro-organisms", count: 3 },
-        { value: String(PESTICIDES), label: "pesticide residues", count: 3 },
+        { value: String(PATHOGENS), label: "pathogenic micro-organisms", count: 3, ai: 0 },
+        { value: String(PESTICIDES), label: "pesticide residues", count: 3, ai: 0 },
       ]);
       expect(rasff.top.product).toEqual([
-        { value: String(HERBS), label: "herbs and spices", count: 4 },
-        { value: String(MILK_PRODUCTS), label: "milk and milk products", count: 1 },
+        { value: String(HERBS), label: "herbs and spices", count: 4, ai: 0 },
+        { value: String(MILK_PRODUCTS), label: "milk and milk products", count: 1, ai: 0 },
       ]);
       // Origin only: NL is a notifying country.
       expect(rasff.top.country).toEqual([
-        { value: "IN", label: "India", count: 2 },
-        { value: "BR", label: "Brazil", count: 1 },
-        { value: "CN", label: "China", count: 1 },
-        { value: "FR", label: "France", count: 1 },
-        { value: "ID", label: "Indonesia", count: 1 },
+        { value: "IN", label: "India", count: 2, ai: 0 },
+        { value: "BR", label: "Brazil", count: 1, ai: 0 },
+        { value: "CN", label: "China", count: 1, ai: 0 },
+        { value: "FR", label: "France", count: 1, ai: 0 },
+        { value: "ID", label: "Indonesia", count: 1, ai: 0 },
       ]);
       // FCM has no Hazard or Product category.
       expect(rasff.classified).toEqual({ hazard: 5, product: 5, country: 6 });
@@ -227,7 +227,7 @@ describe("getStats", () => {
     withNotifications(ALL, async (tx) => {
       const withAi = source(await getStats(tx, query(), { locale: "en", now: NOW }), "nvwa");
       expect(withAi.top.hazard).toEqual([
-        { value: String(PATHOGENS), label: "pathogenic micro-organisms", count: 1 },
+        { value: String(PATHOGENS), label: "pathogenic micro-organisms", count: 1, ai: 1 },
       ]);
       expect(withAi.classified).toEqual({ hazard: 1, product: 1, country: 1 });
       const official = source(
@@ -245,6 +245,24 @@ describe("getStats", () => {
       );
       expect(source(filtered, "nvwa").total).toBe(0);
       expect(source(filtered, "rasff").total).toBe(4);
+    }));
+
+  it("says how many Notifications each value counts through an AI classification", () =>
+    withNotifications(ALL, async (tx) => {
+      const r = await getStats(tx, query(), { locale: "en", now: NOW });
+      const nvwa = source(r, "nvwa");
+      expect(nvwa.top.product).toEqual([
+        { value: String(HERBS), label: "herbs and spices", count: 1, ai: 1 },
+      ]);
+      expect(nvwa.classifiedAi).toEqual({ hazard: 1, product: 1, country: 1 });
+      const rasff = source(r, "rasff");
+      expect(rasff.top.product[0]).toEqual({
+        value: String(HERBS),
+        label: "herbs and spices",
+        count: 4,
+        ai: 0,
+      });
+      expect(rasff.classifiedAi).toEqual({ hazard: 0, product: 0, country: 0 });
     }));
 
   it("counts Hazard category × origin country pairs per month for the heatmap", () =>
