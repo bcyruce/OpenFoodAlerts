@@ -46,3 +46,14 @@ def test_reverting_to_old_content_is_a_change(db: Connection) -> None:
 def test_keys_are_independent(db: Connection) -> None:
     put(db, b'{"a":1}', key="F-1")
     assert put(db, b'{"a":1}', key="F-2").status == "new"
+
+
+def test_the_pipeline_role_can_only_append_to_the_archive(db: Connection) -> None:
+    # ADR 0004: raw records are never updated or deleted, not even by the pipeline
+    row = db.execute(
+        "SELECT has_table_privilege('ofa_pipeline', 'raw_records', 'INSERT') AS ins,"
+        " has_table_privilege('ofa_pipeline', 'raw_records', 'SELECT') AS sel,"
+        " has_table_privilege('ofa_pipeline', 'raw_records', 'UPDATE') AS upd,"
+        " has_table_privilege('ofa_pipeline', 'raw_records', 'DELETE') AS del"
+    ).fetchone()
+    assert row == {"ins": True, "sel": True, "upd": False, "del": False}

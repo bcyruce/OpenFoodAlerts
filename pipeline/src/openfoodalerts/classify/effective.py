@@ -30,20 +30,24 @@ the classification it came from, so a task only ever replaces its own rows:
   `countries`; `unknown` writes nothing;
 - T5 product_type (internal, no badge): `notifications.product_type` with provenance ai,
   only where it is `pending` or was set by T5 before (never a rule or official value).
-  T5 also writes when there is no value: an abstain counts as food (spec §10.4 "T5 弃权时
-  也算"; `T5_NO_VALUE_PRODUCT_TYPE`), so `WRITES_WITHOUT_VALUE` lists it.
+  T5 also writes when there is no value: the model's or a reviewer's "cannot tell" counts
+  as food (spec §10.4 "T5 弃权时也算"; `T5_NO_VALUE_PRODUCT_TYPE`), so
+  `WRITES_WITHOUT_VALUE` lists it. A failure (refusal, truncated or invalid answer) is not
+  such an answer: the Notification goes back to `pending` and stays off the site (§4.2).
 """
 
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
-from openfoodalerts.classify.tasks import HazardCategoryTask, Task
+from openfoodalerts.classify.tasks import MODEL_ABSTAINED, HazardCategoryTask, Task
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.sources.rasff.lookups import normalize_name
 
 # A value with this key is an abstain (Task.check / openfoodalerts.classify.tasks.abstain).
 ABSTAIN_REASON = "abstain_reason"
+# abstain_reason of a reviewer's "the text does not say" (classify.review)
+REVIEWER_ABSTAINED = "reviewer_abstained"
 
 # The current classification of a Notification for a task: the newest row.
 CURRENT_SQL = """
@@ -248,6 +252,8 @@ WRITERS: dict[str, Writer] = {
 }
 # Tasks whose writer also runs when a classification has no value (it gets {}).
 WRITES_WITHOUT_VALUE = frozenset({"product_type"})
+# Abstain reasons that are a real "cannot tell" (model or reviewer), not a failed answer.
+DECIDED_ABSTAINS = frozenset({MODEL_ABSTAINED, REVIEWER_ABSTAINED})
 
 
 def write_derived(
@@ -265,8 +271,6 @@ def write_derived(
     for table in _DERIVED_TABLES:
         conn.execute(_DELETE_DERIVED.format(table=table), (notification_id, task.name))
     writer = WRITERS.get(task.name)
-    if value is None and classification_id and task.name in WRITES_WITHOUT_VALUE:
-        value = {}
     if value is not None and writer is not None:
         writer(conn, task, notification_id, classification_id, value, out)
     return out
@@ -289,4 +293,25 @@ def rederive(
     if current is None:
         return write_derived(conn, task, notification_id, 0, None, out)
     value = effective_value(current)
+    if value is None and task.name in WRITES_WITHOUT_VALUE:
+        if abstain_reason(current) in DECIDED_ABSTAINS:
+            value = {}
+        else:
+            _reset_product_type(conn, notification_id)
     return write_derived(conn, task, notification_id, current["id"], value, out)
+
+
+def abstain_reason(row: Mapping[str, Any]) -> str | None:
+    """Why the effective value of a row is an abstain (reviewer's first)."""
+    source = row["reviewed_value"] if row["review_status"] == "corrected" else row["value"]
+    reason = (source or {}).get(ABSTAIN_REASON)
+    return reason if isinstance(reason, str) else None
+
+
+def _reset_product_type(conn: Connection, notification_id: int) -> None:
+    """A failed T5 answer undoes an earlier T5 value; rule and official values stay."""
+    conn.execute(
+        "UPDATE notifications SET product_type = NULL, product_type_provenance = 'pending'"
+        " WHERE id = %s AND product_type_provenance = 'ai'",
+        (notification_id,),
+    )

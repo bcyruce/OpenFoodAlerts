@@ -59,16 +59,12 @@ export type AiField = AiProvenance & {
   confidence: string | null;
 };
 
-/**
- * The keys a task's value object may carry its answer under, first match wins. T1 is
- * `{"category": ...}` (ticket 16); T2–T4 follow ticket 17, so the likely spellings are all
- * accepted until it is merged.
- */
-const VALUE_KEYS: Record<ShownAiTask, string[]> = {
-  hazard_category: ["category"],
-  product_category: ["category"],
-  hazard: ["hazard"],
-  origin_country: ["country"],
+/** The key each task's value object carries its answer under (tickets 16 and 17). */
+const VALUE_KEY: Record<ShownAiTask, string> = {
+  hazard_category: "category",
+  product_category: "category",
+  hazard: "hazard",
+  origin_country: "country",
 };
 
 type ClassificationRow = {
@@ -92,11 +88,9 @@ function json(value: unknown): Record<string, unknown> | null {
 }
 
 function readValue(task: ShownAiTask, value: Record<string, unknown> | null): string | null {
-  for (const key of VALUE_KEYS[task]) {
-    const v = value?.[key];
-    if (typeof v === "string" && v.trim() !== "") return v.trim();
-    if (typeof v === "number") return String(v);
-  }
+  const v = value?.[VALUE_KEY[task]];
+  if (typeof v === "string" && v.trim() !== "") return v.trim();
+  if (typeof v === "number") return String(v);
   return null;
 }
 

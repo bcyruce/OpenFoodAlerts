@@ -57,7 +57,19 @@ function sortExports(text) {
     .split(/^(?=export const )/m)
     .map((b) => b.trimEnd() + "\n");
   blocks.sort((a, b) => a.match(/^export const (\w+)/)[1].localeCompare(b.match(/^export const (\w+)/)[1]));
-  return text.slice(0, first) + blocks.join("\n");
+  return sortImports(text.slice(0, first)) + blocks.join("\n");
+}
+
+// The names inside each `import { … }` also come out in catalog order; sort them too.
+function sortImports(head) {
+  return head.replace(/^import \{([^}]*)\} from (".*")/gm, (m, names, from) => {
+    const sorted = names
+      .split(",")
+      .map((n) => n.trim())
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
+    return `import { ${sorted.join(", ")} } from ${from}`;
+  });
 }
 
 for (const file of ["schema.ts", "relations.ts"]) {

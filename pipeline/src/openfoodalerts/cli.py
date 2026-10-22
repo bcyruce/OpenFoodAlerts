@@ -654,7 +654,7 @@ def eval_run_cmd(
     Offline: no API calls, no network. Reads eval/items.csv, eval/labels.csv, eval/cache/
     and eval/silver.csv; writes eval/results/latest.json (runs of the other split are kept).
     With a reachable DATABASE_URL, also inserts one eval_runs row per run; without one it
-    says so and still exits 0. Tasks without gold Labels are listed as skipped.
+    says so and still exits 0. Tasks without Labels are listed as skipped.
     """
     from datetime import UTC
     from datetime import datetime as dt

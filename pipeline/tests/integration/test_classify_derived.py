@@ -171,6 +171,24 @@ def test_t5_sets_the_product_type_and_an_abstain_counts_as_food(db: Connection) 
     assert product_type(db, unsure) == ("food", "ai")
 
 
+@pytest.mark.parametrize("reason", ["refusal", "truncated", "invalid_output"])
+def test_a_t5_failure_is_not_an_abstain_and_leaves_the_notification_pending(
+    db: Connection, reason: str
+) -> None:
+    # spec §4.2: non-food is never shown, so only the model's own "cannot tell" counts as
+    # food (§10.4); a refusal or broken answer must not put an unknown product on the site
+    nid = add_notification(db, "nvwa", "/a", first_seen_at=T, product_type=None)
+    classification(db, nid, "product_type", {"product_type": "food"})
+    rederive(db, task("product_type"), nid)
+    assert product_type(db, nid) == ("food", "ai")
+    classification(
+        db, nid, "product_type", {"product_type": None, "abstain_reason": reason},
+        abstained=True, at=T + timedelta(hours=1), prompt_version="v2",
+    )  # fmt: skip
+    rederive(db, task("product_type"), nid)
+    assert product_type(db, nid) == (None, "pending")
+
+
 def test_t5_never_overrides_a_rule_or_official_product_type(db: Connection) -> None:
     ruled = add_notification(db, "nvwa", "/a", first_seen_at=T, product_type="non-food")
     classification(db, ruled, "product_type", {"product_type": "food"})

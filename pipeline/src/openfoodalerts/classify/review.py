@@ -31,6 +31,7 @@ from typing import Any
 from psycopg.types.json import Jsonb
 
 from openfoodalerts.classify.effective import (
+    REVIEWER_ABSTAINED,
     Derived,
     current_classification,
     effective_value,
@@ -40,8 +41,6 @@ from openfoodalerts.classify.evidence import MIN_CHARS, normalize
 from openfoodalerts.classify.tasks import ABSTAIN, Task
 from openfoodalerts.db.connection import Connection
 
-# abstain_reason of a reviewer's "the text does not say"
-REVIEWER_ABSTAINED = "reviewer_abstained"
 # fields only the model fills in (T6's `abstain` flag: a reviewer abstains with None)
 _MODEL_ONLY = ("evidence_span", "confidence", "abstain")
 

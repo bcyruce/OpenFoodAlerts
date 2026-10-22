@@ -5,9 +5,9 @@ from typing import Any
 
 import pytest
 
+from openfoodalerts.classify.effective import REVIEWER_ABSTAINED
 from openfoodalerts.classify.evidence import find_evidence
 from openfoodalerts.classify.review import (
-    REVIEWER_ABSTAINED,
     ReviewError,
     check_correction,
     choices,
