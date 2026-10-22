@@ -150,6 +150,31 @@ def test_cached_models_and_baselines_are_scored_and_the_other_split_is_kept(
     assert runs[("claude-haiku-5-5", "test")]["overall"]["accuracy"] == 1.0
 
 
+def test_the_decisions_written_into_latest_json_survive_the_next_make_eval(
+    eval_dir: Path,
+) -> None:
+    """ofa eval-threshold / eval-compare write `thresholds` and `model_selection`; they
+    are decisions, not scores, so re-scoring keeps them."""
+    report, _ = _run(eval_dir)
+    decisions = {
+        "thresholds": [
+            {
+                "model": "claude-haiku-5-5",
+                "prompt_version": "v1",
+                "task": "hazard_category",
+                "min_confidence": "medium",
+            }
+        ],
+        "model_selection": {"status": "pending", "selected": "claude-haiku-5-5"},
+    }
+    out = eval_dir / "results" / "latest.json"
+    out.write_text(json.dumps(report | decisions), encoding="utf-8")
+    again, _ = _run(eval_dir)
+    assert again["thresholds"] == decisions["thresholds"]
+    assert again["model_selection"] == decisions["model_selection"]
+    assert json.loads(out.read_text(encoding="utf-8"))["thresholds"] == decisions["thresholds"]
+
+
 def test_a_silver_set_with_one_label_skips_the_tfidf_baseline_with_a_notice(
     eval_dir: Path,
 ) -> None:

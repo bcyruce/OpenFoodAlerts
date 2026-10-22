@@ -1,0 +1,44 @@
+{
+  "about": "Prices of the spec §6.4 candidate models, USD per million tokens, copied from the providers' official pages on verified_on (spec §16 V1). Used by `ofa eval-compare` (which model is cheaper) and the Batch cost estimates of `ofa classify --batch`. Re-check the pages and update this file (and spec §16) when a provider changes prices.",
+  "verified_on": "2026-10-25",
+  "currency": "USD",
+  "unit": "per 1M tokens",
+  "models": {
+    "claude-haiku-5-5": {
+      "provider": "anthropic",
+      "standard": {"input": 0.10, "cache_write": 0.125, "cache_read": 0.01, "output": 0.50},
+      "batch": {"input": 0.05, "cache_write": 0.0625, "cache_read": 0.005, "output": 0.25},
+      "notes": [
+        "Prompts up to 100,000 tokens (every request here is far below); over 100,000 tokens: input 0.50, 5-minute cache write 0.625, 1-hour cache write 1, cache read 0.05, output 2.50 (batch input 0.25, output 1.25).",
+        "cache_write is the 5-minute cache write (1.25x input; the 1-hour write is 0.20); cache_read is a cache hit (0.1x input).",
+        "Batch API: 50% off input and output; the cache multipliers stack with the Batch discount (pricing page: 'These multipliers stack with other pricing modifiers, including the Batch API discount'), so the batch cache rates are half the standard ones.",
+        "inference_geo 'us' would cost 1.1x; the default global routing is priced as above."
+      ],
+      "sources": [
+        "https://platform.claude.com/docs/en/about-claude/pricing"
+      ]
+    },
+    "gpt-5-mini": {
+      "provider": "openai",
+      "standard": {"input": 0.25, "cache_write": 0.0, "cache_read": 0.025, "output": 2.00},
+      "batch": {"input": 0.125, "cache_write": 0.0, "cache_read": 0.0125, "output": 1.00},
+      "notes": [
+        "OpenAI caches prompt prefixes automatically and does not charge cache writes; cache_read is the 'cached input' price.",
+        "Batch tier from the pricing page's Batch table (50% of Standard, as the Batch guide states).",
+        "Output includes the reasoning tokens (GPT-5 mini is a reasoning model)."
+      ],
+      "deprecation": {
+        "announced": "2026-06-11",
+        "shutdown": "2026-12-11",
+        "replacement": "gpt-5.6-terra",
+        "replacement_standard": {"input": 2.00, "cache_read": 0.20, "output": 12.00},
+        "source": "https://developers.openai.com/api/docs/deprecations"
+      },
+      "sources": [
+        "https://developers.openai.com/api/docs/pricing",
+        "https://developers.openai.com/api/docs/models/gpt-5-mini",
+        "https://developers.openai.com/api/docs/guides/batch"
+      ]
+    }
+  }
+}

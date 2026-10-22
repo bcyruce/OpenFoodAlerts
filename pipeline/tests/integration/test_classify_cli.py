@@ -81,7 +81,7 @@ def test_task_all_runs_t5_first_then_t1_to_t4_then_t6(db: Connection) -> None:
     "args",
     [
         ["--source", "rasff"],
-        ["--model", "gpt-5-mini"],
+        ["--model", "no-such-model"],
         ["--task", "summary"],
         ["--prompt-version", "v99"],
     ],

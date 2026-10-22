@@ -13,6 +13,7 @@ dependencies = [
     "selectolax>=0.3.21",
     "scikit-learn>=1.5",
     "anthropic>=2.3.0",
+    "openai>=3.37.0",
 ]
 
 [project.scripts]

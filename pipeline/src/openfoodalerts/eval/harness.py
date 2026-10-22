@@ -324,12 +324,23 @@ def merge_other_split(
     report: dict[str, Any], previous: Mapping[str, Any] | None, split: str
 ) -> dict[str, Any]:
     """The report plus the runs (and skipped entries) of the other split from the previous
-    latest.json, so a test run does not erase dev results and vice versa."""
+    latest.json, so a test run does not erase dev results and vice versa. The decisions
+    written by `ofa eval-threshold` and `ofa eval-compare` (DECISION_KEYS) are kept too:
+    they are re-made by those commands, not by scoring."""
     if not previous:
         return report
     keep = [r for r in previous.get("runs", []) if r.get("split") != split]
     keep_skipped = [s for s in previous.get("skipped", []) if s.get("split") != split]
-    return report | {"runs": keep + report["runs"], "skipped": keep_skipped + report["skipped"]}
+    decisions = {k: previous[k] for k in DECISION_KEYS if k in previous}
+    return (
+        report
+        | decisions
+        | {"runs": keep + report["runs"], "skipped": keep_skipped + report["skipped"]}
+    )
+
+
+# Top-level keys of latest.json that hold decisions made on dev (ticket 21).
+DECISION_KEYS = ("thresholds", "model_selection")
 
 
 def baseline_runs(

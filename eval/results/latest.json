@@ -1,6 +1,6 @@
 {
-  "git_sha": "99b776c39f4a1559d57ebfb30085196857dea937",
-  "created_at": "2026-10-25T07:33:04+00:00",
+  "git_sha": "1089c0591395a425904ca9f40e207d009cd67ce9",
+  "created_at": "2026-10-25T08:33:17+00:00",
   "taxonomy_version": "v1-draft",
   "synthetic": false,
   "bootstrap": {
@@ -84,5 +84,63 @@
     "file": "eval/factcheck/t6.csv",
     "sample_size": 50,
     "runs": []
+  },
+  "model_selection": {
+    "rule": "spec §6.4: default claude-haiku-5-5; if gpt-5-mini's dev hazard_category macro-F1 is at least claude-haiku-5-5's minus 2 points, the cheaper of the two",
+    "split": "dev",
+    "task": "hazard_category",
+    "metric": "overall.macro_f1",
+    "max_gap": 0.02,
+    "default_model": "claude-haiku-5-5",
+    "challenger": "gpt-5-mini",
+    "candidates": [
+      {
+        "model": "claude-haiku-5-5",
+        "prompt_version": null,
+        "macro_f1": null,
+        "macro_f1_ci95": null,
+        "n": 0,
+        "cost_basis": "nominal",
+        "tokens_per_request": {
+          "input": 200,
+          "cache_write": 0,
+          "cache_read": 4000,
+          "output": 300
+        },
+        "cost_per_1000_requests_usd": 0.21
+      },
+      {
+        "model": "gpt-5-mini",
+        "prompt_version": null,
+        "macro_f1": null,
+        "macro_f1_ci95": null,
+        "n": 0,
+        "cost_basis": "nominal",
+        "tokens_per_request": {
+          "input": 200,
+          "cache_write": 0,
+          "cache_read": 4000,
+          "output": 300
+        },
+        "cost_per_1000_requests_usd": 0.75
+      }
+    ],
+    "cheaper": "claude-haiku-5-5",
+    "decided_at": "2026-10-25T08:34:01+00:00",
+    "status": "pending",
+    "selected": "claude-haiku-5-5",
+    "gap": null,
+    "within_gap": null,
+    "reason": "comparison pending (claude-haiku-5-5, gpt-5-mini without a score); the default claude-haiku-5-5 stands",
+    "notices": [
+      "no measured dev token usage for both models (make eval-refresh writes eval/cache/{model}/usage.json); cost compared on a nominal request of 200 input, 4000 cached input and 300 output tokens",
+      "claude-haiku-5-5: no dev run for hazard_category on dev",
+      "gpt-5-mini: no dev run for hazard_category on dev"
+    ],
+    "git_sha": "1089c0591395a425904ca9f40e207d009cd67ce9",
+    "prices": {
+      "file": "eval/model_prices.json",
+      "verified_on": "2026-10-25"
+    }
   }
 }

@@ -50,12 +50,12 @@ class GateResult:
         return not any(r.regressed for r in self.rows)
 
 
-def _version_key(version: str) -> tuple[int, str]:
+def version_key(version: str) -> tuple[int, str]:
     match = re.fullmatch(r"v(\d+)", version)
     return (int(match.group(1)), "") if match else (-1, version)
 
 
-def _newest_runs(
+def newest_runs(
     report: Mapping[str, Any] | None, task: str, split: str
 ) -> dict[str, Mapping[str, Any]]:
     """The run of each model (and baseline) with its newest prompt version."""
@@ -64,7 +64,7 @@ def _newest_runs(
         if run.get("task") != task or run.get("split") != split:
             continue
         current = newest.get(run["model"])
-        if current is None or _version_key(run["prompt_version"]) > _version_key(
+        if current is None or version_key(run["prompt_version"]) > version_key(
             current["prompt_version"]
         ):
             newest[run["model"]] = run
@@ -98,8 +98,8 @@ def compare_reports(
         notices.append("no baseline: main has no committed latest.json; nothing to compare")
     if head.get("label_status", {}).get(split, {}).get("labelled", 0) == 0:
         notices.append(f"no Labels on {split} yet: every run is skipped, nothing to gate")
-    base_runs = _newest_runs(base, task, split)
-    head_runs = _newest_runs(head, task, split)
+    base_runs = newest_runs(base, task, split)
+    head_runs = newest_runs(head, task, split)
     rows = []
     for model in sorted(
         base_runs.keys() | head_runs.keys(),

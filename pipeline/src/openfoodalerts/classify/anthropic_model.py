@@ -20,18 +20,20 @@ Request (Messages API, SDK `anthropic` 2.x, API version 2026-10-21):
 Retries: the SDK retries 408/409/429/5xx and connection errors with exponential backoff
 (`max_retries`, default here 6). What still fails afterwards fails the item (`ItemFailed`:
 nothing stored, retried on the next run); 401/403/404 stop the run (`ClassifierUnavailable`).
-Backfill should go through the Message Batches API at half price (ticket 21): it takes the
-same `request_params`.
+The backfill goes through the Message Batches API at half price (`AnthropicBatches`,
+ticket 21, `classify.batch`): it sends the same `request_params`.
 """
 
 import json
 import os
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping, Sequence
+from contextlib import contextmanager
 from typing import Any
 
 import anthropic
 from anthropic.types import Message
 
+from openfoodalerts.classify.batch import BatchRequest, BatchResult, BatchStatus
 from openfoodalerts.classify.model import (
     ClassifierUnavailable,
     ItemFailed,
@@ -42,7 +44,7 @@ from openfoodalerts.classify.model import (
 from openfoodalerts.classify.registry import DEFAULT_MODEL
 from openfoodalerts.classify.tasks import INVALID_OUTPUT, REFUSAL, TRUNCATED
 
-__all__ = ["DEFAULT_MODEL", "AnthropicClassifier", "parse_message"]
+__all__ = ["DEFAULT_MODEL", "AnthropicBatches", "AnthropicClassifier", "parse_message"]
 
 DEFAULT_EFFORT = "low"
 DEFAULT_MAX_TOKENS = 2048
@@ -147,3 +149,74 @@ class AnthropicClassifier:
         except (anthropic.APIStatusError, anthropic.APIConnectionError) as exc:
             raise ItemFailed(f"{self.model}: {type(exc).__name__}: {exc}") from exc
         return parse_message(message)
+
+
+@contextmanager
+def _api_errors(model: str) -> Iterator[None]:
+    """401/403/404 -> ClassifierUnavailable (stop), other API errors -> ItemFailed."""
+    try:
+        yield
+    except (
+        anthropic.AuthenticationError,
+        anthropic.PermissionDeniedError,
+        anthropic.NotFoundError,
+    ) as exc:
+        raise ClassifierUnavailable(f"{model}: {type(exc).__name__}: {exc}") from exc
+    except (anthropic.APIStatusError, anthropic.APIConnectionError) as exc:
+        raise ItemFailed(f"{model}: {type(exc).__name__}: {exc}") from exc
+
+
+class AnthropicBatches:
+    """The Message Batches API (`client.messages.batches`, 50% of the standard price) for
+    `ofa classify --batch`: each request's `params` are the synchronous request's, so the
+    prompt cache marker, structured output and effort are the same. Results come back in
+    any order and are matched by custom_id (`classify.batch`)."""
+
+    provider = "anthropic"
+
+    def __init__(self, classifier: AnthropicClassifier) -> None:
+        self.classifier = classifier
+
+    @property
+    def model(self) -> str:
+        return self.classifier.model
+
+    @property
+    def _batches(self) -> Any:
+        if self.classifier._client is None:
+            raise ClassifierUnavailable("no Anthropic client (use AnthropicClassifier.from_env)")
+        return self.classifier._client.messages.batches
+
+    def params(self, request: ModelRequest) -> dict[str, Any]:
+        return self.classifier.request_params(request)
+
+    def submit(self, requests: Sequence[BatchRequest]) -> str:
+        with _api_errors(self.model):
+            batch = self._batches.create(
+                requests=[{"custom_id": r.custom_id, "params": r.params} for r in requests]
+            )
+        return str(batch.id)
+
+    def status(self, batch_id: str) -> BatchStatus:
+        with _api_errors(self.model):
+            batch = self._batches.retrieve(batch_id)
+        c = batch.request_counts
+        progress = (
+            f"{batch.processing_status}: processing {c.processing}, succeeded {c.succeeded},"
+            f" errored {c.errored}, canceled {c.canceled}, expired {c.expired}"
+        )
+        return BatchStatus(batch.processing_status == "ended", progress)
+
+    def results(self, batch_id: str) -> Iterator[BatchResult]:
+        with _api_errors(self.model):
+            for item in self._batches.results(batch_id):
+                result = item.result
+                if result.type == "succeeded":
+                    yield BatchResult(item.custom_id, parse_message(result.message))
+                elif result.type == "errored":
+                    error = result.error.error
+                    yield BatchResult(
+                        item.custom_id, None, f"errored: {error.type}: {error.message}"
+                    )
+                else:  # canceled, expired
+                    yield BatchResult(item.custom_id, None, str(result.type))

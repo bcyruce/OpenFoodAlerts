@@ -14,7 +14,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from pathlib import Path
 
 from openfoodalerts.classify.eval_adapter import eval_classifiers
-from openfoodalerts.eval.cache import ModelOutput, write_outputs
+from openfoodalerts.eval.cache import ModelOutput, write_outputs, write_usage
 from openfoodalerts.eval.files import ItemRow
 
 Classifier = Callable[[Sequence[ItemRow]], Iterable[ModelOutput]]
@@ -44,13 +44,17 @@ def refresh_cache(
     for name in models or ():
         if name not in registry:
             raise KeyError(f"unknown classifier {name!r}; configured: {', '.join(registry)}")
-    selected = [registry[name] for name in (models or list(registry))]
+    selected = [(name, registry[name]) for name in (models or list(registry))]
     scope = [i for i in items if i.split == split]
     written: dict[Path, int] = {}
-    for classify in selected:
+    for name, classify in selected:
         groups: dict[tuple[str, str], list[ModelOutput]] = defaultdict(list)
         for p in classify(scope):
             groups[(p.model, p.prompt_version)].append(p)
         for outputs in groups.values():
             written[write_outputs(cache_dir, outputs)] = len(outputs)
+        # token usage per task, when the classifier reports it (classify.eval_adapter)
+        usage = getattr(classify, "usage_by_task", None)
+        if usage:
+            write_usage(cache_dir, name, split, usage, getattr(classify, "refreshed_at", ""))
     return written

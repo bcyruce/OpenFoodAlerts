@@ -11,6 +11,7 @@ from openfoodalerts.db.connection import connect
 from openfoodalerts.http import PoliteClient
 
 if TYPE_CHECKING:  # imported lazily at run time (the classify modules are slow to import)
+    from openfoodalerts.classify.batch import BatchCollection
     from openfoodalerts.classify.prompts import Prompt
     from openfoodalerts.classify.tasks import Task
     from openfoodalerts.eval.labelset import Taxonomy
@@ -790,6 +791,188 @@ def eval_gate_cmd(
         raise typer.Exit(1)
 
 
+ReportOption = Annotated[
+    Path | None, typer.Option(help="Report to read and update (default: eval/results/latest.json).")
+]
+
+
+def _load_decision_report(report: Path | None, split: str) -> tuple[Path, dict[str, Any]]:
+    """latest.json for a dev decision; exit 2 for test, a missing or synthetic report."""
+    import json
+
+    from openfoodalerts.eval.job import default_eval_dir
+
+    if split != "dev":
+        typer.echo(
+            "error: decisions are made on dev only (spec §6.3, §6.4; test is frozen)", err=True
+        )
+        raise typer.Exit(2)
+    path = report or default_eval_dir() / "results" / "latest.json"
+    try:
+        data: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        typer.echo(f"error: cannot read {path}: {exc}", err=True)
+        raise typer.Exit(2) from exc
+    if data.get("synthetic"):
+        typer.echo(f"error: {path} is a synthetic report; decisions need real results", err=True)
+        raise typer.Exit(2)
+    return path, data
+
+
+@app.command("eval-threshold")
+def eval_threshold_cmd(
+    model: Annotated[
+        str | None,
+        typer.Option(
+            help="Model whose dev curves to use (default: latest.json model_selection.selected,"
+            " else claude-haiku-5-5)."
+        ),
+    ] = None,
+    task: Annotated[
+        list[str] | None,
+        typer.Option(
+            help="Task(s) (default: those with a coverage-accuracy curve: hazard_category,"
+            " product_category, product_type)."
+        ),
+    ] = None,
+    split: SplitOption = "dev",
+    target_accuracy: Annotated[
+        float,
+        typer.Option(min=0, max=1, help="Accuracy the accepted answers must keep (0.90)."),
+    ] = 0.90,
+    min_n: Annotated[
+        int, typer.Option(min=1, help="Fewest answered items for a level to count.")
+    ] = 1,
+    report: ReportOption = None,
+    db: Annotated[
+        bool, typer.Option(help="Also set the threshold in review_settings (ticket 20).")
+    ] = True,
+) -> None:
+    """Choose the "low confidence" threshold per task on the dev coverage-accuracy curve
+    (spec §6.3) and publish it.
+
+    Rule: the confidence level with the widest coverage whose accuracy (correct /
+    answered) is at least --target-accuracy; if none reaches it, high. Writes latest.json
+    `thresholds` (shown on /en/evaluation) and, unless --no-db, the review queue's
+    threshold (`review_settings`, as `ofa review-threshold`). Prints the curves. Without
+    Labels (n = 0) nothing is chosen and nothing is written. Exit code 2: test split,
+    missing or synthetic report.
+    """
+    from openfoodalerts.eval.harness import write_report
+    from openfoodalerts.eval.selection import (
+        CURVE_TASKS,
+        DEFAULT_MODEL,
+        merge_thresholds,
+        threshold_entries,
+    )
+
+    path, data = _load_decision_report(report, split)
+    chosen_model = model or (data.get("model_selection") or {}).get("selected") or DEFAULT_MODEL
+    tasks = task or list(CURVE_TASKS)
+    entries, notices = threshold_entries(
+        data, model=chosen_model, tasks=tasks, target_accuracy=target_accuracy, min_n=min_n
+    )
+    runs = {
+        (r["model"], r["prompt_version"], r["task"]): r
+        for r in data.get("runs", [])
+        if r.get("split") == split
+    }
+    for e in entries:
+        typer.echo(f"{e['task']} {e['model']}/{e['prompt_version']} on {split}:")
+        typer.echo("  min_confidence  coverage  accuracy    n")
+        curve = runs[(e["model"], e["prompt_version"], e["task"])]["overall"]["coverage_accuracy"]
+        for p in curve:
+            mark = "  <- chosen" if p["min_confidence"] == e["min_confidence"] else ""
+            typer.echo(
+                f"  {p['min_confidence']:<14}  {_fmt(p['coverage']):>8}  {_fmt(p['accuracy']):>8}"
+                f"  {p['n']:>3}{mark}"
+            )
+    for notice in notices:
+        typer.echo(f"notice: {notice}")
+    if not entries:
+        typer.echo(f"no threshold chosen; {path} unchanged")
+        return
+    data["thresholds"] = merge_thresholds(data.get("thresholds") or [], entries)
+    write_report(path, data)
+    typer.echo(f"wrote thresholds to {path}")
+    if not db:
+        typer.echo("review_settings not written (--no-db)")
+        return
+    import psycopg
+
+    from openfoodalerts.classify.review_queue import set_threshold
+
+    try:
+        with connect() as conn:
+            for e in entries:
+                set_threshold(conn, e["task"], e["min_confidence"])
+                typer.echo(f"review_settings: {e['task']} = {e['min_confidence']}")
+    except psycopg.Error as exc:
+        typer.echo(
+            f"notice: review_settings not written ({type(exc).__name__}: database not usable)"
+        )
+
+
+@app.command("eval-compare")
+def eval_compare_cmd(
+    split: SplitOption = "dev",
+    report: ReportOption = None,
+    cache_dir: Annotated[
+        Path | None,
+        typer.Option(help="Cache with the refresh usage files (default: eval/cache/)."),
+    ] = None,
+    prices: Annotated[
+        Path | None, typer.Option(help="Price table (default: eval/model_prices.json).")
+    ] = None,
+) -> None:
+    """Compare Claude Haiku 5.5 and GPT-5 mini on dev and select the model (spec §6.4).
+
+    Rule: default claude-haiku-5-5; if gpt-5-mini's dev T1 macro-F1 is at least Haiku's
+    minus 2 points, the cheaper of the two (cost per request at the verified prices of
+    eval/model_prices.json, from the token usage that make eval-refresh measured on dev,
+    else a nominal request). Writes latest.json `model_selection`. Without both dev runs
+    (e.g. no Labels) the comparison is recorded as pending and the default stands.
+    Exit code 2: test split, missing or synthetic report.
+    """
+    from datetime import UTC
+    from datetime import datetime as dt
+
+    from openfoodalerts.eval.cache import read_usage
+    from openfoodalerts.eval.harness import current_git_sha, write_report
+    from openfoodalerts.eval.job import REPO_ROOT, default_eval_dir
+    from openfoodalerts.eval.prices import PRICES_FILE, load_prices
+    from openfoodalerts.eval.selection import CHALLENGER, DEFAULT_MODEL, select_model
+
+    path, data = _load_decision_report(report, split)
+    table = load_prices(prices or PRICES_FILE)
+    cache = cache_dir or default_eval_dir() / "cache"
+    usage = {
+        m: u for m in (DEFAULT_MODEL, CHALLENGER) if (u := read_usage(cache, m, split)) is not None
+    }
+    block = select_model(
+        data,
+        prices={m: p.standard for m, p in table.models.items()},
+        usage=usage,
+        decided_at=dt.now(UTC).isoformat(timespec="seconds"),
+        shutdowns={m: p.shutdown for m, p in table.models.items() if p.shutdown},
+    )
+    block["git_sha"] = current_git_sha(REPO_ROOT)
+    block["prices"] = {"file": "eval/model_prices.json", "verified_on": table.verified_on}
+    for c in block["candidates"]:
+        typer.echo(
+            f"{c['model']}/{c['prompt_version'] or '-'}: macro-F1 {_fmt(c['macro_f1'])}"
+            f" (n={c['n']}), ${_fmt(c['cost_per_1000_requests_usd'])} per 1,000 requests"
+            f" ({c['cost_basis']})"
+        )
+    typer.echo(f"{block['status']}: {block['reason']}")
+    for notice in block["notices"]:
+        typer.echo(f"notice: {notice}")
+    typer.echo(f"selected: {block['selected']}")
+    data["model_selection"] = block
+    write_report(path, data)
+    typer.echo(f"wrote model_selection to {path}")
+
+
 def _store_eval(report: dict[str, object], split: str, eval_dir: Path) -> None:
     import psycopg
 
@@ -921,7 +1104,11 @@ def classify_cmd(
         int | None, typer.Option(min=1, help="At most this many Notifications get a result.")
     ] = None,
     model: Annotated[
-        str, typer.Option(help="claude-haiku-5-5 (default) or fake (keyword rules, no API).")
+        str,
+        typer.Option(
+            help="claude-haiku-5-5 (default), gpt-5-mini (OPENAI_API_KEY) or fake (keyword"
+            " rules, no API)."
+        ),
     ] = "claude-haiku-5-5",
     prompt_version: Annotated[
         str | None, typer.Option(help="Prompt file prompts/{task}/vN.md (default: newest).")
@@ -929,6 +1116,15 @@ def classify_cmd(
     taxonomy: TaxonomyOption = None,
     dry_run: Annotated[
         bool, typer.Option("--dry-run", help="Count what would be classified; call nothing.")
+    ] = False,
+    batch: Annotated[
+        bool,
+        typer.Option(
+            "--batch",
+            help="Backfill through the provider's Batch API (half price, results within"
+            " 24 h): store the results of open batches, then submit what is left;"
+            " `ofa classify-batch-status` collects later.",
+        ),
     ] = False,
 ) -> None:
     """AI classifications of NVWA and openFDA Notifications into ai_classifications, and
@@ -940,8 +1136,15 @@ def classify_cmd(
     prompt version and input are skipped, and an input that was classified before is
     copied, not sent again. `--task all` runs each task in turn, one job log per task
     (a dry run of all cannot know what T5 would decide). Exit code 2: the model cannot run
-    (ANTHROPIC_API_KEY not set) or bad options; 1: a run stopped after repeated failed
-    requests.
+    (ANTHROPIC_API_KEY / OPENAI_API_KEY not set) or bad options; 1: a run stopped after
+    repeated failed requests.
+
+    With --batch (spec §6.3, the backfill): the same scope and inputs, sent as provider
+    batches that survive interruption (classify_batches). Each run first stores the
+    results of this task's open batches, then submits the inputs not done and not
+    waiting; failed requests are submitted again by the next run. With --task all, the
+    Notifications T5 still has to decide join T1-T4 on a later run, once T5's results are
+    stored. A dry run prints the requests and an estimated cost at Batch prices.
     """
     from openfoodalerts.classify.prompts import PromptError, load_prompt
     from openfoodalerts.classify.registry import MODELS
@@ -968,7 +1171,178 @@ def classify_cmd(
         )
         raise typer.Exit(2)
     for one, prompt in chosen:
-        _classify_one(one, prompt, labels, model=model, source=source, limit=limit, dry_run=dry_run)
+        if batch:
+            _classify_batch_one(
+                one, prompt, labels, model=model, source=source, limit=limit, dry_run=dry_run
+            )
+        else:
+            _classify_one(
+                one, prompt, labels, model=model, source=source, limit=limit, dry_run=dry_run
+            )
+
+
+def _batch_cost_line(model: str, task: str, requests: int) -> str:
+    """The estimated cost of `requests` Batch requests of the task, from the token usage
+    measured on dev by `make eval-refresh`, else from a nominal request."""
+    from openfoodalerts.classify.model import Usage
+    from openfoodalerts.eval.cache import read_task_usage
+    from openfoodalerts.eval.job import default_eval_dir
+    from openfoodalerts.eval.prices import NOMINAL_REQUEST, cost_usd, load_prices
+
+    table = load_prices()
+    prices = table.models.get(model)
+    if prices is None:
+        return f"no price for {model} in {table.path.name}"
+    measured = read_task_usage(default_eval_dir() / "cache", model, "dev").get(task)
+    if measured is not None and measured.requests:
+        n = measured.requests
+        per_request = Usage(
+            1,
+            measured.input_tokens // n,
+            measured.output_tokens // n,
+            measured.cache_creation_input_tokens // n,
+            measured.cache_read_input_tokens // n,
+        )
+        basis = f"tokens per request measured on dev ({n} requests)"
+    else:
+        per_request = NOMINAL_REQUEST
+        basis = "a nominal request (no measured dev usage: run make eval-refresh first)"
+    total = requests * cost_usd(per_request, prices.batch)
+    return (
+        f"estimated cost at Batch prices: ${total:.2f} for {requests} requests, from {basis};"
+        f" prices verified {table.verified_on}"
+    )
+
+
+def _classify_batch_one(
+    chosen: "Task",
+    prompt: "Prompt",
+    labels: "Taxonomy",
+    *,
+    model: str,
+    source: list[str] | None,
+    limit: int | None,
+    dry_run: bool,
+) -> None:
+    from openfoodalerts.classify.batch import collect_batches, submit_batches
+    from openfoodalerts.classify.model import ClassifierUnavailable, ItemFailed
+    from openfoodalerts.classify.registry import make_batch_backend
+    from openfoodalerts.jobs import run_job
+
+    task = chosen.name
+    with connect() as conn:
+        try:
+            if not dry_run:
+                collected = collect_batches(
+                    conn,
+                    make_backend=lambda m: make_batch_backend(m, labels),
+                    taxonomy=labels,
+                    task=task,
+                    model=model,
+                )
+                for c in collected:
+                    _print_collection(c)
+            with run_job(conn, "classify-batch", None) as stats:
+                result = submit_batches(
+                    conn,
+                    task=chosen,
+                    prompt=prompt,
+                    model=model,
+                    make_backend=lambda: make_batch_backend(model, labels),
+                    sources=source,
+                    limit=limit,
+                    dry_run=dry_run,
+                )
+                stats.extra = {"task": task, "model": model, "prompt_version": prompt.version}
+                stats.extra |= {k: v for k, v in result.as_log().items() if k != "requests"}
+                stats.requests = result.requests
+                stats.new = 0 if dry_run else result.reused
+                stats.unchanged = result.done
+        except ClassifierUnavailable as exc:
+            typer.echo(f"error: {exc}", err=True)
+            raise typer.Exit(2) from exc
+        except ItemFailed as exc:
+            typer.echo(f"error: the provider did not take the batch: {exc}", err=True)
+            raise typer.Exit(1) from exc
+    verb = "would submit" if dry_run else "submitted"
+    plural = "batch" if result.batches == 1 else "batches"
+    typer.echo(
+        f"{task} {model} {prompt.version}: {result.candidates} in scope, {result.done} done,"
+        f" {result.waiting} waiting in open batches; copied {result.reused} (same input);"
+        f" {verb} {result.requests} requests in {result.batches} {plural}"
+        f" ({result.bytes / 1e6:.1f} MB)"
+    )
+    if result.requests:
+        typer.echo(_batch_cost_line(model, task, result.requests))
+    if not dry_run and result.requests:
+        typer.echo("collect the results with: ofa classify-batch-status [--wait]")
+
+
+def _print_collection(c: "BatchCollection") -> None:
+    head = f"batch {c.batch_id} ({c.provider_batch_id}) {c.task} {c.model} {c.prompt_version}"
+    if c.status in ("submitted", "ended") and not c.stored:
+        typer.echo(f"{head}: {c.status}, {c.progress or 'waiting'}")
+        return
+    if c.status == "failed":
+        typer.echo(f"{head}: failed (interrupted before submission was confirmed)")
+        return
+    u = c.usage
+    typer.echo(
+        f"{head}: {c.status}; stored {c.stored} (abstained {c.abstained}), failed requests"
+        f" {c.failed} (submitted again next run), stale {c.stale}; derived rows written"
+        f" {c.written} (no row to write: {c.unmapped}); usage: {u.requests} requests, input"
+        f" {u.input_tokens}, output {u.output_tokens}, cache write"
+        f" {u.cache_creation_input_tokens}, cache read {u.cache_read_input_tokens} tokens"
+    )
+
+
+@app.command("classify-batch-status")
+def classify_batch_status_cmd(
+    wait: Annotated[
+        bool, typer.Option("--wait", help="Poll until every open batch is stored.")
+    ] = False,
+    interval: Annotated[
+        float, typer.Option(min=0, help="Seconds between polls with --wait.")
+    ] = 60.0,
+    taxonomy: TaxonomyOption = None,
+) -> None:
+    """Poll the open classify batches (`ofa classify --batch`) and store the results of
+    those that have ended, through the same path as `ofa classify`.
+
+    Safe to run any time and again after an interruption: stored results are not stored
+    twice, failed requests are submitted again by the next `ofa classify --batch`.
+    Exit code 2: the model's API key is not set.
+    """
+    import time
+
+    from openfoodalerts.classify.batch import collect_batches
+    from openfoodalerts.classify.model import ClassifierUnavailable, ItemFailed
+    from openfoodalerts.classify.registry import make_batch_backend
+    from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
+
+    labels = load_taxonomy(taxonomy or default_taxonomy_path())
+    with connect() as conn:
+        while True:
+            try:
+                collected = collect_batches(
+                    conn,
+                    make_backend=lambda m: make_batch_backend(m, labels),
+                    taxonomy=labels,
+                )
+            except ClassifierUnavailable as exc:
+                typer.echo(f"error: {exc}", err=True)
+                raise typer.Exit(2) from exc
+            except ItemFailed as exc:
+                typer.echo(f"error: provider not reachable: {exc}", err=True)
+                raise typer.Exit(1) from exc
+            if not collected:
+                typer.echo("no open batches")
+            for c in collected:
+                _print_collection(c)
+            still_open = [c for c in collected if c.status in ("submitted", "ended")]
+            if not (wait and still_open):
+                return
+            time.sleep(interval)
 
 
 def _classify_one(

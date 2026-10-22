@@ -43,6 +43,57 @@ export const aiClassifications = pgTable("ai_classifications", {
 	check("ai_classifications_check1", sql`(review_status <> 'corrected'::text) OR (reviewed_value IS NOT NULL)`),
 ]);
 
+export const classifyBatches = pgTable("classify_batches", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity({ name: "classify_batches_id_seq", startWith: 1, increment: 1, minValue: 1, maxValue: 9223372036854775807, cache: 1 }),
+	provider: text().notNull(),
+	providerBatchId: text("provider_batch_id"),
+	task: text().notNull(),
+	model: text().notNull(),
+	promptVersion: text("prompt_version").notNull(),
+	status: text().default('preparing').notNull(),
+	requestCount: integer("request_count").notNull(),
+	progress: text(),
+	usage: jsonb().default({}).notNull(),
+	error: text(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	submittedAt: timestamp("submitted_at", { withTimezone: true, mode: 'string' }),
+	endedAt: timestamp("ended_at", { withTimezone: true, mode: 'string' }),
+	storedAt: timestamp("stored_at", { withTimezone: true, mode: 'string' }),
+}, (table) => [
+	index("classify_batches_open_idx").using("btree", table.task.asc().nullsLast().op("text_ops"), table.model.asc().nullsLast().op("text_ops"), table.promptVersion.asc().nullsLast().op("text_ops")).where(sql`(status = ANY (ARRAY['preparing'::text, 'submitted'::text, 'ended'::text]))`),
+	unique("classify_batches_provider_batch_id_key").on(table.providerBatchId),
+	check("classify_batches_provider_check", sql`provider = ANY (ARRAY['anthropic'::text, 'openai'::text, 'fake'::text])`),
+	check("classify_batches_task_check", sql`task ~ '^[a-z][a-z0-9_]*$'::text`),
+	check("classify_batches_status_check", sql`status = ANY (ARRAY['preparing'::text, 'submitted'::text, 'ended'::text, 'stored'::text, 'failed'::text])`),
+	check("classify_batches_request_count_check", sql`request_count > 0`),
+	check("classify_batches_check", sql`(status = 'preparing'::text) OR (status = 'failed'::text) OR (provider_batch_id IS NOT NULL)`),
+]);
+
+export const classifyBatchRequests = pgTable("classify_batch_requests", {
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	batchId: bigint("batch_id", { mode: "number" }).notNull(),
+	customId: text("custom_id").notNull(),
+	inputHash: text("input_hash").notNull(),
+	source: text().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	notificationIds: bigint("notification_ids", { mode: "number" }).array().notNull(),
+	status: text().default('pending').notNull(),
+	error: text(),
+}, (table) => [
+	index("classify_batch_requests_hash_idx").using("btree", table.inputHash.asc().nullsLast().op("text_ops")),
+	foreignKey({
+			columns: [table.batchId],
+			foreignColumns: [classifyBatches.id],
+			name: "classify_batch_requests_batch_id_fkey"
+		}).onDelete("cascade"),
+	primaryKey({ columns: [table.batchId, table.customId], name: "classify_batch_requests_pkey"}),
+	check("classify_batch_requests_custom_id_check", sql`custom_id ~ '^[a-zA-Z0-9_-]{1,64}$'::text`),
+	check("classify_batch_requests_input_hash_check", sql`input_hash ~ '^[0-9a-f]{64}$'::text`),
+	check("classify_batch_requests_notification_ids_check", sql`cardinality(notification_ids) > 0`),
+	check("classify_batch_requests_status_check", sql`status = ANY (ARRAY['pending'::text, 'stored'::text, 'failed'::text])`),
+]);
+
 export const countries = pgTable("countries", {
 	iso2: text().primaryKey().notNull(),
 	rasffId: integer("rasff_id").notNull(),

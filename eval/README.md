@@ -215,8 +215,18 @@ one.
 ```bash
 export ANTHROPIC_API_KEY=...            # or put it in .env
 make eval-refresh SPLIT=dev             # MODEL=claude-haiku-5-5 (default): paid API
+export OPENAI_API_KEY=...
+make eval-refresh SPLIT=dev MODEL=gpt-5-mini   # the second candidate (ticket 21): paid API
 make eval-refresh SPLIT=dev MODEL=fake  # keyword rules in the model's place: no API, no cost
 ```
+
+Each refresh also writes `cache/{model}/usage.json` (ticket 21): per split and task, the
+prompt version, the summed token usage (`requests`, `input_tokens` (uncached),
+`output_tokens` (incl. thinking / reasoning), `cache_creation_input_tokens`,
+`cache_read_input_tokens`; OpenAI's usage is normalised to this meaning) and
+`refreshed_at`. `make eval` does not read it; `ofa eval-compare` (the cost side of the model
+choice) and `ofa classify --batch --dry-run` (the backfill estimate) do. Commit it with the
+cache file.
 
 `ofa eval-refresh --model M` runs model M on the split's items with the newest prompt of
 each task (`prompts/{task}/vN.md`: T1 hazard_category, T2 product_category, T3 hazard, T4
@@ -232,7 +242,8 @@ language (NVWA en/nl/zh, openFDA en/nl, never RASFF) into the same file, `taxono
 "", `evidence_span` null. Identical inputs are sent once per task; every refresh calls
 the model again for every item (re-run only when the prompt, the model or the items
 change). Token usage is printed as an `eval_refresh_usage` JSON line on stderr. Without
-`ANTHROPIC_API_KEY` it exits 2 before any call.
+the model's key (`ANTHROPIC_API_KEY` for Claude, `OPENAI_API_KEY` for GPT-5 mini) it exits
+2 before any call.
 
 `fake` exists to exercise the whole path offline (tests, demos). Its cache, `cache/fake/`,
 is git-ignored and must not be committed; `make eval` scores it like any model, so remove
@@ -368,6 +379,34 @@ all splits, see below):
 Optional, read by `/en/evaluation` when present (ticket 21 adds it): `"thresholds": [{"model",
 "prompt_version", "task", "min_confidence": "high" | "medium" | "low"}]`, the low-confidence
 threshold chosen on the dev coverage–accuracy curve; the page marks it on that run's curves.
+Written by `ofa eval-threshold` (below), which adds the fields `split` ("dev"), `rule`,
+`target_accuracy`, `met_target`, `coverage`, `accuracy`, `n` (the chosen point); the page
+reads only the four above.
+
+Optional, written by `ofa eval-compare` (below), not shown by the page yet: `"model_selection"`:
+
+```jsonc
+"model_selection": {
+  "rule": "spec §6.4: default claude-haiku-5-5; if gpt-5-mini's dev hazard_category macro-F1 is at least claude-haiku-5-5's minus 2 points, the cheaper of the two",
+  "split": "dev", "task": "hazard_category", "metric": "overall.macro_f1", "max_gap": 0.02,
+  "default_model": "claude-haiku-5-5", "challenger": "gpt-5-mini",
+  "status": "compared",                // or "pending": a dev score (n > 0) is missing for either model
+  "selected": "claude-haiku-5-5",      // the default while pending
+  "gap": 0.013,                        // default − challenger macro-F1 (null while pending)
+  "within_gap": true,                  // gap <= max_gap (exactly 2 points counts as within)
+  "cheaper": "claude-haiku-5-5",       // lower cost_per_1000_requests_usd
+  "reason": "…", "notices": ["…"],     // e.g. a nominal cost basis, a model's shutdown date
+  "candidates": [{"model": "…", "prompt_version": "v1", "macro_f1": 0.0, "macro_f1_ci95": [0.0, 0.0],
+                  "n": 100, "cost_basis": "measured" | "nominal",
+                  "tokens_per_request": {"input": 0, "cache_write": 0, "cache_read": 0, "output": 0},
+                  "cost_per_1000_requests_usd": 0.0}],
+  "prices": {"file": "eval/model_prices.json", "verified_on": "2026-10-25"},
+  "decided_at": "…", "git_sha": "…"
+}
+```
+
+`make eval` keeps both blocks (`thresholds`, `model_selection`) from the previous
+latest.json: they are decisions, re-made only by their commands.
 
 ### T6 summaries: the human fact-check
 
@@ -419,6 +458,67 @@ baselines' outputs are real. It exists so `/evaluation` (ticket 25) can be built
 CI runs `make eval` on every PR with the committed files and does not compare the result
 with the committed `latest.json` (`created_at` and `git_sha` always differ); the
 regression gate is `eval.yml` (ticket 19), below.
+
+## Decisions on dev: model and threshold (ticket 21)
+
+Both commands are offline (they read `results/latest.json`, write it back and print what
+they decided), refuse `--split test` and synthetic reports (exit code 2), and do nothing
+harmful without Labels: the model comparison is recorded as `pending` (the default model
+stands) and no threshold is chosen (the file is left unchanged).
+
+```bash
+make eval-refresh SPLIT=dev                     # Claude Haiku 5.5 (ANTHROPIC_API_KEY)
+make eval-refresh SPLIT=dev MODEL=gpt-5-mini    # GPT-5 mini (OPENAI_API_KEY)
+make eval                                       # scores both on dev
+make eval-compare                               # ofa eval-compare -> model_selection
+make eval-threshold                             # ofa eval-threshold -> thresholds + review_settings
+```
+
+**Model** (`ofa eval-compare`, spec §6.4, `openfoodalerts.eval.selection.select_model`): on
+dev, T1 hazard_category, overall macro-F1 of each candidate's newest prompt version. The
+default is `claude-haiku-5-5`; if `gpt-5-mini` scores at least Haiku's macro-F1 minus 2
+points (a gap of exactly 2 points counts as within, as in the CI gate), the cheaper one is
+selected. Cheaper = lower cost per request at **standard** prices from
+[`model_prices.json`](model_prices.json) (verified on the official price pages, sources and
+date in the file and spec §16 V1) times the tokens per request that `make eval-refresh`
+measured on dev for all tasks (`cache/{model}/usage.json`); when either model has no
+measured usage, a nominal request (200 input, 4,000 cached input, 300 output tokens) is
+used and a notice says so. Point estimates only (dev has ~100 items; the CIs are reported
+in `candidates`). A challenger that is more than 2 points better but dearer is not chosen
+by the rule; a notice flags it for the owner. A selected model with an announced shutdown
+(GPT-5 mini: 2026-12-11) gets a notice. `ofa classify` does **not** read the selection: pass
+`--model` to use a model other than the default.
+
+**Threshold** (`ofa eval-threshold`, spec §6.3, `choose_threshold`): per task with a
+coverage–accuracy curve (T1, T2, T5; T3/T4 blocks have none and keep the default), on dev,
+for the selected model (`model_selection.selected`, else Haiku; `--model` overrides) and
+its newest prompt version: the confidence level with the **widest coverage whose accuracy
+(correct / answered) is at least `--target-accuracy`** (default 0.90; `make eval-threshold
+TARGET_ACCURACY=…`), counting only levels with at least `--min-n` answered items (default
+1). If no level reaches the target, `high` (only high-confidence answers are accepted
+without review). The result goes into latest.json `thresholds` (replacing the entry for the
+same model, prompt version and task) and, unless `--no-db`, into the review queue's
+`review_settings` (as `ofa review-threshold`; a database that does not answer is a notice).
+The threshold only decides what is queued for human review (abstains always are); AI fields
+are shown at once regardless (spec §6.5).
+
+## Batch backfill: `ofa classify --batch` (ticket 21)
+
+Not eval data, but it uses the files above: the backfill of all historical NVWA / openFDA
+Notifications through the providers' Batch APIs (half price). From `pipeline/`:
+
+```bash
+uv run ofa classify --batch --task all --dry-run   # requests, batches, MB, estimated cost
+uv run ofa classify --batch --task product_type    # T5 first (it decides the others' scope)
+uv run ofa classify-batch-status --wait            # poll and store (Ctrl+C is safe)
+uv run ofa classify --batch --task all             # then everything else; re-run to resume
+```
+
+The estimate multiplies the requests by the tokens per request measured on dev for that
+task (`cache/{model}/usage.json`, else the nominal request) and the Batch prices of
+`model_prices.json`. State is in the private tables `classify_batches` /
+`classify_batch_requests` (migration `20261025001700`); see
+`openfoodalerts/classify/batch.py` for submission, resume and failure handling.
 
 ## CI gate (`eval.yml`, ticket 19)
 
