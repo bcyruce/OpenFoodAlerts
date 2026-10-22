@@ -1,5 +1,7 @@
 """`backfill-rasff` against a fake RASFF Window serving the real detail fixtures."""
 
+import json
+
 import pytest
 from typer.testing import CliRunner
 
@@ -30,6 +32,23 @@ def test_backfill_archives_every_list_page_and_detail(db: Connection) -> None:
     assert raw_keys(db, "list")[0] == (
         'consolidated:{"parameters":{"itemsPerPage":5,"pageNumber":1}}'
     )
+
+
+def test_each_list_page_logs_its_progress(
+    db: Connection, capsys: pytest.CaptureFixture[str]
+) -> None:
+    fake = FakeRasff()
+    backfill_rasff(db, fake.client(), items_per_page=5)
+    lines = [json.loads(line) for line in capsys.readouterr().err.splitlines()]
+    pages = [line for line in lines if line["event"] == "rasff_list_page"]
+    assert [(p["page"], p["seen"], p["total"]) for p in pages] == [
+        (1, 5, 16),
+        (2, 10, 16),
+        (3, 15, 16),
+        (4, 16, 16),
+    ]
+    assert pages[-1]["fetched"] == 16
+    assert pages[-1]["eta_h"] == 0
 
 
 def test_rerun_skips_notifications_with_an_archived_detail(db: Connection) -> None:

@@ -11,6 +11,7 @@ new notifications arrive, so the same page key collects successive snapshots of 
 """
 
 import json
+import time
 from typing import Any
 
 import httpx
@@ -108,6 +109,24 @@ def fetch_detail(
     return True
 
 
+def log_page_progress(stats: JobStats, page: int, seen: int, started: float) -> None:
+    """One progress line per list page; the ETA assumes every unseen item needs a fetch."""
+    total = int(stats.extra.get("total_elements") or 0)
+    fetched = stats.extra["fetched"]
+    per_fetch = (time.monotonic() - started) / fetched if fetched else None
+    eta_h = round(max(total - seen, 0) * per_fetch / 3600, 1) if per_fetch else None
+    log_event(
+        "rasff_list_page",
+        page=page,
+        total_pages=stats.extra.get("total_pages"),
+        seen=seen,
+        total=total,
+        fetched=fetched,
+        skipped=stats.extra["skipped"],
+        eta_h=eta_h,
+    )
+
+
 def walk_list(
     conn: Connection,
     client: RasffClient,
@@ -127,6 +146,8 @@ def walk_list(
     stats.extra.update(pages=0, skipped=0, fetched=0, missing=0)
     archived = archived_detail_keys(conn)
     page = start_page
+    seen = (start_page - 1) * items_per_page
+    started = time.monotonic()
     while max_pages is None or stats.extra["pages"] < max_pages:
         payload = fetch_list_page(conn, client, page, items_per_page, filters)
         stats.extra["pages"] += 1
@@ -145,7 +166,9 @@ def walk_list(
             stats.extra["fetched"] += 1
             if fetch_detail(conn, client, int(item["notifId"]), reference, stats):
                 archived.add(reference)
+        seen += len(items)
         stats.extra["last_page"] = page
+        log_page_progress(stats, page, seen, started)
         if not items or page >= int(payload.get("totalPages") or 0):
             break
         page += 1
