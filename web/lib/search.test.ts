@@ -237,6 +237,55 @@ describe("searchNotifications", () => {
       },
     ));
 
+  it("says who made each AI value, and a person's review, for the badge", () =>
+    withNotifications(
+      [
+        {
+          ...MILK_NVWA,
+          ai: [
+            {
+              task: "hazard_category",
+              value: { category: "allergens" },
+              model: "fake",
+              promptVersion: "v1",
+              createdAt: "2026-10-24T10:00:00Z",
+              derived: { hazardCategory: ALLERGENS },
+            },
+            {
+              task: "origin_country",
+              value: { country: "DE" },
+              reviewStatus: "corrected",
+              reviewedValue: { country: "BE" },
+              derived: { originCountry: "BE" },
+            },
+          ],
+        },
+      ],
+      async (tx) => {
+        const r = await searchNotifications(tx, query(""), { locale: "en" });
+        const [result] = r.results;
+        expect(result.sourceUrl).toBe(`https://example.test/${MILK_NVWA.key}`);
+        expect(result.hazardCategories).toEqual([
+          {
+            value: String(ALLERGENS),
+            label: "allergens",
+            provenance: "ai",
+            ai: {
+              classificationId: expect.any(Number),
+              task: "hazard_category",
+              model: "fake",
+              promptVersion: "v1",
+              createdAt: "2026-10-24T10:00:00.000Z",
+              reviewed: false,
+            },
+          },
+        ]);
+        expect(result.originCountries).toMatchObject([
+          { value: "BE", provenance: "ai", ai: { task: "origin_country", reviewed: true } },
+        ]);
+      },
+    ));
+
   it("pages through the results", () =>
     withNotifications(ALL, async (tx) => {
       const page2 = await searchNotifications(tx, query("", {}, 2), { locale: "en", pageSize: 2 });

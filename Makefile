@@ -60,8 +60,12 @@ db-types: ## Regenerate web/db/generated/ (Drizzle) from a freshly migrated scra
 	cd web && DATABASE_URL="$(TYPES_DATABASE_URL)" node scripts/db-types.mjs
 	$(DBMATE) --url "$(TYPES_DATABASE_URL)" drop
 
-web-fixtures: ## Archive and parse the openFDA, RASFF and NVWA fixtures into DATABASE_URL (dev/CI data)
+web-fixtures: ## Archive and parse the openFDA, RASFF and NVWA fixtures into DATABASE_URL (dev/CI data), with AI rows
 	$(UV) run ofa load-fixtures $(WEB_FIXTURES)
+	# AI rows without an API key: T1 from the deterministic fake model, the other tasks and
+	# one approved review from hand-written fixtures (ticket 24). Both are idempotent.
+	$(UV) run ofa classify --model fake
+	cd web && node scripts/load-ai-fixtures.mjs e2e/fixtures/ai/classifications.json
 
 lint: ## ruff + eslint
 	$(UV) run ruff check .

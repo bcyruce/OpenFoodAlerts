@@ -8,6 +8,7 @@
  * were not set, so a visitor can widen a selection; selected values always appear.
  */
 import { sql, type SQL } from "drizzle-orm";
+import { getAiClassifications, type AiProvenance } from "./ai";
 import {
   filtersSql,
   FROM_NOTIFICATIONS,
@@ -25,12 +26,22 @@ export const PAGE_SIZE = 20;
 
 export type Provenance = "official" | "ai";
 
-/** A Hazard category, Product category or origin country of one Notification. */
-export type ClassifiedValue = { value: string; label: string; provenance: Provenance };
+/**
+ * A Hazard category, Product category or origin country of one Notification. AI values
+ * carry their classification (for the badge) when the row links to it.
+ */
+export type ClassifiedValue = {
+  value: string;
+  label: string;
+  provenance: Provenance;
+  ai?: AiProvenance;
+};
 
 export type SearchResult = {
   source: string;
   sourceKey: string;
+  /** The official page. */
+  sourceUrl: string;
   /** Detail page in the requested locale. */
   path: string;
   title: string;
@@ -116,7 +127,9 @@ function whereSql(query: SearchQuery, omit?: FilterFacet): SQL {
 }
 
 type ResultRow = {
+  id: number | string;
   source: string;
+  source_url: string;
   source_key: string;
   title: string;
   published_at: string | Date | null;
@@ -131,18 +144,23 @@ type ResultRow = {
   origin_countries: unknown;
 };
 
-type ChildRow = Names & { value: string; provenance: Provenance };
+type ChildRow = Names & {
+  value: string;
+  provenance: Provenance;
+  ai_classification_id: number | null;
+};
 
 /** Distinct child values of `n`, official first, then in Source order. */
 function childrenSql(from: SQL, value: SQL, filters: Filters, alias: string, extra = sql``): SQL {
   return sql`(
     SELECT coalesce(json_agg(json_build_object(
              'value', x.value, 'name_en', x.name_en, 'name_nl', x.name_nl,
-             'provenance', x.provenance)
+             'provenance', x.provenance, 'ai_classification_id', x.ai_classification_id)
            ORDER BY x.provenance = 'official' DESC, x.pos, x.value), '[]'::json)
     FROM (
       SELECT ${value} AS value, d.name_en, d.name_nl, ${sql.raw(alias)}.provenance,
-             min(${sql.raw(alias)}.id) AS pos
+             min(${sql.raw(alias)}.id) AS pos,
+             max(${sql.raw(alias)}.ai_classification_id) AS ai_classification_id
       FROM ${from}
       WHERE ${sql.raw(alias)}.notification_id = n.id ${extra} ${provenanceSql(alias, filters)}
       GROUP BY 1, 2, 3, 4
@@ -159,7 +177,7 @@ async function pageOfResults(
   const found = await rows<ResultRow>(
     db,
     sql`
-    SELECT s.code AS source, n.source_key, n.title, n.published_at, n.notification_type,
+    SELECT n.id, s.code AS source, n.source_key, n.source_url, n.title, n.published_at, n.notification_type,
            n.risk_official, n.product_type, n.product_type_provenance, n.product_text,
            n.hazard_text,
            ${childrenSql(
@@ -186,15 +204,38 @@ async function pageOfResults(
     ORDER BY n.published_at DESC NULLS LAST, n.id DESC
     LIMIT ${pageSize} OFFSET ${(query.page - 1) * pageSize}`,
   );
+  // The badge facts of the AI values on this page, by classification id.
+  const current = await getAiClassifications(
+    db,
+    found.map((r) => Number(r.id)),
+    { locale },
+  );
+  const made = new Map<number, AiProvenance>();
+  for (const fields of current.values()) {
+    for (const f of fields) {
+      made.set(f.classificationId, {
+        classificationId: f.classificationId,
+        task: f.task,
+        model: f.model,
+        promptVersion: f.promptVersion,
+        createdAt: f.createdAt,
+        reviewed: f.reviewed,
+      });
+    }
+  }
+  const value = (c: ChildRow, label: string): ClassifiedValue => {
+    const ai =
+      c.provenance === "ai" && c.ai_classification_id !== null
+        ? made.get(Number(c.ai_classification_id))
+        : undefined;
+    return { value: c.value, label, provenance: c.provenance, ...(ai ? { ai } : {}) };
+  };
   const category = (list: unknown) =>
-    json<ChildRow[]>(list).map((c) => ({
-      value: c.value,
-      label: categoryLabel(locale, c),
-      provenance: c.provenance,
-    }));
+    json<ChildRow[]>(list).map((c) => value(c, categoryLabel(locale, c)));
   return found.map((r) => ({
     source: r.source,
     sourceKey: r.source_key,
+    sourceUrl: r.source_url,
     path: notificationPath(locale, r.source, r.source_key),
     title: r.title,
     publishedAt: iso(r.published_at),
@@ -206,11 +247,9 @@ async function pageOfResults(
     hazardText: r.hazard_text,
     hazardCategories: category(r.hazard_categories),
     productCategories: category(r.product_categories),
-    originCountries: json<ChildRow[]>(r.origin_countries).map((c) => ({
-      value: c.value,
-      label: countryLabel(locale, c.value, c),
-      provenance: c.provenance,
-    })),
+    originCountries: json<ChildRow[]>(r.origin_countries).map((c) =>
+      value(c, countryLabel(locale, c.value, c)),
+    ),
   }));
 }
 

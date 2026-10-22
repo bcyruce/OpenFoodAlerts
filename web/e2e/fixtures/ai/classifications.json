@@ -1,0 +1,63 @@
+{
+  "comment": "Hand-written AI classifications for the smoke tests (ticket 24), on top of `ofa classify --model fake` (T1). Model 'fixture': not real model output. T2/T3/T4/T6 shapes follow the generic readers in web/lib/ai.ts until tickets 17/18 fix them. Loaded by web/scripts/load-ai-fixtures.mjs (make web-fixtures).",
+  "classifications": [
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "product_category",
+      "value": { "category": "18450" },
+      "derived": { "productCategory": 18450 }
+    },
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "hazard",
+      "value": { "hazard": "Salmonella" },
+      "evidenceSpan": "Salmonella"
+    },
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "origin_country",
+      "value": { "country": "unknown" }
+    },
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "product_type",
+      "value": { "product_type": "food" }
+    },
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "summary_en",
+      "value": { "locale": "en", "summary": "Ground coriander seed from Cook may contain Salmonella. Do not eat it." }
+    },
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "summary_nl",
+      "value": { "locale": "nl", "summary": "Gemalen korianderzaad van Cook kan Salmonella bevatten. Eet het niet." }
+    },
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/13/veiligheidswaarschuwing-cook-korianderzaad-gemalen",
+      "task": "summary_zh",
+      "value": { "locale": "zh", "summary": "Cook 牌磨碎芫荽籽可能含有沙门氏菌，请勿食用。" }
+    },
+    {
+      "source": "openfda",
+      "key": "H-0003-2027",
+      "task": "origin_country",
+      "value": { "country": "US" },
+      "derived": { "originCountry": "US" }
+    }
+  ],
+  "approve": [
+    {
+      "source": "nvwa",
+      "key": "/actueel/nieuws/2026/10/24/veiligheidswaarschuwing-ah-pokebowl-sticky-tempeh-allergenen",
+      "task": "hazard_category"
+    }
+  ]
+}

@@ -26,8 +26,12 @@ import {
 
 export { DIMENSIONS, HEATMAP_PAIRS, TOP_N, type Dimension };
 
-/** A Hazard category or Product category (RASFF id) or an origin country (ISO2). */
-export type TopItem = { value: string; label: string; count: number };
+/**
+ * A Hazard category or Product category (RASFF id) or an origin country (ISO2). `ai`:
+ * how many of the `count` Notifications have this value from an AI classification (always
+ * 0 with official_only), so the dashboard can mark AI-derived numbers (spec §9).
+ */
+export type TopItem = { value: string; label: string; count: number; ai: number };
 
 export type HeatmapRow = {
   hazard: { value: string; label: string };
@@ -44,6 +48,8 @@ export type SourceStats = {
   total: number;
   /** Notifications with at least one value in each dimension (official only if so filtered). */
   classified: Record<Dimension, number>;
+  /** Of `classified`, Notifications with a value from an AI classification. */
+  classifiedAi: Record<Dimension, number>;
   /** Notifications per month, aligned with `StatsResponse.months`. */
   monthly: number[];
   /** Up to TOP_N values per dimension, most Notifications first. */
@@ -73,28 +79,32 @@ function matchedSql(filters: Filters): SQL {
 function valuesSql(dimension: Dimension, filters: Filters): SQL {
   switch (dimension) {
     case "hazard":
-      return sql`SELECT h.notification_id AS id, d.rasff_id::text AS value, d.name_en, d.name_nl
+      return sql`SELECT h.notification_id AS id, d.rasff_id::text AS value, d.name_en, d.name_nl,
+          h.provenance
         FROM notification_hazards h JOIN hazard_categories d ON d.id = h.hazard_category_id
         WHERE TRUE ${provenanceSql("h", filters)}`;
     case "product":
-      return sql`SELECT pc.notification_id AS id, d.rasff_id::text AS value, d.name_en, d.name_nl
+      return sql`SELECT pc.notification_id AS id, d.rasff_id::text AS value, d.name_en, d.name_nl,
+          pc.provenance
         FROM notification_product_categories pc
         JOIN product_categories d ON d.id = pc.product_category_id
         WHERE TRUE ${provenanceSql("pc", filters)}`;
     case "country":
-      return sql`SELECT c.notification_id AS id, d.iso2 AS value, d.name_en, d.name_nl
+      return sql`SELECT c.notification_id AS id, d.iso2 AS value, d.name_en, d.name_nl,
+          c.provenance
         FROM notification_countries c JOIN countries d ON d.iso2 = c.country_iso2
         WHERE c.role = 'origin' ${provenanceSql("c", filters)}`;
   }
 }
 
 /** `value` is null on the per-Source row: Notifications with any value (`classified`). */
-type CountRow = Names & { source: string; value: string | null; count: number };
+type CountRow = Names & { source: string; value: string | null; count: number; ai: number };
 
 async function countsBy(db: Reader, dimension: Dimension, filters: Filters): Promise<CountRow[]> {
   return rows<CountRow>(
     db,
-    sql`SELECT m.source, v.value, v.name_en, v.name_nl, count(DISTINCT m.id)::int AS count
+    sql`SELECT m.source, v.value, v.name_en, v.name_nl, count(DISTINCT m.id)::int AS count,
+          count(DISTINCT m.id) FILTER (WHERE v.provenance = 'ai')::int AS ai
         FROM (${matchedSql(filters)}) m JOIN (${valuesSql(dimension, filters)}) v ON v.id = m.id
         GROUP BY GROUPING SETS ((m.source, v.value, v.name_en, v.name_nl), (m.source))`,
   );
@@ -208,11 +218,18 @@ export async function getStats(
   const top = (source: string, i: number): TopItem[] =>
     byDimension[i]
       .filter((r): r is CountRow & { value: string } => r.source === source && r.value !== null)
-      .map((r) => ({ value: r.value, label: label(locale, DIMENSIONS[i], r), count: r.count }))
+      .map((r) => ({
+        value: r.value,
+        label: label(locale, DIMENSIONS[i], r),
+        count: r.count,
+        ai: r.ai,
+      }))
       .sort((a, b) => b.count - a.count || collator.compare(a.label, b.label))
       .slice(0, TOP_N);
-  const classified = (source: string, i: number): number =>
-    byDimension[i].find((r) => r.source === source && r.value === null)?.count ?? 0;
+  const perSource = (source: string, i: number) =>
+    byDimension[i].find((r) => r.source === source && r.value === null);
+  const classified = (source: string, i: number): number => perSource(source, i)?.count ?? 0;
+  const classifiedAi = (source: string, i: number): number => perSource(source, i)?.ai ?? 0;
 
   return {
     filters,
@@ -228,6 +245,11 @@ export async function getStats(
           hazard: classified(source, 0),
           product: classified(source, 1),
           country: classified(source, 2),
+        },
+        classifiedAi: {
+          hazard: classifiedAi(source, 0),
+          product: classifiedAi(source, 1),
+          country: classifiedAi(source, 2),
         },
         monthly: months.map((m) => own.find((r) => r.month === m)?.count ?? 0),
         top: {

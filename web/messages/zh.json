@@ -187,5 +187,34 @@
     "subscribeHeading": "用中文接收 NVWA 食品警告",
     "subscribeBody": "订阅时选择语言“中文”：您会收到 NVWA 新发布的食品警告，每条附 AI 生成的中文摘要和官方原文链接，以原文为准。",
     "subscribeLink": "订阅中文 NVWA 警告"
+  },
+  "Ai": {
+    "badge": "AI",
+    "badgeSuffix": " 分类",
+    "badgeName": "AI 分类",
+    "reviewedBadge": "已人工复核",
+    "reviewedBadgeSuffix": "",
+    "classifiedBy": "由 {model} 于 {date} 分类，提示 v{prompt}。",
+    "summarisedBy": "由 {model} 于 {date} 生成，提示 v{prompt}。",
+    "reviewed": "已人工复核。",
+    "accuracy": "测试集准确率 {accuracy}。",
+    "notEvaluated": "尚未在测试集上评测。",
+    "summaryNotScored": "摘要不在测试集上计分。",
+    "officialPrevails": "以官方原文为准。",
+    "officialSource": "官方来源",
+    "evaluation": "AI 如何评测",
+    "field": {
+      "hazard_category": "危害类别",
+      "hazard": "危害",
+      "product_category": "产品类别",
+      "origin_country": "原产国"
+    },
+    "abstained": "未确定：AI 没有给出能用原文支持的答案。",
+    "unknownCountry": "原文未写明",
+    "summaryHeading": "摘要",
+    "aiGenerated": "AI 生成",
+    "dashboardNote": "数字包含 AI 分类；经由 AI 分类计入的值标有 AI。打开“仅官方分类”即可排除。",
+    "aiColumn": "其中 AI",
+    "classifiedAiNote": "其中来自 AI 分类的分别为 {hazard}、{product}、{country} 条。"
   }
 }

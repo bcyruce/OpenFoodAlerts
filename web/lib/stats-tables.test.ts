@@ -11,8 +11,8 @@ const RESPONSE: StatsResponse = {
   period: { months: 3, from: "2026-08-01", to: null },
   months: ["2026-08", "2026-09", "2026-10"],
   sources: [
-    { source: "rasff", label: "RASFF", total: 5, classified: empty, monthly: [0, 2, 3], top: noTop, heatmap: [] },
-    { source: "nvwa", label: "NVWA", total: 2, classified: empty, monthly: [1, 0, 1], top: noTop, heatmap: [] },
+    { source: "rasff", label: "RASFF", total: 5, classified: empty, classifiedAi: empty, monthly: [0, 2, 3], top: noTop, heatmap: [] },
+    { source: "nvwa", label: "NVWA", total: 2, classified: empty, classifiedAi: empty, monthly: [1, 0, 1], top: noTop, heatmap: [] },
   ],
 };
 

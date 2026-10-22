@@ -14,6 +14,7 @@ import {
 } from "@/lib/stats-query";
 import { formatMonth, pairLabel, timeSeriesTable } from "@/lib/stats-tables";
 import type { FilterOption, LocalizedCatalog } from "@/lib/subscriptions/catalog";
+import { AiMark } from "../ai-badge";
 import { Chart } from "./chart";
 import {
   heatmapHeight,
@@ -366,9 +367,15 @@ function ValueGroup<T extends string | number>({
   );
 }
 
+/** Whether any number of this Source comes from AI classifications. */
+function hasAi(s: SourceStats): boolean {
+  return s.classifiedAi.hazard + s.classifiedAi.product + s.classifiedAi.country > 0;
+}
+
 /** Totals, the time series and, per Source, the heatmap and the Top-N charts. */
 export function Results({ locale, stats }: { locale: string; stats: StatsResponse }) {
   const t = useTranslations("Dashboard");
+  const tAi = useTranslations("Ai");
   const number = useMemo(() => new Intl.NumberFormat(locale), [locale]);
   const series = useMemo(() => timeSeriesOption(stats, locale), [stats, locale]);
   const table = timeSeriesTable(stats);
@@ -403,10 +410,25 @@ export function Results({ locale, stats }: { locale: string; stats: StatsRespons
                   country: number.format(s.classified.country),
                 })}
               </p>
+              {hasAi(s) && (
+                <p className="mt-1 text-sm text-slate-700" data-testid={`classified-ai-${s.source}`}>
+                  <AiMark label={tAi("badgeName")} />{" "}
+                  {tAi("classifiedAiNote", {
+                    hazard: number.format(s.classifiedAi.hazard),
+                    product: number.format(s.classifiedAi.product),
+                    country: number.format(s.classifiedAi.country),
+                  })}
+                </p>
+              )}
             </li>
           ))}
         </ul>
         <p className="mt-2 text-sm text-slate-700">{t("scopeNote")}</p>
+        {stats.sources.some(hasAi) && (
+          <p className="mt-1 text-sm text-slate-700" data-testid="ai-note">
+            {tAi("dashboardNote")}
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="timeseries-heading">
@@ -459,6 +481,7 @@ export function Results({ locale, stats }: { locale: string; stats: StatsRespons
 
 function SourceSection({ locale, months, stats: s }: { locale: string; months: string[]; stats: SourceStats }) {
   const t = useTranslations("Dashboard");
+  const tAi = useTranslations("Ai");
   const number = new Intl.NumberFormat(locale);
   const heading = `${s.source}-heading`;
   const heatmap = useMemo(() => heatmapOption(s.heatmap, months, locale), [s.heatmap, months, locale]);
@@ -521,6 +544,7 @@ function SourceSection({ locale, months, stats: s }: { locale: string; months: s
       <div className="space-y-6">
         {DIMENSIONS.map((d) => {
           const items = s.top[d];
+          const withAi = items.some((i) => i.ai > 0);
           const title = t(`topHeading.${d}`);
           return (
             <section key={d} aria-labelledby={`${heading}-top-${d}`} className="min-w-0">
@@ -544,13 +568,22 @@ function SourceSection({ locale, months, stats: s }: { locale: string; months: s
                         <th scope="col" className="text-right">
                           {t("count")}
                         </th>
+                        {withAi && (
+                          <th scope="col" className="text-right">
+                            {tAi("aiColumn")}
+                          </th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
                       {items.map((i) => (
                         <tr key={i.value}>
-                          <th scope="row">{i.label}</th>
+                          <th scope="row">
+                            {i.label}
+                            {i.ai > 0 && <AiMark label={tAi("badgeName")} />}
+                          </th>
                           <td className="text-right">{number.format(i.count)}</td>
+                          {withAi && <td className="text-right">{number.format(i.ai)}</td>}
                         </tr>
                       ))}
                     </tbody>

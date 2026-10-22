@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { NotificationDetailView } from "@/components/notification-detail";
+import { getAiClassifications, getAiSummary } from "@/lib/ai";
 import { isSiteLocale, SITE_LOCALES } from "@/i18n/routing";
 import { getDb } from "@/lib/db";
 import { keyFromSegments, notificationPath, prerenderSegments } from "@/lib/notification-path";
@@ -46,6 +47,19 @@ async function loadNotification(source: string, key: string): Promise<Notificati
   cacheLife("hours");
   cacheTag(`notification:${source}:${key}`);
   return getNotificationDetail(getDb(), source, key);
+}
+
+/** The Notification's current AI classifications and T6 summary in `locale`, cached alike. */
+async function loadAi(source: string, key: string, id: number, locale: string) {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(`notification:${source}:${key}`);
+  const db = getDb();
+  const [fields, summary] = await Promise.all([
+    getAiClassifications(db, [id], { locale }),
+    getAiSummary(db, id, locale),
+  ]);
+  return { fields: fields.get(id) ?? [], summary };
 }
 
 async function resolve(params: PageProps<"/[locale]/n/[source]/[...key]">["params"]) {
@@ -100,11 +114,13 @@ export default async function NotificationPage({
 }: PageProps<"/[locale]/n/[source]/[...key]">) {
   const { locale, notification } = await resolve(params);
   if (!notification) notFound();
+  const ai = await loadAi(notification.source.code, notification.sourceKey, notification.id, locale);
   const pageUrl = `${SITE_URL}${notificationPath(locale, notification.source.code, notification.sourceKey)}`;
   return (
     <NotificationDetailView
       locale={locale}
       notification={notification}
+      ai={ai}
       reportErrorHref={reportErrorUrl(
         pageUrl,
         `${notification.source.name} ${notification.sourceKey}`,
