@@ -65,7 +65,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
     <>
       <h1 className="text-3xl font-semibold text-slate-900">{t("title")}</h1>
       <p className="mt-2 max-w-prose text-slate-700">{t("intro")}</p>
-      <NextIntlClientProvider locale={locale} messages={{ Dashboard: messages.Dashboard }}>
+      <NextIntlClientProvider locale={locale} messages={{ Dashboard: messages.Dashboard, Ai: messages.Ai }}>
         <Dashboard
           locale={locale}
           initialQuery={query}

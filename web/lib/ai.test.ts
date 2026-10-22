@@ -14,16 +14,17 @@ const PEANUT: Row = {
   key: "/actueel/nieuws/2026/10/20/veiligheidswaarschuwing-pinda",
   title: "Veiligheidswaarschuwing pinda in koekjes",
   ai: [
+    // An older result (prompt v9) and the current one (v10): newest row wins (ticket 20).
     {
       task: "hazard_category",
       value: { category: "foreign bodies" },
-      promptVersion: "v1",
-      createdAt: "2026-10-24T10:00:00Z",
+      promptVersion: "v9",
+      createdAt: "2026-10-22T10:00:00Z",
     },
     {
       task: "hazard_category",
       value: { category: "allergens" },
-      promptVersion: "v2",
+      promptVersion: "v10",
       createdAt: "2026-10-23T10:00:00Z",
       derived: { hazardCategory: ALLERGENS },
     },
@@ -31,7 +32,7 @@ const PEANUT: Row = {
 };
 
 describe("getAiClassifications", () => {
-  it("returns the result of the latest prompt version per task, with its provenance", async () => {
+  it("returns the newest result per task, with its provenance", async () => {
     await withNotifications([PEANUT], async (tx) => {
       const id = await notificationId(tx, PEANUT.key);
       const found = await getAiClassifications(tx, [id], { locale: "en" });
@@ -43,12 +44,27 @@ describe("getAiClassifications", () => {
           abstained: false,
           confidence: "high",
           model: "claude-haiku-5-5",
-          promptVersion: "v2",
+          promptVersion: "v10",
           createdAt: "2026-10-23T10:00:00.000Z",
           reviewed: false,
           classificationId: expect.any(Number),
         },
       ]);
+    });
+  });
+
+  it("goes by time, not by the prompt version's name, as the pipeline does", async () => {
+    const rolledBack: Row = {
+      ...PEANUT,
+      ai: [
+        { task: "hazard_category", value: { category: "allergens" }, promptVersion: "v2", createdAt: "2026-10-22T10:00:00Z" },
+        { task: "hazard_category", value: { category: "foreign bodies" }, promptVersion: "v1", createdAt: "2026-10-23T10:00:00Z" },
+      ],
+    };
+    await withNotifications([rolledBack], async (tx) => {
+      const id = await notificationId(tx, PEANUT.key);
+      const [field] = (await getAiClassifications(tx, [id], { locale: "en" })).get(id)!;
+      expect([field.promptVersion, field.value]).toEqual(["v1", "foreign bodies"]);
     });
   });
 
@@ -71,11 +87,24 @@ describe("getAiClassifications", () => {
     });
   });
 
-  it("marks an approved value reviewed and fills in an abstained one a person corrected", async () => {
+  it("marks approved values reviewed and applies corrections to and from an abstention", async () => {
     const rows: Row = {
       ...PEANUT,
       ai: [
-        { task: "hazard_category", value: { category: "allergens" }, reviewStatus: "approved" },
+        // ticket 20: approving copies the model's value into reviewed_value.
+        {
+          task: "hazard_category",
+          value: { category: "allergens" },
+          reviewStatus: "approved",
+          reviewedValue: { category: "allergens" },
+        },
+        {
+          task: "hazard",
+          value: { hazard: "pinda" },
+          evidenceSpan: "pinda",
+          reviewStatus: "corrected",
+          reviewedValue: { hazard: null, abstain_reason: "reviewer_abstained" },
+        },
         {
           task: "origin_country",
           value: { country: null, abstain_reason: "model_abstained" },
@@ -90,6 +119,7 @@ describe("getAiClassifications", () => {
       const fields = (await getAiClassifications(tx, [id], { locale: "nl" })).get(id)!;
       expect(fields.map((f) => [f.task, f.label, f.abstained, f.reviewed])).toEqual([
         ["hazard_category", "allergens", false, true],
+        ["hazard", null, true, true],
         ["origin_country", "België", false, true],
       ]);
     });

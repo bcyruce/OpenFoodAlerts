@@ -394,5 +394,34 @@
     "subscribeHeading": "Receive NVWA food warnings in Chinese",
     "subscribeBody": "Choose Chinese as the language when you subscribe: you receive new NVWA food warnings, each with an AI-generated Chinese summary and a link to the official text, which prevails.",
     "subscribeLink": "Subscribe to NVWA warnings in Chinese"
+  },
+  "Ai": {
+    "badge": "AI",
+    "badgeSuffix": " classification",
+    "badgeName": "AI classification",
+    "reviewedBadge": "Reviewed",
+    "reviewedBadgeSuffix": " by a person",
+    "classifiedBy": "Classified by {model} on {date}, prompt v{prompt}.",
+    "summarisedBy": "Written by {model} on {date}, prompt v{prompt}.",
+    "reviewed": "Reviewed by a person.",
+    "accuracy": "Test-set accuracy {accuracy}.",
+    "notEvaluated": "Not yet evaluated on the test set.",
+    "summaryNotScored": "Summaries are not scored on the test set.",
+    "officialPrevails": "The official text prevails.",
+    "officialSource": "Official source",
+    "evaluation": "How the AI is evaluated",
+    "field": {
+      "hazard_category": "Hazard category",
+      "hazard": "Hazard",
+      "product_category": "Product category",
+      "origin_country": "Country of origin"
+    },
+    "abstained": "Not determined: the AI gave no answer it could support from the source text.",
+    "unknownCountry": "Not stated in the source text",
+    "summaryHeading": "Summary",
+    "aiGenerated": "AI-generated",
+    "dashboardNote": "Numbers include AI classifications; values counted through them are marked AI. Switch on “Official classifications only” to leave them out.",
+    "aiColumn": "Of which AI",
+    "classifiedAiNote": "Of these, from AI classifications: {hazard}, {product} and {country} respectively."
   }
 }

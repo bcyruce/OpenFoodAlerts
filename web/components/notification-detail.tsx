@@ -1,23 +1,42 @@
 import { getMessages, getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { UNKNOWN_COUNTRY, type AiField, type AiSummary } from "@/lib/ai";
 import { formatDate, formatValue } from "@/lib/format";
 import type { FieldChange, NotificationDetail } from "@/lib/notifications";
+import { AiBadge } from "./ai-badge";
+import { aiBadgeWriter } from "./ai-badge-text";
 
-type Props = { locale: string; notification: NotificationDetail; reportErrorHref: string };
+type Props = {
+  locale: string;
+  notification: NotificationDetail;
+  /** Current AI classifications (T5 never included) and the T6 summary in `locale`. */
+  ai: { fields: AiField[]; summary: AiSummary | null };
+  reportErrorHref: string;
+};
+
+/** Language of the Source's own text, for T3 spans quoted from it. */
+const SOURCE_LANGUAGE: Record<string, string> = { nvwa: "nl", openfda: "en", rasff: "en" };
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="border-t border-slate-200 py-2 first:border-t-0 sm:grid sm:grid-cols-[13rem_1fr] sm:gap-4">
+    <div className="border-t border-slate-200 py-2 first:border-t-0 sm:grid sm:grid-cols-[13rem_minmax(0,1fr)] sm:gap-4">
       <dt className="font-medium text-slate-700">{label}</dt>
       <dd className="mt-1 whitespace-pre-line break-words text-slate-900 sm:mt-0">{children}</dd>
     </div>
   );
 }
 
-/** Official fields, the (still empty) AI area, version history and attribution. */
-export async function NotificationDetailView({ locale, notification: n, reportErrorHref }: Props) {
+/** Official fields, the AI area (badged, apart), version history and attribution. */
+export async function NotificationDetailView({
+  locale,
+  notification: n,
+  ai,
+  reportErrorHref,
+}: Props) {
   const t = await getTranslations({ locale, namespace: "Notification" });
+  const tAi = await getTranslations({ locale, namespace: "Ai" });
   const tAll = await getTranslations({ locale });
+  const badge = await aiBadgeWriter(locale);
   const sourceFieldLabel = (key: string) =>
     tAll.has(`SourceFields.${n.source.code}.${key}`)
       ? tAll(`SourceFields.${n.source.code}.${key}`)
@@ -49,11 +68,12 @@ export async function NotificationDetailView({ locale, notification: n, reportEr
         <p className="text-sm font-medium text-slate-700">
           {n.source.name} · {n.notificationType}
         </p>
-        <h1 id="notification-title" className="mt-1 text-3xl font-semibold text-slate-900">
+        <h1 id="notification-title" className="mt-1 text-3xl font-semibold break-words text-slate-900">
           {n.title}
         </h1>
         <p className="mt-2 text-slate-700">
-          {t("reference")}: <span className="font-mono">{n.sourceKey}</span>
+          {/* NVWA keys are long URL paths: let them wrap on phones. */}
+          {t("reference")}: <span className="font-mono break-all">{n.sourceKey}</span>
         </p>
       </header>
 
@@ -127,7 +147,8 @@ export async function NotificationDetailView({ locale, notification: n, reportEr
         </p>
       </section>
 
-      {/* AI classifications (ticket 24) go here, always badged and apart from official fields. */}
+      {/* AI classifications: always badged, dashed and apart from the official fields. T5
+          (Product type) is internal and never shown (spec §6.1). */}
       <section
         aria-labelledby="ai-heading"
         data-testid="ai-fields"
@@ -137,12 +158,44 @@ export async function NotificationDetailView({ locale, notification: n, reportEr
           {t("aiHeading")}
         </h2>
         <p className="mt-1 text-sm text-slate-800">{t("aiIntro")}</p>
-        {productTypeIsAi ? (
-          <dl className="mt-4">
-            <Row label={t("productType")}>{productType}</Row>
-          </dl>
-        ) : (
+        {ai.fields.length === 0 && !ai.summary && (
           <p className="mt-4 text-slate-800">{t("aiEmpty")}</p>
+        )}
+        {ai.fields.length > 0 && (
+          <dl className="mt-4">
+            {ai.fields.map((f) => (
+              <Row key={f.task} label={tAi(`field.${f.task}`)}>
+                <span
+                  className="inline-flex flex-wrap items-start gap-2"
+                  data-testid="ai-value"
+                  data-task={f.task}
+                >
+                  <AiBadge {...badge(f, n.sourceUrl)} />
+                  {f.value === null ? (
+                    <span className="text-slate-800">{tAi("abstained")}</span>
+                  ) : f.task === "origin_country" && f.value === UNKNOWN_COUNTRY ? (
+                    <span className="text-slate-800">{tAi("unknownCountry")}</span>
+                  ) : f.task === "hazard" ? (
+                    <q lang={SOURCE_LANGUAGE[n.source.code]}>{f.label}</q>
+                  ) : (
+                    <span>{f.label}</span>
+                  )}
+                </span>
+              </Row>
+            ))}
+          </dl>
+        )}
+        {ai.summary && (
+          <section aria-labelledby="ai-summary-heading" data-testid="ai-summary" className="mt-4">
+            <h3 id="ai-summary-heading" className="font-semibold">
+              {tAi("summaryHeading")}{" "}
+              <span className="font-normal text-slate-800">({tAi("aiGenerated")})</span>
+            </h3>
+            <p className="mt-1 flex flex-wrap items-start gap-2">
+              <AiBadge {...badge(ai.summary, n.sourceUrl)} />
+              <span>{ai.summary.text}</span>
+            </p>
+          </section>
         )}
       </section>
 

@@ -394,5 +394,34 @@
     "subscribeHeading": "NVWA-voedselwaarschuwingen in het Chinees ontvangen",
     "subscribeBody": "Kies Chinees als taal bij het abonneren: u ontvangt nieuwe NVWA-voedselwaarschuwingen, elk met een door AI gemaakte Chinese samenvatting en een link naar de officiële tekst, die voorgaat.",
     "subscribeLink": "Abonneren op NVWA-waarschuwingen in het Chinees"
+  },
+  "Ai": {
+    "badge": "AI",
+    "badgeSuffix": "-indeling",
+    "badgeName": "AI-indeling",
+    "reviewedBadge": "Gecontroleerd",
+    "reviewedBadgeSuffix": " door een mens",
+    "classifiedBy": "Ingedeeld door {model} op {date}, prompt v{prompt}.",
+    "summarisedBy": "Geschreven door {model} op {date}, prompt v{prompt}.",
+    "reviewed": "Gecontroleerd door een mens.",
+    "accuracy": "Nauwkeurigheid op de testset {accuracy}.",
+    "notEvaluated": "Nog niet geëvalueerd op de testset.",
+    "summaryNotScored": "Samenvattingen worden niet op de testset gescoord.",
+    "officialPrevails": "De officiële tekst gaat voor.",
+    "officialSource": "Officiële bron",
+    "evaluation": "Hoe de AI wordt geëvalueerd",
+    "field": {
+      "hazard_category": "Gevarencategorie",
+      "hazard": "Gevaar",
+      "product_category": "Productcategorie",
+      "origin_country": "Land van herkomst"
+    },
+    "abstained": "Niet bepaald: de AI gaf geen antwoord dat het met de brontekst kon onderbouwen.",
+    "unknownCountry": "Niet vermeld in de brontekst",
+    "summaryHeading": "Samenvatting",
+    "aiGenerated": "Door AI gemaakt",
+    "dashboardNote": "De aantallen bevatten AI-indelingen; waarden die daardoor meetellen zijn met AI gemarkeerd. Zet “Alleen officiële indelingen” aan om ze weg te laten.",
+    "aiColumn": "Waarvan AI",
+    "classifiedAiNote": "Daarvan via AI-indelingen: respectievelijk {hazard}, {product} en {country}."
   }
 }

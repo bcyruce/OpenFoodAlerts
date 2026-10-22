@@ -1,5 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { AiBadge } from "@/components/ai-badge";
+import { aiBadgeWriter } from "@/components/ai-badge-text";
 import type { FilterFacet } from "@/lib/filter-sql";
 import { toSearchParams, type SearchQuery } from "@/lib/filters";
 import { formatDate } from "@/lib/format";
@@ -34,6 +36,7 @@ type T = Awaited<ReturnType<typeof getTranslations<"Search">>>;
 export async function SearchView({ locale, query, response }: Props) {
   const t = await getTranslations({ locale, namespace: "Search" });
   const tAll = await getTranslations({ locale });
+  const badge = await aiBadgeWriter(locale);
   const action = `/${locale}/search`;
   const f = query.filters;
   const pageHref = (page: number) => {
@@ -159,6 +162,7 @@ export async function SearchView({ locale, query, response }: Props) {
                 result={r}
                 t={t}
                 productType={productType(r.productType)}
+                badge={badge}
               />
             ))}
           </ol>
@@ -251,8 +255,20 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
+type Badge = Awaited<ReturnType<typeof aiBadgeWriter>>;
+
 /** Official values plainly, AI classifications badged and dashed (spec §9). */
-function Values({ values, t }: { values: ClassifiedValue[]; t: T }) {
+function Values({
+  values,
+  t,
+  badge,
+  sourceUrl,
+}: {
+  values: ClassifiedValue[];
+  t: T;
+  badge: Badge;
+  sourceUrl: string;
+}) {
   return (
     <ul className="flex flex-wrap gap-1.5">
       {values.map((v) => (
@@ -260,13 +276,19 @@ function Values({ values, t }: { values: ClassifiedValue[]; t: T }) {
           {v.provenance === "ai" ? (
             <span
               data-provenance="ai"
+              data-reviewed={v.ai?.reviewed ? "true" : undefined}
               className="inline-flex items-center gap-1 rounded border border-dashed border-violet-500 bg-violet-50 px-1.5 text-violet-950"
             >
-              <span aria-hidden="true" className="rounded bg-violet-800 px-1 text-xs font-semibold text-white">
-                {t("aiBadge")}
-              </span>
+              {v.ai ? (
+                <AiBadge {...badge(v.ai, sourceUrl)} />
+              ) : (
+                // An AI row without its classification (older data): marked, no details.
+                <span aria-hidden="true" className="rounded bg-violet-800 px-1 text-xs font-semibold text-white">
+                  {t("aiBadge")}
+                </span>
+              )}
               {v.label}
-              <span className="sr-only"> ({t("aiValue")})</span>
+              {!v.ai && <span className="sr-only"> ({t("aiValue")})</span>}
             </span>
           ) : (
             <span
@@ -287,11 +309,13 @@ function ResultItem({
   result: r,
   t,
   productType,
+  badge,
 }: {
   locale: string;
   result: SearchResult;
   t: T;
   productType: string;
+  badge: Badge;
 }) {
   const id = `result-${r.source}-${r.sourceKey.replace(/[^A-Za-z0-9-]/g, "-")}`;
   return (
@@ -329,21 +353,24 @@ function ResultItem({
               </>
             )}
           </Field>
-          {r.productType !== "food" && <Field label={t("productType")}>{productType}</Field>}
+          {/* A Product type from T5 is internal (spec §6.1) and not shown. */}
+          {r.productType !== "food" && r.productTypeProvenance !== "ai" && (
+            <Field label={t("productType")}>{productType}</Field>
+          )}
           {r.hazardText && <Field label={t("hazard")}>{truncate(r.hazardText, 200)}</Field>}
           {r.hazardCategories.length > 0 && (
             <Field label={t("hazardCategories")}>
-              <Values values={r.hazardCategories} t={t} />
+              <Values values={r.hazardCategories} t={t} badge={badge} sourceUrl={r.sourceUrl} />
             </Field>
           )}
           {r.productCategories.length > 0 && (
             <Field label={t("productCategories")}>
-              <Values values={r.productCategories} t={t} />
+              <Values values={r.productCategories} t={t} badge={badge} sourceUrl={r.sourceUrl} />
             </Field>
           )}
           {r.originCountries.length > 0 && (
             <Field label={t("originCountries")}>
-              <Values values={r.originCountries} t={t} />
+              <Values values={r.originCountries} t={t} badge={badge} sourceUrl={r.sourceUrl} />
             </Field>
           )}
         </dl>

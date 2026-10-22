@@ -103,8 +103,8 @@ test("/api/stats returns the statistics per Source", async ({ request }) => {
   expect(rasff.total).toBe(3);
   // Labels in Dutch; most Notifications first.
   expect(rasff.top.country).toEqual([
-    { value: "TR", label: "Turkije", count: 2 },
-    { value: "UZ", label: "Oezbekistan", count: 1 },
+    { value: "TR", label: "Turkije", count: 2, ai: 0 },
+    { value: "UZ", label: "Oezbekistan", count: 1, ai: 0 },
   ]);
   expect(rasff.heatmap[0]).toMatchObject({
     hazard: { label: "mycotoxins" },

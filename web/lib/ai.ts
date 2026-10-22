@@ -3,9 +3,10 @@
  * page and the search results. Server-only; the database is passed in.
  *
  * Rows of `ai_classifications` (migration 20261025001500, ticket 16) are append-only; per
- * Notification and task the current one is the latest prompt version, then the newest row.
- * A person's review (ticket 20) wins: `reviewed_value`, when set, replaces the model's
- * value, and a reviewed row (approved or corrected) is badged "reviewed by a person".
+ * Notification and task the current one is the newest (created_at, then id). The value
+ * shown is `ai_effective_value(row)` (migration 20261025001600, ticket 20): a person's
+ * correction, else the model's value, NULL for an abstention. A reviewed row (approved or
+ * corrected; approving also writes reviewed_value) is badged "reviewed by a person".
  *
  * Shown tasks: T1 hazard_category, T3 hazard, T2 product_category, T4 origin_country.
  * T5 product_type is internal and never returned (spec §6.1). T6 summaries have one row
@@ -68,10 +69,10 @@ type ClassificationRow = {
   id: number | string;
   notification_id: number | string;
   task: ShownAiTask;
-  value: unknown;
-  reviewed_value: unknown;
+  /** `ai_effective_value(a)` (ticket 20): the correction, else the model's value; null = abstain. */
+  effective_value: unknown;
   review_status: string;
-  abstained: boolean;
+  reviewed: boolean;
   confidence: string | null;
   evidence_span: string | null;
   model: string;
@@ -93,9 +94,15 @@ function readValue(task: ShownAiTask, value: Record<string, unknown> | null): st
   return null;
 }
 
-/** Prompt versions compare by number (v10 after v9), as the pipeline orders them. */
-const ORDER = sql`a.notification_id, a.task,
-  substring(a.prompt_version from '[0-9]+')::int DESC NULLS LAST, a.created_at DESC, a.id DESC`;
+/**
+ * The current row of a (Notification, task): the newest by created_at, then id, the rule
+ * the pipeline and `review_queue` use (ticket 20). A new prompt version or a changed
+ * input always gives a newer row.
+ */
+const NEWEST = sql`a.created_at DESC, a.id DESC`;
+
+/** A person looked at it: approving (ticket 20) also writes reviewed_value. */
+const REVIEWED = sql`(a.review_status IN ('approved', 'corrected') OR a.reviewed_value IS NOT NULL)`;
 
 type Catalog = Names & { key: string };
 
@@ -122,9 +129,9 @@ export type AiSummary = AiProvenance & { locale: string; text: string };
 /**
  * The T6 summary of a Notification in `locale` (spec §6.1: NVWA en/nl/zh, FDA en/nl;
  * never RASFF), or null. The single place that knows the T6 row shape, proposed by ticket
- * 30 and to be settled by ticket 18: task SUMMARY_TASK, value `{"locale", "summary"}`, a
- * reviewer's `reviewed_value` of the same shape wins, abstained rows are skipped, and the
- * latest prompt version, then the newest row, per locale counts.
+ * 30 and to be settled by ticket 18: task SUMMARY_TASK, value `{"locale", "summary"}`; the
+ * newest row of the locale counts, through `ai_effective_value` (a correction wins, an
+ * abstention gives no summary).
  */
 export async function getAiSummary(
   db: Reader,
@@ -140,14 +147,12 @@ export async function getAiSummary(
     created_at: string | Date;
   }>(
     db,
-    sql`SELECT a.id, coalesce(a.reviewed_value, a.value) ->> 'summary' AS summary,
-          (a.review_status <> 'unreviewed' OR a.reviewed_value IS NOT NULL) AS reviewed,
+    sql`SELECT a.id, ai_effective_value(a) ->> 'summary' AS summary, ${REVIEWED} AS reviewed,
           a.model, a.prompt_version, a.created_at
         FROM ai_classifications a
         WHERE a.notification_id = ${notificationId} AND a.task = ${SUMMARY_TASK}
-          AND (NOT a.abstained OR a.reviewed_value IS NOT NULL)
           AND coalesce(a.reviewed_value, a.value) ->> 'locale' = ${locale}
-        ORDER BY ${ORDER}
+        ORDER BY ${NEWEST}
         LIMIT 1`,
   );
   if (!row?.summary?.trim()) return null;
@@ -177,19 +182,20 @@ export async function getAiClassifications(
   const found = await rows<ClassificationRow>(
     db,
     sql`SELECT DISTINCT ON (a.notification_id, a.task)
-          a.id, a.notification_id, a.task, a.value, a.reviewed_value, a.review_status,
-          a.abstained, a.confidence, a.evidence_span, a.model, a.prompt_version, a.created_at
+          a.id, a.notification_id, a.task, ai_effective_value(a) AS effective_value,
+          a.review_status, ${REVIEWED} AS reviewed, a.confidence, a.evidence_span, a.model,
+          a.prompt_version, a.created_at
         FROM ai_classifications a
         WHERE a.notification_id IN (${inList(notificationIds)})
           AND a.task IN (${inList([...SHOWN_AI_TASKS])})
-        ORDER BY ${ORDER}`,
+        ORDER BY a.notification_id, a.task, ${NEWEST}`,
   );
   const fields = found.map((r) => {
-    const reviewedValue = json(r.reviewed_value);
-    const value =
-      readValue(r.task, reviewedValue ?? json(r.value)) ??
-      (r.task === "hazard" && !reviewedValue && !r.abstained ? r.evidence_span : null);
-    return { r, value, reviewed: r.review_status !== "unreviewed" || reviewedValue !== null };
+    const effective = json(r.effective_value);
+    // T3's span may live only in evidence_span; a person's correction carries its own.
+    const span =
+      r.task === "hazard" && effective && r.review_status !== "corrected" ? r.evidence_span : null;
+    return { r, value: readValue(r.task, effective) ?? span, reviewed: r.reviewed };
   });
   const countries = fields
     .filter((f) => f.r.task === "origin_country" && f.value && f.value !== UNKNOWN_COUNTRY)

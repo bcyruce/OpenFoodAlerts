@@ -20,7 +20,10 @@ test("shows an openFDA Notification with its official fields and history", async
     official.getByRole("link", { name: /View the official record/ }),
   ).toHaveAttribute("href", /api\.fda\.gov\/food\/enforcement\.json\?search=recall_number/);
 
-  await expect(page.getByTestId("ai-fields")).toContainText("No AI classifications yet.");
+  // T1 from the fake model (make web-fixtures), badged and apart from the official fields.
+  await expect(
+    page.getByTestId("ai-fields").locator('[data-task="hazard_category"]'),
+  ).toContainText("allergens");
 
   const history = page.getByTestId("version-history");
   await expect(history.getByRole("heading", { name: /Version 2/ })).toBeVisible();
