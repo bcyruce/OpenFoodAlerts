@@ -36,7 +36,8 @@ export async function aiBadgeWriter(
     return {
       reviewed: made.reviewed,
       text: made.reviewed ? t("reviewedBadge") : t("badge"),
-      suffix: made.reviewed ? t("reviewedBadgeSuffix") : t("badgeSuffix"),
+      // A summary's badge is named "AI summary" / "AI 生成", not "AI classification".
+      suffix: made.reviewed ? t("reviewedBadgeSuffix") : summary ? t("summaryBadgeSuffix") : t("badgeSuffix"),
       description,
       links: [
         { href: sourceUrl, text: t("officialSource"), external: true },

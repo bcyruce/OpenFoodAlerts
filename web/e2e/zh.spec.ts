@@ -86,7 +86,8 @@ test("/zh links the guide pages and the Chinese subscription flow", async ({ pag
 test("the guide pages link each other and exist only in Chinese", async ({ page }) => {
   await page.goto("/zh/jinkou");
   const moduleNav = page.getByRole("navigation", { name: "中文指南" });
-  await expect(moduleNav.getByRole("link")).toHaveCount(GUIDE_PATHS.length);
+  // The guide pages and the warning stream /zh/jinggao (ticket 33).
+  await expect(moduleNav.getByRole("link")).toHaveCount(GUIDE_PATHS.length + 1);
   await expect(moduleNav.getByRole("link", { name: ZH_PAGES.jinkou.navLabel })).toHaveAttribute(
     "aria-current",
     "page",

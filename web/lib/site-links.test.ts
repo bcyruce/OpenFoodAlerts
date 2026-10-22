@@ -26,6 +26,8 @@ describe("zh routing", () => {
   it("keeps the Chinese module pages in zh only and links every home page", () => {
     expect(localesForPath("nvwa-jiancha")).toEqual(["zh"]);
     expect(localesForPath("jinkou/x")).toEqual(["zh"]);
+    expect(localesForPath("jinggao")).toEqual(["zh"]);
+    expect(localesForPath("jinggao/2")).toEqual(["zh"]);
     expect(localesForPath("")).toEqual(["en", "nl", "zh"]);
     expect(localesForPath("alerts/confirm")).toEqual(["en", "nl", "zh"]);
     expect(localesForPath("dashboard")).toEqual(["en", "nl"]);

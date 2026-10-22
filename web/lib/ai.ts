@@ -134,18 +134,34 @@ export type AiSummary = AiProvenance & { locale: string; text: string };
 
 /**
  * The T6 summary of a Notification in `locale` (spec §6.1: NVWA en/nl/zh, FDA en/nl;
- * never RASFF), or null. The single place that knows the T6 row shape (ticket 18): task
- * `summary_{locale}`, value `{"locale", "summary"}`; the newest row of that task counts,
- * through `ai_effective_value` (a correction wins, an abstention gives no summary), the
- * same rule as the Digest (`mail/summaries.py`).
+ * never RASFF), or null. See `getAiSummaries`.
  */
 export async function getAiSummary(
   db: Reader,
   notificationId: number,
   locale: string,
 ): Promise<AiSummary | null> {
-  const [row] = await rows<{
+  return (await getAiSummaries(db, [notificationId], locale)).get(notificationId) ?? null;
+}
+
+/**
+ * The T6 summaries in `locale` of several Notifications, in one query; ids without one are
+ * absent. The single place that knows the T6 row shape (ticket 18): task
+ * `summary_{locale}`, value `{"locale", "summary"}`; the newest row of that task counts,
+ * through `ai_effective_value` (a correction wins, an abstention gives no summary), the
+ * same rule as the Digest (`mail/summaries.py`).
+ */
+export async function getAiSummaries(
+  db: Reader,
+  notificationIds: number[],
+  locale: string,
+): Promise<Map<number, AiSummary>> {
+  const out = new Map<number, AiSummary>();
+  if (notificationIds.length === 0) return out;
+  const task = summaryTask(locale);
+  const found = await rows<{
     id: number | string;
+    notification_id: number | string;
     summary: string | null;
     reviewed: boolean;
     model: string;
@@ -153,24 +169,28 @@ export async function getAiSummary(
     created_at: string | Date;
   }>(
     db,
-    sql`SELECT a.id, ai_effective_value(a) ->> 'summary' AS summary, ${REVIEWED} AS reviewed,
-          a.model, a.prompt_version, a.created_at
+    sql`SELECT DISTINCT ON (a.notification_id)
+          a.id, a.notification_id, ai_effective_value(a) ->> 'summary' AS summary,
+          ${REVIEWED} AS reviewed, a.model, a.prompt_version, a.created_at
         FROM ai_classifications a
-        WHERE a.notification_id = ${notificationId} AND a.task = ${summaryTask(locale)}
-        ORDER BY ${NEWEST}
-        LIMIT 1`,
+        WHERE a.notification_id IN (${inList(notificationIds)}) AND a.task = ${task}
+        ORDER BY a.notification_id, ${NEWEST}`,
   );
-  if (!row?.summary?.trim()) return null;
-  return {
-    classificationId: Number(row.id),
-    task: summaryTask(locale),
-    locale,
-    text: row.summary.trim(),
-    model: row.model,
-    promptVersion: row.prompt_version,
-    createdAt: new Date(row.created_at).toISOString(),
-    reviewed: row.reviewed,
-  };
+  for (const row of found) {
+    const text = row.summary?.trim();
+    if (!text) continue;
+    out.set(Number(row.notification_id), {
+      classificationId: Number(row.id),
+      task,
+      locale,
+      text,
+      model: row.model,
+      promptVersion: row.prompt_version,
+      createdAt: new Date(row.created_at).toISOString(),
+      reviewed: row.reviewed,
+    });
+  }
+  return out;
 }
 
 /**

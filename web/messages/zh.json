@@ -191,6 +191,7 @@
   "Ai": {
     "badge": "AI",
     "badgeSuffix": " 分类",
+    "summaryBadgeSuffix": " 生成",
     "badgeName": "AI 分类",
     "reviewedBadge": "已人工复核",
     "reviewedBadgeSuffix": "",
@@ -216,5 +217,32 @@
     "dashboardNote": "数字包含 AI 分类；经由 AI 分类计入的值标有 AI。打开“仅官方分类”即可排除。",
     "aiColumn": "其中 AI",
     "classifiedAiNote": "其中来自 AI 分类的分别为 {hazard}、{product}、{country} 条。"
+  },
+  "ZhWarnings": {
+    "title": "NVWA 食品警告中文摘要",
+    "pageTitle": "NVWA 食品警告中文摘要（第 {page} 页）",
+    "navLabel": "NVWA 警告摘要",
+    "metaDescription": "NVWA（荷兰食品与消费品安全局）发布的食品安全警告，每条附 AI 生成的中文摘要、荷兰语原文标题和官方链接，以官方原文为准。",
+    "intro": "本页列出 NVWA 发布的食品安全警告（veiligheidswaarschuwingen），按发布日期从新到旧排列。中文摘要由 AI 根据荷兰语原文生成，可能有误；一切以 NVWA 官方原文为准。",
+    "notGradedNote": "NVWA 不对警告分级，本站也不推断严重程度，所以每条都显示“未分级”。",
+    "updated": "本页每小时更新一次。",
+    "pageInfo": "第 {page} 页，共 {pages} 页（共 {total} 条警告）",
+    "empty": "目前还没有 NVWA 食品警告。",
+    "published": "发布日期",
+    "severity": "严重度",
+    "notGraded": "未分级",
+    "withdrawn": "NVWA 已撤回此警告",
+    "summaryLabel": "中文摘要（AI 生成）",
+    "noSummary": "暂无中文摘要",
+    "noSummaryNote": "请阅读下方的 NVWA 官方原文。",
+    "officialLink": "NVWA 官方原文",
+    "langNl": "荷兰语",
+    "detailLink": "本站详情页",
+    "langEn": "英语",
+    "paginationLabel": "分页",
+    "previous": "上一页",
+    "next": "下一页",
+    "cardBody": "NVWA 发布的食品安全警告，每条附 AI 生成的中文摘要和官方原文链接，每小时更新。",
+    "cardNote": "AI 生成，以官方原文为准"
   }
 }

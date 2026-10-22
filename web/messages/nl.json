@@ -398,6 +398,7 @@
   "Ai": {
     "badge": "AI",
     "badgeSuffix": "-indeling",
+    "summaryBadgeSuffix": "-samenvatting",
     "badgeName": "AI-indeling",
     "reviewedBadge": "Gecontroleerd",
     "reviewedBadgeSuffix": " door een mens",
@@ -423,5 +424,32 @@
     "dashboardNote": "De aantallen bevatten AI-indelingen; waarden die daardoor meetellen zijn met AI gemarkeerd. Zet “Alleen officiële indelingen” aan om ze weg te laten.",
     "aiColumn": "Waarvan AI",
     "classifiedAiNote": "Daarvan via AI-indelingen: respectievelijk {hazard}, {product} en {country}."
+  },
+  "ZhWarnings": {
+    "title": "NVWA-voedselwaarschuwingen met Chinese samenvattingen",
+    "pageTitle": "NVWA-voedselwaarschuwingen met Chinese samenvattingen (pagina {page})",
+    "navLabel": "Samenvattingen NVWA-waarschuwingen",
+    "metaDescription": "Veiligheidswaarschuwingen over voedsel van de NVWA, elk met een door AI gegenereerde Chinese samenvatting, de Nederlandse titel en de officiële link. De officiële tekst gaat voor.",
+    "intro": "Veiligheidswaarschuwingen over voedsel van de NVWA, nieuwste eerst. De Chinese samenvattingen zijn door AI uit de Nederlandse tekst gegenereerd en kunnen fouten bevatten; de officiële tekst van de NVWA gaat voor.",
+    "notGradedNote": "De NVWA deelt haar waarschuwingen niet in en deze site leidt geen ernst af; daarom staat bij elke waarschuwing “niet ingedeeld”.",
+    "updated": "Deze pagina wordt elk uur bijgewerkt.",
+    "pageInfo": "Pagina {page} van {pages} ({total} waarschuwingen)",
+    "empty": "Nog geen NVWA-voedselwaarschuwingen.",
+    "published": "Gepubliceerd",
+    "severity": "Ernst",
+    "notGraded": "Niet ingedeeld",
+    "withdrawn": "Ingetrokken door de NVWA",
+    "summaryLabel": "Chinese samenvatting (door AI gegenereerd)",
+    "noSummary": "Nog geen Chinese samenvatting",
+    "noSummaryNote": "Lees de officiële tekst van de NVWA hieronder.",
+    "officialLink": "Officiële tekst van de NVWA",
+    "langNl": "Nederlands",
+    "detailLink": "Detailpagina op deze site",
+    "langEn": "Engels",
+    "paginationLabel": "Paginering",
+    "previous": "Vorige pagina",
+    "next": "Volgende pagina",
+    "cardBody": "Veiligheidswaarschuwingen over voedsel van de NVWA, elk met een door AI gegenereerde Chinese samenvatting en een link naar de officiële tekst; elk uur bijgewerkt.",
+    "cardNote": "Door AI gegenereerd; de officiële tekst gaat voor"
   }
 }

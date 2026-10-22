@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { ZH_HOME, ZH_PAGES } from "@/content/zh";
-import { ZH_MODULE_PAGES, type ZhModulePage } from "@/i18n/routing";
+import { ZH_MODULE_PAGES, ZH_WARNINGS_PAGE, type ZhModulePage } from "@/i18n/routing";
 import { formatDate } from "@/lib/format";
 import { isDraft, parseInline, type ZhBlock, type ZhPage } from "@/lib/zh-pages";
 import { AdBox } from "./ad-box";
@@ -152,19 +152,30 @@ function OfficialLinks({ page, t }: { page: ZhPage; t: ZhT }) {
   );
 }
 
-/** Links between the guide pages; the current one is marked. */
-function ModuleNav({ current, t }: { current: ZhModulePage; t: ZhT }) {
+/**
+ * Links between the guide pages and the warning stream (ticket 33); the current one is
+ * marked.
+ */
+export async function ModuleNav({ current }: { current: ZhModulePage | typeof ZH_WARNINGS_PAGE }) {
+  const [t, warnings] = await Promise.all([
+    getTranslations({ locale: "zh", namespace: "Zh" }),
+    getTranslations({ locale: "zh", namespace: "ZhWarnings" }),
+  ]);
+  const items = [
+    ...ZH_MODULE_PAGES.map((slug) => ({ slug, label: ZH_PAGES[slug].navLabel })),
+    { slug: ZH_WARNINGS_PAGE, label: warnings("navLabel") },
+  ];
   return (
     <nav aria-label={t("moduleNavLabel")} data-testid="zh-module-nav" className="mb-6">
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        {ZH_MODULE_PAGES.map((slug) => (
+        {items.map(({ slug, label }) => (
           <li key={slug}>
             <Link
               href={`/zh/${slug}`}
               aria-current={slug === current ? "page" : undefined}
               className={slug === current ? "font-semibold" : undefined}
             >
-              {ZH_PAGES[slug].navLabel}
+              {label}
             </Link>
           </li>
         ))}
@@ -179,7 +190,7 @@ export async function ZhGuidePage({ slug }: { slug: ZhModulePage }) {
   const t = await getTranslations({ locale: "zh", namespace: "Zh" });
   return (
     <>
-      <ModuleNav current={slug} t={t} />
+      <ModuleNav current={slug} />
       <article aria-labelledby="zh-title">
         <PageHeader page={page} t={t} />
         <Sections page={page} t={t} />
@@ -192,7 +203,10 @@ export async function ZhGuidePage({ slug }: { slug: ZhModulePage }) {
 
 /** `/zh`: introduction, the guide pages and the Chinese subscription flow. */
 export async function ZhHome() {
-  const t = await getTranslations({ locale: "zh", namespace: "Zh" });
+  const [t, warnings] = await Promise.all([
+    getTranslations({ locale: "zh", namespace: "Zh" }),
+    getTranslations({ locale: "zh", namespace: "ZhWarnings" }),
+  ]);
   return (
     <>
       <article aria-labelledby="zh-title">
@@ -220,6 +234,16 @@ export async function ZhHome() {
               );
             })}
           </ul>
+        </section>
+        {/* Ticket 33: the warning stream is AI text, not a reviewed guide page. */}
+        <section aria-labelledby="zh-warnings-card" className="mt-10" data-testid="zh-warnings-card">
+          <div className="rounded-lg border-2 border-dashed border-violet-400 bg-violet-50 p-4">
+            <h2 id="zh-warnings-card" className="text-xl font-semibold text-slate-900">
+              <Link href={`/zh/${ZH_WARNINGS_PAGE}`}>{warnings("title")}</Link>
+            </h2>
+            <p className="mt-1 max-w-prose text-sm leading-6 text-slate-800">{warnings("cardBody")}</p>
+            <p className="mt-2 text-xs text-slate-800">{warnings("cardNote")}</p>
+          </div>
         </section>
         <section aria-labelledby="zh-subscribe" className="mt-10" data-testid="zh-subscribe">
           <h2 id="zh-subscribe" className="text-xl font-semibold text-slate-900">
