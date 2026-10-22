@@ -5,7 +5,7 @@
  */
 import type { MetadataRoute } from "next";
 import { ZH_HOME, ZH_PAGES } from "@/content/zh";
-import { HTML_LANG, routing, SITE_LOCALES, type Locale } from "@/i18n/routing";
+import { HTML_LANG, routing, SITE_LOCALES, ZH_WARNINGS_PAGE, type Locale } from "@/i18n/routing";
 import { notificationPath } from "./notification-path";
 
 /** Notification detail pages listed in the sitemap, most recently published first. */
@@ -36,6 +36,9 @@ const PAGES: { path: string; locales: readonly Locale[] }[] = [
     path,
     locales: routing.locales,
   })),
+  // Ticket 33: the NVWA warning stream (ISR; its AI summaries are labelled). The first
+  // page only: later pages are reached through the page links and shift every hour.
+  { path: `/${ZH_WARNINGS_PAGE}`, locales: ["zh"] },
 ];
 
 function localized(

@@ -108,6 +108,9 @@ factcheck-app: ## Local Streamlit page to judge the sampled T6 summaries (writes
 
 # OFA_EVAL_EXAMPLE=1 adds /en/evaluation/example (the synthetic example.json) to this test
 # build only; deployments never set it, so there the route is a 404.
+# OFA_ZH_WARNINGS_PAGE_SIZE: the fixtures hold fewer NVWA food warnings than one page of
+# /zh/jinggao (20), so the build and the test server page by 5 to exercise pagination.
+smoke: export OFA_ZH_WARNINGS_PAGE_SIZE = 5
 smoke: web-fixtures ## Playwright smoke tests: load fixtures, build, start on SMOKE_PORT
 	OFA_EVAL_EXAMPLE=1 $(PNPM) build
 	$(PNPM) exec playwright test

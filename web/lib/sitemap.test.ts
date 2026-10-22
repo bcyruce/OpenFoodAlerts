@@ -24,7 +24,7 @@ describe("buildSitemap", () => {
 
   it("takes the Chinese module pages from content/zh by default", () => {
     const urls = buildSitemap(SITE, []).map((e) => e.url);
-    expect(urls.filter((u) => u.startsWith(`${SITE}/zh`) && !/(about|privacy|disclaimer|colofon)$/.test(u)))
+    expect(urls.filter((u) => u.startsWith(`${SITE}/zh`) && !/(about|privacy|disclaimer|colofon|jinggao)$/.test(u)))
       .toEqual(
         zhSitemapPages()
           .filter((p) => p.reviewedOn !== null)
@@ -37,6 +37,12 @@ describe("buildSitemap", () => {
       "/zh/jiancha-jieguo-gongkai",
       "/zh/jinkou",
     ]);
+  });
+
+  it("lists the first page of the Chinese warning stream once, in zh only (ticket 33)", () => {
+    expect(byUrl.get(`${SITE}/zh/jinggao`)).toEqual({ url: `${SITE}/zh/jinggao` });
+    expect(byUrl.has(`${SITE}/en/jinggao`)).toBe(false);
+    expect([...byUrl.keys()].some((u) => u.includes("/jinggao/"))).toBe(false);
   });
 
   it("lists the home page and dashboard in en and nl with hreflang alternates", () => {
@@ -77,7 +83,7 @@ describe("buildSitemap", () => {
   });
 
   it("leaves out pages that are not indexed", () => {
-    expect(entries).toHaveLength(2 + 2 + 1 + 1 + 4 * 3 + 1 + 2);
+    expect(entries).toHaveLength(2 + 2 + 1 + 1 + 4 * 3 + 1 + 1 + 2);
     expect(entries.some((e) => /\/(search|alerts)/.test(e.url))).toBe(false);
   });
 });

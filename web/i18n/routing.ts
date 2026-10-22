@@ -37,6 +37,12 @@ export const ZH_MODULE_PAGES = ["nvwa-jiancha", "zhaohui-jinggao", "jiancha-jieg
 export type ZhModulePage = (typeof ZH_MODULE_PAGES)[number];
 
 /**
+ * The Chinese module's NVWA warning stream (ticket 33): zh only, ISR, AI summaries; not a
+ * written guide page, so it has no entry in `content/zh`. Pages 2… are `/zh/jinggao/{n}`.
+ */
+export const ZH_WARNINGS_PAGE = "jinggao";
+
+/**
  * The locales a page exists in, from its path without the locale (e.g. "alerts/confirm").
  * Every locale has a home page (`/zh` is the Chinese module's landing page).
  */
@@ -44,7 +50,9 @@ export function localesForPath(rest: string): readonly Locale[] {
   const section = rest.split("/")[0];
   if (section === "") return routing.locales;
   if (EN_ONLY_SECTIONS.includes(section)) return ["en"];
-  if ((ZH_MODULE_PAGES as readonly string[]).includes(section)) return ["zh"];
+  if ((ZH_MODULE_PAGES as readonly string[]).includes(section) || section === ZH_WARNINGS_PAGE) {
+    return ["zh"];
+  }
   return ZH_SECTIONS.includes(section) ? routing.locales : SITE_LOCALES;
 }
 
