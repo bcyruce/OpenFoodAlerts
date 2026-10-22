@@ -8,7 +8,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from openfoodalerts.classify.input_hash import input_hash
-from openfoodalerts.classify.model import Classifier, ModelRequest, Usage
+from openfoodalerts.classify.model import Classifier, ModelRequest, ModelResponse, Usage
 from openfoodalerts.classify.prompts import Prompt
 from openfoodalerts.classify.tasks import Task, Verdict
 
@@ -63,12 +63,24 @@ def classify(
     if usage is not None:
         usage.add(response.usage)
         usage.requests += 1
+    return checked(task, prompt, classifier.model, snapshot, response)
+
+
+def checked(
+    task: Task,
+    prompt: Prompt,
+    model: str,
+    snapshot: Mapping[str, str],
+    response: ModelResponse,
+) -> Classification:
+    """A model response validated by the task (`Task.check`) and versioned: the same for a
+    synchronous call and a Batch result."""
     return Classification(
         task=task.name,
         verdict=task.check(response.output, snapshot, failure=response.failure),
-        model=classifier.model,
+        model=model,
         prompt_version=prompt.version,
         schema_version=task.schema_version,
         taxonomy_version=task.taxonomy_version,
-        input_hash=hash_for(task, prompt, classifier.model, snapshot),
+        input_hash=hash_for(task, prompt, model, snapshot),
     )

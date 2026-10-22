@@ -1,5 +1,6 @@
 """`make eval-refresh`: the registered classifiers write eval/cache/{model}/{prompt}.jsonl."""
 
+import json
 from pathlib import Path
 
 import pytest
@@ -57,6 +58,26 @@ def test_the_fake_model_refreshes_the_dev_cache_through_the_whole_path(tmp_path:
         assert output.input_hash == input_hash(
             source_item.input, prompt_version="v1", model="fake", taxonomy_version=taxonomy.version
         )
+
+
+def test_a_refresh_records_the_token_usage_per_task_next_to_the_cache(tmp_path: Path) -> None:
+    from openfoodalerts.eval.cache import read_usage
+
+    refresh_cache(ITEMS, split="dev", cache_dir=tmp_path, models=["fake"])
+    data = json.loads((tmp_path / "fake" / "usage.json").read_text(encoding="utf-8"))
+    t1 = data["dev"]["hazard_category"]
+    # 4 dev items, all different inputs: 4 requests (the fake model reports no tokens)
+    assert (t1["prompt_version"], t1["requests"], t1["input_tokens"]) == ("v1", 4, 0)
+    assert data["dev"]["summary_zh"]["requests"] == 1
+    assert "refreshed_at" in t1
+    total = read_usage(tmp_path, "fake", "dev")
+    assert total is not None and total.requests == 4 + 4 * 2 + 5
+    assert read_usage(tmp_path, "fake", "test") is None
+    assert read_usage(tmp_path, "nobody", "dev") is None
+    # a test refresh keeps the dev entry
+    refresh_cache(ITEMS, split="test", cache_dir=tmp_path, models=["fake"])
+    data = json.loads((tmp_path / "fake" / "usage.json").read_text(encoding="utf-8"))
+    assert set(data) == {"dev", "test"}
 
 
 def label(item_id: str, **values: str) -> dict[str, str]:
@@ -140,4 +161,4 @@ def test_identical_inputs_are_sent_once() -> None:
 
 def test_unknown_models_are_unavailable() -> None:
     with pytest.raises(ClassifierUnavailable, match="unknown model"):
-        make_classifier("gpt-5-mini", load_taxonomy(default_taxonomy_path()))
+        make_classifier("no-such-model", load_taxonomy(default_taxonomy_path()))

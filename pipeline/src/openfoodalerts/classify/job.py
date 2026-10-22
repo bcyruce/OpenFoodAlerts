@@ -106,21 +106,23 @@ class ClassifyRun:
 
 
 @dataclass(frozen=True)
-class _Item:
+class Item:
     notification_id: int
     source: str
     snapshot: dict[str, str]
     input_hash: str
 
 
-def _store(
+def store_result(
     conn: Connection,
     task: Task,
-    item: _Item,
+    item: Item,
     result: Classification,
     derived: Derived,
     run: ClassifyRun,
-) -> None:
+) -> bool:
+    """Write one result for one Notification, rederive its rows, commit. False when the
+    row existed already (idempotent: also used by the Batch backfill, `classify.batch`)."""
     v = result.verdict
     row = conn.execute(
         _INSERT,
@@ -140,15 +142,16 @@ def _store(
     ).fetchone()
     if row is None:  # written concurrently by another run
         conn.commit()
-        return
+        return False
     if v.abstained:
         run.abstained += 1
     rederive(conn, task, item.notification_id, derived)
     run.written, run.unmapped = derived.written, derived.unmapped
     conn.commit()
+    return True
 
 
-def _copy(stored: dict[str, Any], task: Task, prompt: Prompt, model: str) -> Classification:
+def copy_result(stored: dict[str, Any], task: Task, prompt: Prompt, model: str) -> Classification:
     value = stored["value"]
     key = getattr(task, "value_key", "category")  # T1: category
     return Classification(
@@ -169,6 +172,64 @@ def _copy(stored: dict[str, Any], task: Task, prompt: Prompt, model: str) -> Cla
     )
 
 
+def candidate_rows(
+    conn: Connection,
+    task: Task,
+    sources: Sequence[str] | None = None,
+    *,
+    ids: Sequence[int] | None = None,
+) -> list[dict[str, Any]]:
+    """The task's candidates (scope: module docstring), newest first; only `ids` if given."""
+    wanted = [s for s in task.sources if sources is None or s in sources]
+    scope = _T5_SCOPE if task.name == "product_type" else _SHOWN_SCOPE
+    if ids is not None:
+        scope += " AND n.id = ANY(%(ids)s)"
+    rows: list[dict[str, Any]] = conn.execute(
+        _CANDIDATES.format(scope=scope),
+        {"sources": wanted, "product_types": list(SHOWN_PRODUCT_TYPES), "ids": list(ids or ())},
+    ).fetchall()
+    return rows
+
+
+def plan_items(
+    conn: Connection,
+    run: ClassifyRun,
+    *,
+    task: Task,
+    prompt: Prompt,
+    sources: Sequence[str] | None = None,
+) -> list[Item]:
+    """The candidates not yet done for this model, prompt version and input, newest first
+    (counts `run.candidates` and `run.done`)."""
+    rows = candidate_rows(conn, task, sources)
+    run.candidates = len(rows)
+    done = {
+        (r["notification_id"], r["input_hash"])
+        for r in conn.execute(_DONE, (task.name, run.model, prompt.version)).fetchall()
+    }
+    todo: list[Item] = []
+    for r in rows:
+        snapshot = task.build_input(r["source"], r)
+        item = Item(r["id"], r["source"], snapshot, hash_for(task, prompt, run.model, snapshot))
+        if (item.notification_id, item.input_hash) in done:
+            run.done += 1
+        else:
+            todo.append(item)
+    return todo
+
+
+def reusable_results(
+    conn: Connection, items: Sequence[Item], *, task: Task, prompt: Prompt, model: str
+) -> dict[str, Classification]:
+    """Stored results with the same input_hash, to copy instead of calling the model."""
+    return {
+        r["input_hash"]: copy_result(r, task, prompt, model)
+        for r in conn.execute(
+            _REUSABLE, (task.name, model, prompt.version, [i.input_hash for i in items])
+        ).fetchall()
+    }
+
+
 def classify_notifications(
     conn: Connection,
     *,
@@ -181,33 +242,10 @@ def classify_notifications(
     dry_run: bool = False,
 ) -> ClassifyRun:
     run = ClassifyRun(task.name, model, prompt.version, dry_run=dry_run)
-    wanted = [s for s in task.sources if sources is None or s in sources]
-    scope = _T5_SCOPE if task.name == "product_type" else _SHOWN_SCOPE
-    rows = conn.execute(
-        _CANDIDATES.format(scope=scope),
-        {"sources": wanted, "product_types": list(SHOWN_PRODUCT_TYPES)},
-    ).fetchall()
-    run.candidates = len(rows)
-    done = {
-        (r["notification_id"], r["input_hash"])
-        for r in conn.execute(_DONE, (task.name, model, prompt.version)).fetchall()
-    }
-    todo: list[_Item] = []
-    for r in rows:
-        snapshot = task.build_input(r["source"], r)
-        item = _Item(r["id"], r["source"], snapshot, hash_for(task, prompt, model, snapshot))
-        if (item.notification_id, item.input_hash) in done:
-            run.done += 1
-        else:
-            todo.append(item)
+    todo = plan_items(conn, run, task=task, prompt=prompt, sources=sources)
     if limit is not None:
         todo = todo[:limit]
-    known: dict[str, Classification] = {
-        r["input_hash"]: _copy(r, task, prompt, model)
-        for r in conn.execute(
-            _REUSABLE, (task.name, model, prompt.version, [i.input_hash for i in todo])
-        ).fetchall()
-    }
+    known = reusable_results(conn, todo, task=task, prompt=prompt, model=model)
     conn.commit()
     run.to_call = len({i.input_hash for i in todo} - set(known))
     # copied without a call: from an earlier row, or from a twin sent in this run
@@ -240,6 +278,6 @@ def classify_notifications(
             consecutive_failures = 0
             known[item.input_hash] = result
             run.classified += 1
-        _store(conn, task, item, result, derived, run)
+        store_result(conn, task, item, result, derived, run)
     run.reused = reused
     return run

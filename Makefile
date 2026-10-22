@@ -21,7 +21,7 @@ WEB_FIXTURES := $(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/openfda/*.js
 	$(sort $(wildcard $(CURDIR)/web/e2e/fixtures/rasff/*.json)) \
 	$(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/nvwa/detail/*.html))
 
-.PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval eval-refresh eval-example smoke
+.PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval eval-refresh eval-compare eval-threshold eval-example smoke
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -91,11 +91,21 @@ SPLIT ?= dev
 eval: ## Offline eval of eval/cache/ + baselines on SPLIT (default dev) -> eval/results/latest.json
 	$(UV) run ofa eval-run --split $(SPLIT)
 
-# Model of eval-refresh: claude-haiku-5-5 (needs ANTHROPIC_API_KEY) or fake (keyword rules, no API).
+# Model of eval-refresh: claude-haiku-5-5 (needs ANTHROPIC_API_KEY), gpt-5-mini (needs
+# OPENAI_API_KEY) or fake (keyword rules, no API).
 MODEL ?= claude-haiku-5-5
 
-eval-refresh: ## Call MODEL (default claude-haiku-5-5) on SPLIT and refresh eval/cache/ (paid API)
+eval-refresh: ## Call MODEL (default claude-haiku-5-5; gpt-5-mini) on SPLIT and refresh eval/cache/ (paid API)
 	$(UV) run ofa eval-refresh --split $(SPLIT) --model $(MODEL)
+
+eval-compare: ## Select the model on dev by the spec §6.4 rule -> latest.json model_selection (offline)
+	$(UV) run ofa eval-compare
+
+# Accuracy the answers accepted without review must keep on dev (ofa eval-threshold).
+TARGET_ACCURACY ?= 0.90
+
+eval-threshold: ## Choose the low-confidence threshold per task on dev -> latest.json thresholds + review_settings
+	$(UV) run ofa eval-threshold --target-accuracy $(TARGET_ACCURACY)
 
 eval-example: ## Regenerate the synthetic eval/results/example.json (for the /evaluation page)
 	$(UV) run ofa eval-example

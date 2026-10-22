@@ -73,10 +73,13 @@ def test_eval_run_test_split_only_when_asked_and_rejects_other_splits(eval_dir: 
 
 def test_eval_refresh_fails_clearly_without_an_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     result = runner.invoke(app, ["eval-refresh", "--split", "dev"])
     assert result.exit_code == 2
     assert "ANTHROPIC_API_KEY is not set" in result.output
-    unknown = runner.invoke(app, ["eval-refresh", "--model", "gpt-5-mini"])
+    gpt = runner.invoke(app, ["eval-refresh", "--model", "gpt-5-mini"])
+    assert gpt.exit_code == 2 and "OPENAI_API_KEY is not set" in gpt.output
+    unknown = runner.invoke(app, ["eval-refresh", "--model", "no-such-model"])
     assert unknown.exit_code == 2 and "unknown classifier" in unknown.output
 
 

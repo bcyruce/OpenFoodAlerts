@@ -20,11 +20,12 @@ through `write_outputs`; `make eval` only reads it.
 """
 
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any
 
+from openfoodalerts.classify.model import Usage
 from openfoodalerts.classify.summary import SUMMARY_TASKS
 from openfoodalerts.eval.files import TASKS
 from openfoodalerts.eval.metrics import CONFIDENCES
@@ -122,3 +123,54 @@ def write_outputs(cache_dir: Path, outputs: Iterable[ModelOutput]) -> Path:
         for key in sorted(merged):
             f.write(json.dumps(asdict(merged[key]), ensure_ascii=False) + "\n")
     return path
+
+
+# Token usage of the last refresh per split and task: eval/cache/{model}/usage.json
+# (ticket 21: the model comparison's cost and the Batch cost estimates use it).
+USAGE_FILE = "usage.json"
+
+
+def write_usage(
+    cache_dir: Path,
+    model: str,
+    split: str,
+    by_task: Mapping[str, tuple[str, Usage]],
+    refreshed_at: str,
+) -> Path:
+    """Replace the split's entry of the model's usage file: per task, the prompt version
+    and the summed `Usage` of that refresh (other splits are kept)."""
+    path = cache_dir / model / USAGE_FILE
+    data = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+    data[split] = {
+        task: {"prompt_version": version, **usage.as_dict(), "refreshed_at": refreshed_at}
+        for task, (version, usage) in sorted(by_task.items())
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(dict(sorted(data.items())), indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
+    return path
+
+
+def read_task_usage(cache_dir: Path, model: str, split: str) -> dict[str, Usage]:
+    """Usage per task of the model's last refresh on the split ({} without one)."""
+    path = cache_dir / model / USAGE_FILE
+    if not path.exists():
+        return {}
+    entries = json.loads(path.read_text(encoding="utf-8")).get(split) or {}
+    names = {f.name for f in fields(Usage)}
+    return {
+        task: Usage(**{k: v for k, v in entry.items() if k in names})
+        for task, entry in entries.items()
+    }
+
+
+def read_usage(cache_dir: Path, model: str, split: str) -> Usage | None:
+    """The model's usage summed over all tasks of its last refresh on the split."""
+    per_task = read_task_usage(cache_dir, model, split)
+    if not per_task:
+        return None
+    total = Usage()
+    for usage in per_task.values():
+        total.add(usage)
+    return total

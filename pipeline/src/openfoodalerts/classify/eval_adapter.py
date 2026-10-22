@@ -65,17 +65,29 @@ def eval_outputs(
     return outputs
 
 
-def refresh_classifier(model: str) -> Callable[[Sequence[ItemRow]], Iterable[ModelOutput]]:
-    def run(items: Sequence[ItemRow]) -> Iterable[ModelOutput]:
+class RefreshClassifier:
+    """The registered refresh function of one model. After a call, `usage_by_task` holds
+    each task's prompt version and token usage; `eval.refresh.refresh_cache` writes it to
+    eval/cache/{model}/usage.json (the cost side of `ofa eval-compare`, ticket 21)."""
+
+    def __init__(self, model: str) -> None:
+        self.model = model
+        self.usage_by_task: dict[str, tuple[str, Usage]] = {}
+        self.refreshed_at = ""
+
+    def __call__(self, items: Sequence[ItemRow]) -> Iterable[ModelOutput]:
         taxonomy = load_taxonomy(default_taxonomy_path())
-        classifier = make_classifier(model, taxonomy)  # fails here without an API key
+        classifier = make_classifier(self.model, taxonomy)  # fails here without an API key
         created_at = datetime.now(UTC).isoformat(timespec="seconds")
-        usage = Usage()
+        self.refreshed_at = created_at
+        self.usage_by_task = {}
+        total = Usage()
         outputs: list[ModelOutput] = []
         # T6: the summaries are cached for the human fact-check (eval.factcheck), not scored
         tasks: tuple[Task, ...] = (HazardCategoryTask(taxonomy), *t2_t5_tasks(), *summary_tasks())
         for task in tasks:
             prompt = load_prompt(task.name)
+            usage = Usage()
             outputs += eval_outputs(
                 items,
                 task=task,
@@ -84,10 +96,14 @@ def refresh_classifier(model: str) -> Callable[[Sequence[ItemRow]], Iterable[Mod
                 created_at=created_at,
                 usage=usage,
             )
-        log_event("eval_refresh_usage", model=model, items=len(items), **usage.as_dict())
+            self.usage_by_task[task.name] = (prompt.version, usage)
+            total.add(usage)
+        log_event("eval_refresh_usage", model=self.model, items=len(items), **total.as_dict())
         return outputs
 
-    return run
+
+def refresh_classifier(model: str) -> RefreshClassifier:
+    return RefreshClassifier(model)
 
 
 def eval_classifiers() -> dict[str, Callable[[Sequence[ItemRow]], Iterable[ModelOutput]]]:
