@@ -13,6 +13,11 @@ import pytest
 
 from openfoodalerts.db.connection import Connection, connect
 
+# Typer forces a rich terminal when GITHUB_ACTIONS is set, which puts ANSI codes inside
+# option names in --help output. Read when typer's rich_utils is first imported, which
+# happens after this module loads.
+os.environ["_TYPER_FORCE_DISABLE_TERMINAL"] = "1"
+
 DEFAULT_TEST_DATABASE_URL = "postgres://ofa:ofa@localhost:5432/ofa_test?sslmode=disable"
 FIXTURES = Path(__file__).parent / "fixtures"
 

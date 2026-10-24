@@ -66,7 +66,8 @@ jobs:
       # CI-only throwaway password for the read-only web role.
       OFA_WEB_PASSWORD: ofa_web_ci
       WEB_DATABASE_URL: postgres://ofa_web:ofa_web_ci@localhost:5432/ofa?sslmode=disable
-      SITE_URL: http://localhost:3004
+      # Same as .env.example: the sitemap and robots smoke tests check the public URLs.
+      SITE_URL: https://openfoodalerts.nl
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
