@@ -1,7 +1,7 @@
 """`check-data`: data quality assertions after parse (spec §12.4)."""
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -45,6 +45,12 @@ def loaded(db: Connection) -> Connection:
         )
     db.commit()
     parse(db)
+    # first_seen_at / last_changed_at default to the database clock; pin them before NOW so
+    # no_future_dates does not fail once the wall clock passes NOW.
+    db.execute(
+        "UPDATE notifications SET first_seen_at = %(t)s, last_changed_at = %(t)s",
+        {"t": NOW - timedelta(hours=1)},
+    )
     return db
 
 
