@@ -21,7 +21,7 @@ WEB_FIXTURES := $(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/openfda/*.js
 	$(sort $(wildcard $(CURDIR)/web/e2e/fixtures/rasff/*.json)) \
 	$(sort $(wildcard $(CURDIR)/pipeline/tests/fixtures/nvwa/detail/*.html))
 
-.PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval eval-refresh eval-compare eval-threshold eval-example smoke
+.PHONY: help setup db-up migrate seed test-db db-roles db-types web-fixtures lint typecheck test check dev eval eval-refresh eval-compare eval-threshold eval-example smoke after-backfill
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-12s %s\n", $$1, $$2}'
@@ -87,6 +87,12 @@ dev: ## Next.js dev server
 
 # Eval split: dev unless test is asked for explicitly (make eval SPLIT=test).
 SPLIT ?= dev
+
+after-backfill: ## After the RASFF backfill (ticket 08): parse, check-data, taxonomy recount from the DB, silver statistics
+	$(UV) run ofa parse --source rasff
+	$(UV) run ofa check-data || true
+	$(UV) run ofa taxonomy-draft --from-db
+	$(UV) run ofa eval-silver --stats-only
 
 eval: ## Offline eval of eval/cache/ + baselines on SPLIT (default dev) -> eval/results/latest.json
 	$(UV) run ofa eval-run --split $(SPLIT)

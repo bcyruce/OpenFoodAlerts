@@ -1,6 +1,6 @@
 """`ofa` command-line entry point. Every pipeline job is a subcommand (spec §5)."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any
 
@@ -401,22 +401,42 @@ def taxonomy_draft_cmd(
     since: Annotated[str, typer.Option(help="Count Notifications from this date (YYYY-MM-DD).")] = (
         "2020-01-01"
     ),
-    output: Annotated[Path, typer.Option(help="Draft CSV to write.")] = Path(
-        "../db/seed/taxonomy/v1-draft.csv"
-    ),
+    from_db: Annotated[
+        bool,
+        typer.Option(
+            "--from-db",
+            help="Count the parsed RASFF archive instead of the list endpoint (after the "
+            "backfill); default output v1-draft-db.csv.",
+        ),
+    ] = False,
+    output: Annotated[
+        Path | None,
+        typer.Option(help="Draft CSV to write (default ../db/seed/taxonomy/v1-draft.csv)."),
+    ] = None,
 ) -> None:
     """Count RASFF Notifications per Hazard category and write the draft T1 merge table.
 
-    Read-only towards the database; ~30 list requests. The domain expert reviews the draft
-    before it is frozen as taxonomy v1 (ticket 11).
+    Read-only towards the database; ~30 list requests, or none with --from-db. The domain
+    expert reviews the draft before it is frozen as taxonomy v1 (ticket 11).
     """
     from openfoodalerts.sources.rasff.client import RasffClient
-    from openfoodalerts.taxonomy import count_hazard_categories, draft_merge, write_draft
+    from openfoodalerts.taxonomy import (
+        count_hazard_categories,
+        count_hazard_categories_in_db,
+        draft_merge,
+        write_draft,
+    )
 
-    filter_since = datetime.strptime(since, "%Y-%m-%d").strftime("%d-%m-%Y 00:00:00")
-    with RasffClient.create() as client:
-        rows = draft_merge(count_hazard_categories(client, since=filter_since))
-    write_draft(rows, output, since)
+    start = datetime.strptime(since, "%Y-%m-%d")
+    if from_db:
+        with connect() as conn:
+            counts = count_hazard_categories_in_db(conn, since=start.replace(tzinfo=UTC))
+    else:
+        with RasffClient.create() as client:
+            counts = count_hazard_categories(client, since=start.strftime("%d-%m-%Y 00:00:00"))
+    rows = draft_merge(counts)
+    name = "v1-draft-db.csv" if from_db else "v1-draft.csv"
+    write_draft(rows, output or Path("../db/seed/taxonomy") / name, since)
     for r in sorted(rows, key=lambda r: -r.count):
         typer.echo(f"{r.count:>6}  {r.name}  ->  {r.label}")
 
