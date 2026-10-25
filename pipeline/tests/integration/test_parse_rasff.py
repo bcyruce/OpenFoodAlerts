@@ -9,6 +9,7 @@ import pytest
 from openfoodalerts.archive import archive
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.parse.run import parse, replay
+from openfoodalerts.sources.rasff.parser import PARSER_VERSION
 
 DETAILS = Path(__file__).parents[1] / "fixtures" / "rasff" / "details"
 
@@ -206,7 +207,7 @@ def test_parse_writes_the_notification_and_its_child_records(db: Connection) -> 
     assert stats.new == 1
     n = notification(db, "2026.9489")
     assert n["source_ref"] == "881995"
-    assert n["parser_version"] == "rasff-1"
+    assert n["parser_version"] == PARSER_VERSION
     assert n["search_tsv"] is not None  # see test_search_tsv.py
     assert hazards(db, "2026.9489") == [
         {

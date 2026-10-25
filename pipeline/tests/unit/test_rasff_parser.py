@@ -122,6 +122,23 @@ def test_organisations_that_are_not_countries_get_no_role() -> None:
     assert n.source_fields["for_attention"] == ["INFO"]
 
 
+def test_known_non_country_organisations_are_not_reported_as_unmapped() -> None:
+    d = detail(881566)
+    d["organizationFlags"] += [
+        {
+            "organization": {"code": "UO", "description": "unknown origin"},
+            "notificationFlags": [{"flagType": "ORIGIN"}],
+        },
+        {
+            "organization": {"code": "EU", "description": "European Commission"},
+            "notificationFlags": [{"flagType": "NOTIFYING"}],
+        },
+    ]
+    n = parse_detail(d)
+    assert not {"UO", "EU"} & {c.iso2 for c in n.countries}
+    assert "unmapped_countries" not in n.source_fields
+
+
 def test_product_categories_include_related_products_once() -> None:
     various = parse_detail(detail(881566))
     assert [c.rasff_id for c in various.product_categories] == [

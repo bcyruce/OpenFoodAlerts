@@ -23,7 +23,7 @@ from openfoodalerts.parse.model import (
 from openfoodalerts.parse.run import SourceParser
 from openfoodalerts.sources.rasff.lookups import Dictionary, lookup
 
-PARSER_VERSION = "rasff-1"
+PARSER_VERSION = "rasff-2"
 NOTIFICATION_PAGE_URL = "https://webgate.ec.europa.eu/rasff-window/screen/notification/{notif_id}"
 
 # ecValidationDate and lastUpdate carry no time zone. Assumed to be Brussels local time
@@ -51,6 +51,9 @@ _ROLE_FLAGS: dict[str, CountryRole] = {
     "OPERATOR": "operator",
 }
 _RECIPIENT_FLAGS = {"FOR_ATTENTION": "for_attention", "FOR_FOLLOW_UP": "for_follow_up"}
+# RASFF organisations that are not countries, so not missing from the country dictionary:
+# "UO" unknown origin, "EU" European Commission, "INFO" INFOSAN.
+_NON_COUNTRY_ORGANISATIONS = {"UO", "EU", "INFO"}
 
 
 def rasff_time(value: str | None) -> datetime | None:
@@ -129,7 +132,8 @@ def _countries(
     """Country roles from organizationFlags[].notificationFlags[].flagType.
 
     FOR_ATTENTION / FOR_FOLLOW_UP are recipients, not roles: kept in source_fields. Flagged
-    organisations missing from the country dictionary (e.g. INFOSAN, "INFO") get no role.
+    organisations missing from the country dictionary (e.g. INFOSAN, "INFO") get no role;
+    `_NON_COUNTRY_ORGANISATIONS` are not reported as unmapped.
     """
     known = lookup(Dictionary.COUNTRY)
     countries: set[ParsedCountry] = set()
@@ -145,7 +149,8 @@ def _countries(
                 recipients.setdefault(_RECIPIENT_FLAGS[flag_type], set()).add(code.upper())
             elif flag_type in _ROLE_FLAGS:
                 if entry is None or entry.code is None:
-                    unmapped.add(code.upper())
+                    if code.upper() not in _NON_COUNTRY_ORGANISATIONS:
+                        unmapped.add(code.upper())
                 else:
                     countries.add(ParsedCountry(iso2=entry.code, role=_ROLE_FLAGS[flag_type]))
     for key, codes in recipients.items():
