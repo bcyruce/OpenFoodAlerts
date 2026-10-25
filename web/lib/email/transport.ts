@@ -50,7 +50,9 @@ export function createBrevoTransport(options: {
         },
         body: JSON.stringify({
           sender: options.sender,
-          to: [{ email: message.to }],
+          // Brevo adds an open pixel and rewrites links; false anonymises those events
+          // (aggregate statistics only), as the privacy page says.
+          to: [{ email: message.to, contactPixelTrackingConsent: false }],
           subject: message.subject,
           textContent: message.text,
           htmlContent: message.html,

@@ -3,10 +3,10 @@
  * place for them: the colofon, privacy statement, about page and (ticket 26) the footer
  * read from here.
  *
- * TODO (owner, before launch): fill in every `null` below. Until then the pages show a
- * visible "to be added" placeholder; `missingLegalFields()` lists what is missing. These
- * are public facts (BW 3:15d requires them on the site), not secrets, so they live in the
- * repository rather than in environment variables.
+ * A `null` field shows a visible "to be added" placeholder on the pages;
+ * `missingLegalFields()` lists what is missing. These are public facts (BW 3:15d requires
+ * them on the site), not secrets, so they live in the repository rather than in
+ * environment variables.
  */
 
 import { SNELVINK_URL } from "./referral";
@@ -30,12 +30,12 @@ export type Operator = {
 
 export const OPERATOR: Operator = {
   tradeName: "OpenFoodAlerts",
-  legalName: null, // TODO (owner)
-  ownerName: null, // TODO (owner)
-  address: null, // TODO (owner)
-  email: null, // TODO (owner)
-  kvk: null, // TODO (owner)
-  btwId: null, // TODO (owner)
+  legalName: "CoreCraft",
+  ownerName: "Chenyu Bai",
+  address: ["Borneseteeg 20-312", "6708 PE Wageningen", "Netherlands"],
+  email: "bcyruce@gmail.com",
+  kvk: "42079340",
+  btwId: "NL005274662B12",
 };
 
 const REQUIRED = ["legalName", "ownerName", "address", "email", "kvk", "btwId"] as const;

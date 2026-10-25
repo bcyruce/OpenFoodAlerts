@@ -51,7 +51,7 @@ def test_brevo_posts_the_transactional_api_and_returns_the_message_id() -> None:
     assert request.headers["api-key"] == "key-1"
     assert json.loads(request.content) == {
         "sender": {"email": "noreply@openfoodalerts.nl", "name": "OpenFoodAlerts"},
-        "to": [{"email": "reader@example.com"}],
+        "to": [{"email": "reader@example.com", "contactPixelTrackingConsent": False}],
         "subject": "Digest",
         "textContent": "hello",
         "htmlContent": "<p>hello</p>",

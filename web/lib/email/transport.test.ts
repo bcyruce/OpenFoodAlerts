@@ -39,7 +39,7 @@ describe("Brevo transport", () => {
     expect(new Headers(calls[0].init.headers).get("api-key")).toBe("xkeysib-test");
     expect(JSON.parse(String(calls[0].init.body))).toEqual({
       sender: { email: "noreply@openfoodalerts.nl", name: "OpenFoodAlerts" },
-      to: [{ email: "jan@example.nl" }],
+      to: [{ email: "jan@example.nl", contactPixelTrackingConsent: false }],
       subject: "Bevestig uw abonnement",
       textContent: "Tekst",
       htmlContent: "<p>Tekst</p>",

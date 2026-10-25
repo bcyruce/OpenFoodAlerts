@@ -125,8 +125,11 @@ function En() {
       <Consent locale={locale} />
       <p>
         Our emails contain only official Notifications and the links to manage your
-        Subscription: no promotion, no tracking pixels and no tracked links. There is no
-        profiling and no automated decision-making.
+        Subscription, with no promotion. Our email provider, Brevo, adds a tracking pixel (an
+        invisible image) to every email and routes the links through its own servers, so that
+        it can count opens and clicks; Brevo does not let us switch this off. We tell Brevo to
+        anonymise these events: they are only counted as totals and are not linked to your
+        address. There is no profiling and no automated decision-making.
       </p>
 
       <h2 id="recipients">Who receives the data</h2>
@@ -138,7 +141,7 @@ function En() {
       <ul data-testid="processors">
         <li>
           <strong>Brevo</strong> (Sendinblue SAS, France): sends the emails. Receives your email
-          address and the content of the emails.
+          address and the content of the emails, and counts opens and clicks anonymously.
         </li>
         <li>
           <strong>Hosting provider</strong> (website and database): <Todo locale={locale} />
@@ -320,9 +323,12 @@ function Nl() {
       </p>
       <Consent locale={locale} />
       <p>
-        Onze e-mails bevatten alleen officiële meldingen en de links om uw abonnement te beheren:
-        geen promotie, geen trackingpixels en geen gevolgde links. Er is geen profilering en geen
-        geautomatiseerde besluitvorming.
+        Onze e-mails bevatten alleen officiële meldingen en de links om uw abonnement te beheren,
+        zonder promotie. Onze e-mailprovider Brevo voegt aan elke e-mail een trackingpixel (een
+        onzichtbaar plaatje) toe en leidt de links via zijn eigen servers, zodat hij openingen en
+        klikken kan tellen; Brevo laat ons dit niet uitschakelen. We laten Brevo deze gegevens
+        anonimiseren: ze worden alleen als totalen geteld en niet aan uw adres gekoppeld. Er is
+        geen profilering en geen geautomatiseerde besluitvorming.
       </p>
 
       <h2 id="recipients">Wie de gegevens ontvangt</h2>
@@ -334,7 +340,7 @@ function Nl() {
       <ul data-testid="processors">
         <li>
           <strong>Brevo</strong> (Sendinblue SAS, Frankrijk): verstuurt de e-mails. Ontvangt uw
-          e-mailadres en de inhoud van de e-mails.
+          e-mailadres en de inhoud van de e-mails, en telt openingen en klikken anoniem.
         </li>
         <li>
           <strong>Hostingprovider</strong> (website en database): <Todo locale={locale} />
@@ -502,7 +508,7 @@ function Zh() {
       </div>
       <p>您同意的文本会连同版本号一起保存。当前版本（{CONSENT_TEXT_VERSION}）的内容是：</p>
       <Consent locale={locale} />
-      <p>我们的邮件只包含官方通报和管理订阅的链接：没有推广内容、没有追踪像素、没有被追踪的链接。不做用户画像，也没有自动化决策。</p>
+      <p>我们的邮件只包含官方通报和管理订阅的链接，没有推广内容。我们的邮件服务商 Brevo 会在每封邮件里加入一个追踪像素（一张看不见的图片），并让链接先经过它自己的服务器，用来统计打开和点击次数；Brevo 不允许我们关闭这项功能。我们要求 Brevo 把这些记录匿名化：只计入总数，不与您的邮箱地址关联。不做用户画像，也没有自动化决策。</p>
 
       <h2 id="recipients">谁会收到这些数据</h2>
       <p>
@@ -510,7 +516,7 @@ function Zh() {
       </p>
       <ul data-testid="processors">
         <li>
-          <strong>Brevo</strong>（Sendinblue SAS，法国）：发送邮件，会收到您的邮箱地址和邮件内容。
+          <strong>Brevo</strong>（Sendinblue SAS，法国）：发送邮件，会收到您的邮箱地址和邮件内容，并匿名统计打开和点击次数。
         </li>
         <li>
           <strong>托管服务商</strong>（网站和数据库）：<Todo locale={locale} />

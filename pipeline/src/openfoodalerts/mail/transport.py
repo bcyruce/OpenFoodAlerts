@@ -79,7 +79,9 @@ class BrevoTransport:
     def send(self, message: EmailMessage) -> SendResult:
         body: dict[str, object] = {
             "sender": self._sender,
-            "to": [{"email": message.to}],
+            # Brevo adds an open pixel and rewrites links; False anonymises those events
+            # (aggregate statistics only), as the privacy page says.
+            "to": [{"email": message.to, "contactPixelTrackingConsent": False}],
             "subject": message.subject,
             "textContent": message.text,
             "htmlContent": message.html,
