@@ -215,15 +215,15 @@ one.
 ```bash
 export ANTHROPIC_API_KEY=...            # or put it in .env
 make eval-refresh SPLIT=dev             # MODEL=claude-haiku-5-5 (default): paid API
-export OPENAI_API_KEY=...
-make eval-refresh SPLIT=dev MODEL=gpt-5-mini   # the second candidate (ticket 21): paid API
+export DEEPSEEK_API_KEY=...
+make eval-refresh SPLIT=dev MODEL=deepseek-flash   # the second candidate (spec §6.4): paid API
 make eval-refresh SPLIT=dev MODEL=fake  # keyword rules in the model's place: no API, no cost
 ```
 
 Each refresh also writes `cache/{model}/usage.json` (ticket 21): per split and task, the
 prompt version, the summed token usage (`requests`, `input_tokens` (uncached),
 `output_tokens` (incl. thinking / reasoning), `cache_creation_input_tokens`,
-`cache_read_input_tokens`; OpenAI's usage is normalised to this meaning) and
+`cache_read_input_tokens`; OpenAI's and DeepSeek's usage is normalised to this meaning) and
 `refreshed_at`. `make eval` does not read it; `ofa eval-compare` (the cost side of the model
 choice) and `ofa classify --batch --dry-run` (the backfill estimate) do. Commit it with the
 cache file.
@@ -242,7 +242,8 @@ language (NVWA en/nl/zh, openFDA en/nl, never RASFF) into the same file, `taxono
 "", `evidence_span` null. Identical inputs are sent once per task; every refresh calls
 the model again for every item (re-run only when the prompt, the model or the items
 change). Token usage is printed as an `eval_refresh_usage` JSON line on stderr. Without
-the model's key (`ANTHROPIC_API_KEY` for Claude, `OPENAI_API_KEY` for GPT-5 mini) it exits
+the model's key (`ANTHROPIC_API_KEY` for Claude, `DEEPSEEK_API_KEY` for DeepSeek Flash,
+`OPENAI_API_KEY` for GPT-5 mini) it exits
 2 before any call.
 
 `fake` exists to exercise the whole path offline (tests, demos). Its cache, `cache/fake/`,
@@ -387,19 +388,21 @@ Optional, written by `ofa eval-compare` (below), not shown by the page yet: `"mo
 
 ```jsonc
 "model_selection": {
-  "rule": "spec §6.4: default claude-haiku-5-5; if gpt-5-mini's dev hazard_category macro-F1 is at least claude-haiku-5-5's minus 2 points, the cheaper of the two",
+  "rule": "spec §6.4: default claude-haiku-5-5; if deepseek-flash's dev hazard_category macro-F1 is at least claude-haiku-5-5's minus 2 points, the cheaper of the two",
   "split": "dev", "task": "hazard_category", "metric": "overall.macro_f1", "max_gap": 0.02,
-  "default_model": "claude-haiku-5-5", "challenger": "gpt-5-mini",
+  "default_model": "claude-haiku-5-5", "challenger": "deepseek-flash",
   "status": "compared",                // or "pending": a dev score (n > 0) is missing for either model
   "selected": "claude-haiku-5-5",      // the default while pending
   "gap": 0.013,                        // default − challenger macro-F1 (null while pending)
   "within_gap": true,                  // gap <= max_gap (exactly 2 points counts as within)
   "cheaper": "claude-haiku-5-5",       // lower cost_per_1000_requests_usd
-  "reason": "…", "notices": ["…"],     // e.g. a nominal cost basis, a model's shutdown date
+  "reason": "…", "notices": ["…"],     // e.g. a nominal cost basis, a model's shutdown date,
+                                       // the off-peak cost of a model compared at its peak price
   "candidates": [{"model": "…", "prompt_version": "v1", "macro_f1": 0.0, "macro_f1_ci95": [0.0, 0.0],
                   "n": 100, "cost_basis": "measured" | "nominal",
                   "tokens_per_request": {"input": 0, "cache_write": 0, "cache_read": 0, "output": 0},
-                  "cost_per_1000_requests_usd": 0.0}],
+                  "cost_per_1000_requests_usd": 0.0,          // standard price (DeepSeek: peak)
+                  "cost_per_1000_requests_off_peak_usd": 0.0}], // DeepSeek only
   "prices": {"file": "eval/model_prices.json", "verified_on": "2026-10-25"},
   "decided_at": "…", "git_sha": "…"
 }
@@ -468,7 +471,7 @@ stands) and no threshold is chosen (the file is left unchanged).
 
 ```bash
 make eval-refresh SPLIT=dev                     # Claude Haiku 5.5 (ANTHROPIC_API_KEY)
-make eval-refresh SPLIT=dev MODEL=gpt-5-mini    # GPT-5 mini (OPENAI_API_KEY)
+make eval-refresh SPLIT=dev MODEL=deepseek-flash   # DeepSeek Flash (DEEPSEEK_API_KEY)
 make eval                                       # scores both on dev
 make eval-compare                               # ofa eval-compare -> model_selection
 make eval-threshold                             # ofa eval-threshold -> thresholds + review_settings
@@ -476,18 +479,22 @@ make eval-threshold                             # ofa eval-threshold -> threshol
 
 **Model** (`ofa eval-compare`, spec §6.4, `openfoodalerts.eval.selection.select_model`): on
 dev, T1 hazard_category, overall macro-F1 of each candidate's newest prompt version. The
-default is `claude-haiku-5-5`; if `gpt-5-mini` scores at least Haiku's macro-F1 minus 2
-points (a gap of exactly 2 points counts as within, as in the CI gate), the cheaper one is
-selected. Cheaper = lower cost per request at **standard** prices from
-[`model_prices.json`](model_prices.json) (verified on the official price pages, sources and
-date in the file and spec §16 V1) times the tokens per request that `make eval-refresh`
+default is `claude-haiku-5-5`; if `deepseek-flash` (which replaced GPT-5 mini as the
+challenger) scores at least Haiku's macro-F1 minus 2 points (a gap of exactly 2 points
+counts as within, as in the CI gate), the cheaper one is selected. Cheaper = lower cost per
+request at **standard** prices from [`model_prices.json`](model_prices.json) (verified on
+the official price pages, sources and date in the file and spec §16 V1; for DeepSeek the
+**peak** price, because our timers do not keep to its off-peak hours; the off-peak cost is
+reported beside it with a notice) times the tokens per request that `make eval-refresh`
 measured on dev for all tasks (`cache/{model}/usage.json`); when either model has no
 measured usage, a nominal request (200 input, 4,000 cached input, 300 output tokens) is
 used and a notice says so. Point estimates only (dev has ~100 items; the CIs are reported
 in `candidates`). A challenger that is more than 2 points better but dearer is not chosen
 by the rule; a notice flags it for the owner. A selected model with an announced shutdown
 (GPT-5 mini: 2026-12-11) gets a notice. `ofa classify` does **not** read the selection: pass
-`--model` to use a model other than the default.
+`--model` to use a model other than the default. DeepSeek has no Batch API: if it is
+selected, the backfill is `ofa classify --task all --model deepseek-flash --concurrency N`
+(synchronous, interruptible like any run), not `--batch`.
 
 **Threshold** (`ofa eval-threshold`, spec §6.3, `choose_threshold`): per task with a
 coverage–accuracy curve (T1, T2, T5; T3/T4 blocks have none and keep the default), on dev,

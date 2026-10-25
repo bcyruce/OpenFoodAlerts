@@ -91,11 +91,12 @@ SPLIT ?= dev
 eval: ## Offline eval of eval/cache/ + baselines on SPLIT (default dev) -> eval/results/latest.json
 	$(UV) run ofa eval-run --split $(SPLIT)
 
-# Model of eval-refresh: claude-haiku-5-5 (needs ANTHROPIC_API_KEY), gpt-5-mini (needs
-# OPENAI_API_KEY) or fake (keyword rules, no API).
+# Model of eval-refresh: claude-haiku-5-5 (needs ANTHROPIC_API_KEY), deepseek-flash (needs
+# DEEPSEEK_API_KEY), gpt-5-mini (needs OPENAI_API_KEY; shuts down 2026-12-11) or fake
+# (keyword rules, no API).
 MODEL ?= claude-haiku-5-5
 
-eval-refresh: ## Call MODEL (default claude-haiku-5-5; gpt-5-mini) on SPLIT and refresh eval/cache/ (paid API)
+eval-refresh: ## Call MODEL (default claude-haiku-5-5; deepseek-flash) on SPLIT and refresh eval/cache/ (paid API)
 	$(UV) run ofa eval-refresh --split $(SPLIT) --model $(MODEL)
 
 eval-compare: ## Select the model on dev by the spec §6.4 rule -> latest.json model_selection (offline)

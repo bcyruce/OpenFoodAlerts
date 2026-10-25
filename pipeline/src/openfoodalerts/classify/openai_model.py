@@ -1,4 +1,5 @@
-"""GPT-5 mini through the official `openai` SDK: the second candidate of spec §6.4.
+"""GPT-5 mini through the official `openai` SDK: ticket 21's second candidate, replaced by
+DeepSeek Flash (`classify.deepseek_model`) as spec §6.4's challenger; kept until it shuts down.
 
 Request (Responses API, `POST /v1/responses`, SDK `openai` 3.x; checked against
 developers.openai.com on 2026-10-25, see docs/implementation-log.md ### 21):

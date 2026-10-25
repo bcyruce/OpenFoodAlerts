@@ -54,6 +54,20 @@ def test_a_dry_run_needs_no_key_and_estimates_the_batch(
     assert count(db, "classify_batches") == 0
 
 
+def test_a_model_without_a_batch_api_is_refused_before_anything_is_written(
+    db: Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    add_notification(db, "openfda", "F-1", first_seen_at=T, hazard_text="Listeria")
+    db.commit()
+    for extra in ([], ["--dry-run"]):
+        result = runner.invoke(app, ["classify", "--batch", "--model", "deepseek-flash", *extra])
+        assert result.exit_code == 2, result.output
+        assert "deepseek-flash has no Batch API" in result.output
+        assert "--concurrency" in result.output
+    assert count(db, "classify_batches") == 0
+
+
 def test_submit_then_status_stores_the_results(db: Connection) -> None:
     add_notification(db, "openfda", "F-1", first_seen_at=T, hazard_text="Listeria")
     add_notification(db, "nvwa", "/a", first_seen_at=T, summary_source="Bevat glasdeeltjes.")

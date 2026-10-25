@@ -77,6 +77,31 @@ def test_task_all_runs_t5_first_then_t1_to_t4_then_t6(db: Connection) -> None:
     )
 
 
+def test_concurrency_sends_in_parallel_with_the_same_result(db: Connection) -> None:
+    for i, reason in enumerate(["Listeria", "Salmonella", "Undeclared milk"]):
+        add_notification(db, "openfda", f"F-{i}", first_seen_at=T, hazard_text=reason)
+    db.commit()
+    result = runner.invoke(app, ["classify", "--model", "fake", "--concurrency", "3"])
+    assert result.exit_code == 0, result.output
+    assert "called the model for 3" in result.output
+    assert db.execute("SELECT count(*) AS n FROM ai_classifications").fetchone() == {"n": 3}
+
+
+def test_a_dry_run_estimates_the_cost_at_standard_prices(
+    db: Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    add_notification(db, "openfda", "F-1", first_seen_at=T, hazard_text="Listeria")
+    db.commit()
+    haiku = runner.invoke(app, ["classify", "--dry-run"])
+    assert haiku.exit_code == 0, haiku.output
+    assert "estimated cost at standard prices: $" in haiku.output
+    # DeepSeek is priced at its peak rate (our timers do not keep to its off-peak hours)
+    deepseek = runner.invoke(app, ["classify", "--dry-run", "--model", "deepseek-flash"])
+    assert deepseek.exit_code == 0, deepseek.output
+    assert "at peak prices" in deepseek.output and "off-peak: $" in deepseek.output
+
+
 @pytest.mark.parametrize(
     "args",
     [
@@ -84,6 +109,7 @@ def test_task_all_runs_t5_first_then_t1_to_t4_then_t6(db: Connection) -> None:
         ["--model", "no-such-model"],
         ["--task", "summary"],
         ["--prompt-version", "v99"],
+        ["--concurrency", "0"],
     ],
 )
 def test_bad_options_exit_2(db: Connection, args: list[str]) -> None:

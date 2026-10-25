@@ -15,7 +15,7 @@ from openfoodalerts.eval.selection import (
     threshold_entries,
 )
 
-HAIKU, GPT = "claude-haiku-5-5", "gpt-5-mini"
+HAIKU, DS = "claude-haiku-5-5", "deepseek-flash"
 
 
 def points(*rows: tuple[str, float | None, float | None, int]) -> list[dict[str, Any]]:
@@ -96,7 +96,7 @@ def test_threshold_entries_use_the_newest_prompt_of_the_model_on_dev() -> None:
             run(HAIKU, version="v2"),
             run(HAIKU, version="v2", split="test", curve=points(("high", 1.0, 1.0, 100))),
             run(HAIKU, "product_category", version="v1"),
-            run(GPT, version="v3"),
+            run(DS, version="v3"),
             run("baseline-keywords", kind="baseline"),
         ]
     }
@@ -143,7 +143,7 @@ def test_merging_replaces_the_same_model_prompt_and_task_only() -> None:
             "task": "hazard_category",
             "min_confidence": "low",
         },
-        {"model": GPT, "prompt_version": "v1", "task": "hazard_category", "min_confidence": "high"},
+        {"model": DS, "prompt_version": "v1", "task": "hazard_category", "min_confidence": "high"},
     ]
     new = [
         {
@@ -158,8 +158,10 @@ def test_merging_replaces_the_same_model_prompt_and_task_only() -> None:
 
 PRICES = {
     HAIKU: Rates(input=0.10, cache_write=0.125, cache_read=0.01, output=0.50),
-    GPT: Rates(input=0.25, cache_write=0.0, cache_read=0.025, output=2.00),
+    # DeepSeek's peak price
+    DS: Rates(input=0.30, cache_write=0.0, cache_read=0.006, output=1.20),
 }
+OFF_PEAK = {DS: Rates(input=0.15, cache_write=0.0, cache_read=0.003, output=0.60)}
 
 
 def select(report: dict[str, Any], usage: dict[str, Usage] | None = None) -> dict[str, Any]:
@@ -167,23 +169,41 @@ def select(report: dict[str, Any], usage: dict[str, Usage] | None = None) -> dic
 
 
 def test_within_two_points_the_cheaper_model_is_chosen() -> None:
-    report = {"runs": [run(HAIKU, macro_f1=0.80), run(GPT, macro_f1=0.79)]}
-    # measured: GPT-5 mini spends far fewer tokens per request here, so it is cheaper
-    usage = {HAIKU: Usage(100, 20_000, 30_000, 0, 400_000), GPT: Usage(100, 2_000, 1_000, 0, 0)}
+    report = {"runs": [run(HAIKU, macro_f1=0.80), run(DS, macro_f1=0.79)]}
+    # measured: DeepSeek spends far fewer tokens per request here, so it is cheaper
+    usage = {HAIKU: Usage(100, 20_000, 30_000, 0, 400_000), DS: Usage(100, 2_000, 1_000, 0, 0)}
     block = select(report, usage)
     assert block["status"] == "compared"
-    assert block["selected"] == GPT
+    assert block["selected"] == DS
     assert block["gap"] == pytest.approx(0.01)
-    assert block["cheaper"] == GPT
+    assert block["cheaper"] == DS
     [h, g] = block["candidates"]
     assert (h["model"], h["macro_f1"], h["cost_basis"]) == (HAIKU, 0.80, "measured")
     # (20k x 0.10 + 30k x 0.50 + 400k x 0.01) / 1M per 100 requests = 0.021
     assert h["cost_per_1000_requests_usd"] == pytest.approx(0.21)
-    assert g["cost_per_1000_requests_usd"] == pytest.approx(0.025)
+    # (2k x 0.30 + 1k x 1.20) / 1M per 100 requests, at the peak price
+    assert g["cost_per_1000_requests_usd"] == pytest.approx(0.018)
+
+
+def test_a_model_priced_by_the_hour_is_compared_at_its_peak_price_with_a_notice() -> None:
+    usage = {HAIKU: Usage(100, 2_000, 1_000, 0, 0), DS: Usage(100, 2_000, 1_000, 0, 0)}
+    block = select_model(
+        {"runs": [run(HAIKU, macro_f1=0.80), run(DS, macro_f1=0.80)]},
+        prices=PRICES,
+        usage=usage,
+        decided_at="2026-10-26",
+        off_peak=OFF_PEAK,
+    )
+    # Haiku (0.007 per 1,000) is cheaper than DeepSeek at peak (0.018), not off-peak (0.009)
+    assert block["cheaper"] == HAIKU and block["selected"] == HAIKU
+    [h, d] = block["candidates"]
+    assert "cost_per_1000_requests_off_peak_usd" not in h
+    assert d["cost_per_1000_requests_off_peak_usd"] == pytest.approx(0.009)
+    assert any("deepseek-flash is compared at its peak price" in n for n in block["notices"])
 
 
 def test_exactly_two_points_is_within() -> None:
-    block = select({"runs": [run(HAIKU, macro_f1=0.70), run(GPT, macro_f1=0.68)]})
+    block = select({"runs": [run(HAIKU, macro_f1=0.70), run(DS, macro_f1=0.68)]})
     # nominal profile (no measured usage): Haiku is cheaper, so Haiku either way
     assert block["within_gap"] is True
     assert block["cheaper"] == HAIKU and block["selected"] == HAIKU
@@ -191,14 +211,14 @@ def test_exactly_two_points_is_within() -> None:
 
 
 def test_more_than_two_points_behind_keeps_the_default() -> None:
-    usage = {HAIKU: Usage(1, 10_000, 10_000, 0, 0), GPT: Usage(1, 1, 1, 0, 0)}
-    block = select({"runs": [run(HAIKU, macro_f1=0.80), run(GPT, macro_f1=0.77)]}, usage)
+    usage = {HAIKU: Usage(1, 10_000, 10_000, 0, 0), DS: Usage(1, 1, 1, 0, 0)}
+    block = select({"runs": [run(HAIKU, macro_f1=0.80), run(DS, macro_f1=0.77)]}, usage)
     assert (block["within_gap"], block["selected"]) == (False, HAIKU)
     assert "default" in block["reason"]
 
 
 def test_a_much_better_but_dearer_challenger_is_flagged_not_chosen() -> None:
-    block = select({"runs": [run(HAIKU, macro_f1=0.70), run(GPT, macro_f1=0.80)]})
+    block = select({"runs": [run(HAIKU, macro_f1=0.70), run(DS, macro_f1=0.80)]})
     assert block["selected"] == HAIKU
     assert any("10.0 points higher" in n for n in block["notices"])
 
@@ -207,8 +227,8 @@ def test_without_both_dev_runs_the_comparison_is_pending_and_the_default_stands(
     for report in (
         {"runs": [], "skipped": [{"model": HAIKU, "split": "dev", "task": "hazard_category"}]},
         {"runs": [run(HAIKU)]},
-        {"runs": [run(HAIKU), run(GPT, macro_f1=None, n=0)]},
-        {"runs": [run(HAIKU), run(GPT, split="test")]},
+        {"runs": [run(HAIKU), run(DS, macro_f1=None, n=0)]},
+        {"runs": [run(HAIKU), run(DS, split="test")]},
     ):
         block = select(report)
         assert block["status"] == "pending", report
@@ -217,15 +237,15 @@ def test_without_both_dev_runs_the_comparison_is_pending_and_the_default_stands(
 
 
 def test_the_shutdown_of_a_selected_model_is_a_notice() -> None:
-    usage = {HAIKU: Usage(1, 10_000, 10_000, 0, 0), GPT: Usage(1, 1, 1, 0, 0)}
+    usage = {HAIKU: Usage(1, 10_000, 10_000, 0, 0), DS: Usage(1, 1, 1, 0, 0)}
     block = select_model(
-        {"runs": [run(HAIKU, macro_f1=0.80), run(GPT, macro_f1=0.80)]},
+        {"runs": [run(HAIKU, macro_f1=0.80), run(DS, macro_f1=0.80)]},
         prices=PRICES,
         usage=usage,
         decided_at="2026-10-26",
-        shutdowns={GPT: "2026-12-11"},
+        shutdowns={DS: "2026-12-11"},
     )
-    assert block["selected"] == GPT
+    assert block["selected"] == DS
     assert any("2026-12-11" in n for n in block["notices"])
 
 
@@ -240,10 +260,17 @@ def test_cost_is_tokens_times_the_rates() -> None:
 def test_the_committed_price_table_has_both_candidates_with_sources() -> None:
     table = load_prices()
     assert table.verified_on == "2026-10-25"
-    haiku, gpt = table.models[HAIKU], table.models[GPT]
+    haiku, ds, gpt = table.models[HAIKU], table.models[DS], table.models["gpt-5-mini"]
     assert haiku.standard == Rates(input=0.10, cache_write=0.125, cache_read=0.01, output=0.50)
+    assert haiku.batch is not None
     assert haiku.batch.input == 0.05 and haiku.batch.output == 0.25
+    assert haiku.off_peak is None
+    # DeepSeek: standard is the peak price, half off-peak, no Batch API
+    assert ds.standard == PRICES[DS]
+    assert ds.off_peak == OFF_PEAK[DS]
+    assert ds.batch is None and ds.shutdown is None
+    # GPT-5 mini (the earlier challenger) stays priced until it shuts down
     assert gpt.standard == Rates(input=0.25, cache_write=0.0, cache_read=0.025, output=2.00)
     assert gpt.batch == Rates(input=0.125, cache_write=0.0, cache_read=0.0125, output=1.00)
-    assert all(s.startswith("https://") for m in (haiku, gpt) for s in m.sources)
+    assert all(s.startswith("https://") for m in (haiku, ds, gpt) for s in m.sources)
     assert gpt.shutdown == "2026-12-11" and haiku.shutdown is None
