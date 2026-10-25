@@ -2,6 +2,8 @@
 input_hash dedupe, ai_classifications and notification_hazards rows."""
 
 import shutil
+import threading
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -315,3 +317,73 @@ def test_usage_is_summed_per_run(db: Connection) -> None:
     assert result.usage.requests == 1
     assert result.as_log()["requests"] == 1
     assert result.as_log()["model"] == "fake"
+
+
+class Slow(Counting):
+    """Counting, with a pause per call and the highest number of calls in flight at once."""
+
+    def __init__(self, fail_on: str | None = None) -> None:
+        super().__init__(fail_on)
+        self.lock = threading.Lock()
+        self.in_flight = self.max_in_flight = 0
+
+    def complete(self, request: ModelRequest) -> ModelResponse:
+        with self.lock:
+            self.in_flight += 1
+            self.max_in_flight = max(self.max_in_flight, self.in_flight)
+        try:
+            time.sleep(0.05)
+            with self.lock:
+                return super().complete(request)
+        finally:
+            with self.lock:
+                self.in_flight -= 1
+
+
+def test_with_concurrency_the_calls_overlap_and_the_results_match_a_sequential_run(
+    db: Connection,
+) -> None:
+    reasons = ["Listeria", "Salmonella", "Undeclared milk", "Glass", "Listeria", "Mould"]
+    for i, reason in enumerate(reasons):
+        fda(db, f"F-{i}", reason, product="Brie")
+    db.commit()
+    model = Slow()
+    result = run(db, model, concurrency=4)
+    assert model.max_in_flight > 1
+    # one call per distinct input; the twin is copied
+    assert (model.calls, result.classified, result.reused, result.failed) == (5, 5, 1, 0)
+    assert result.usage.requests == 5
+    stored = rows(
+        db,
+        "SELECT n.source_key, a.value FROM ai_classifications a"
+        " JOIN notifications n ON n.id = a.notification_id ORDER BY n.source_key",
+    )
+    assert len(stored) == 6
+    assert stored[0]["value"] == stored[4]["value"] == {"category": "pathogenic micro-organisms"}
+    assert run(db, Slow(), concurrency=4).classified == 0
+
+
+def test_with_concurrency_a_failed_input_and_its_twins_wait_for_the_next_run(
+    db: Connection,
+) -> None:
+    fda(db, "F-1", "Listeria", product="Brie")
+    fda(db, "F-2", "Undeclared milk", product="Brie")
+    fda(db, "F-3", "Undeclared milk", product="Brie")
+    fda(db, "F-4", "Salmonella", product="Brie")
+    db.commit()
+    model = Slow(fail_on="milk")
+    result = run(db, model, concurrency=3)
+    # the failing input is sent once; its twin is not sent again (and not a second failure
+    # in a row: one bad input must not stop a run with many twins)
+    assert (model.calls, result.classified, result.failed) == (3, 2, 2)
+    assert rows(db, "SELECT count(*) AS n FROM ai_classifications") == [{"n": 2}]
+    assert run(db, concurrency=3).classified == 1
+
+
+def test_with_concurrency_repeated_failures_still_stop_the_run(db: Connection) -> None:
+    for i in range(5):
+        fda(db, f"F-{i}", f"Undeclared milk {i}")
+    db.commit()
+    with pytest.raises(ItemFailed):
+        run(db, Slow(fail_on="milk"), concurrency=2)
+    assert rows(db, "SELECT count(*) AS n FROM ai_classifications") == [{"n": 0}]

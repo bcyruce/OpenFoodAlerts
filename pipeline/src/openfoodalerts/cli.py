@@ -925,12 +925,13 @@ def eval_compare_cmd(
         Path | None, typer.Option(help="Price table (default: eval/model_prices.json).")
     ] = None,
 ) -> None:
-    """Compare Claude Haiku 5.5 and GPT-5 mini on dev and select the model (spec §6.4).
+    """Compare Claude Haiku 5.5 and DeepSeek Flash on dev and select the model (spec §6.4).
 
-    Rule: default claude-haiku-5-5; if gpt-5-mini's dev T1 macro-F1 is at least Haiku's
-    minus 2 points, the cheaper of the two (cost per request at the verified prices of
-    eval/model_prices.json, from the token usage that make eval-refresh measured on dev,
-    else a nominal request). Writes latest.json `model_selection`. Without both dev runs
+    Rule: default claude-haiku-5-5; if deepseek-flash's dev T1 macro-F1 is at least
+    Haiku's minus 2 points, the cheaper of the two (cost per request at the verified prices
+    of eval/model_prices.json, DeepSeek at its peak price, from the token usage that make
+    eval-refresh measured on dev, else a nominal request). Writes latest.json
+    `model_selection`. Without both dev runs
     (e.g. no Labels) the comparison is recorded as pending and the default stands.
     Exit code 2: test split, missing or synthetic report.
     """
@@ -955,6 +956,7 @@ def eval_compare_cmd(
         usage=usage,
         decided_at=dt.now(UTC).isoformat(timespec="seconds"),
         shutdowns={m: p.shutdown for m, p in table.models.items() if p.shutdown},
+        off_peak={m: p.off_peak for m, p in table.models.items() if p.off_peak},
     )
     block["git_sha"] = current_git_sha(REPO_ROOT)
     block["prices"] = {"file": "eval/model_prices.json", "verified_on": table.verified_on}
@@ -1106,8 +1108,9 @@ def classify_cmd(
     model: Annotated[
         str,
         typer.Option(
-            help="claude-haiku-5-5 (default), gpt-5-mini (OPENAI_API_KEY) or fake (keyword"
-            " rules, no API)."
+            help="claude-haiku-5-5 (default), deepseek-flash (DEEPSEEK_API_KEY; no --batch),"
+            " gpt-5-mini (OPENAI_API_KEY; shuts down 2026-12-11) or fake (keyword rules, no"
+            " API)."
         ),
     ] = "claude-haiku-5-5",
     prompt_version: Annotated[
@@ -1126,6 +1129,15 @@ def classify_cmd(
             " `ofa classify-batch-status` collects later.",
         ),
     ] = False,
+    concurrency: Annotated[
+        int,
+        typer.Option(
+            min=1,
+            max=64,
+            help="Requests in flight at once (synchronous runs; for the backfill of a model"
+            " without a Batch API).",
+        ),
+    ] = 1,
 ) -> None:
     """AI classifications of NVWA and openFDA Notifications into ai_classifications, and
     the rows derived from them (T1 primary hazard, T2 Product category, T3 Hazard name,
@@ -1135,9 +1147,10 @@ def classify_cmd(
     contact material. Idempotent: Notifications that already have a result for this model,
     prompt version and input are skipped, and an input that was classified before is
     copied, not sent again. `--task all` runs each task in turn, one job log per task
-    (a dry run of all cannot know what T5 would decide). Exit code 2: the model cannot run
-    (ANTHROPIC_API_KEY / OPENAI_API_KEY not set) or bad options; 1: a run stopped after
-    repeated failed requests.
+    (a dry run of all cannot know what T5 would decide; it prints an estimated cost at
+    standard prices, for deepseek-flash its peak price). Exit code 2: the model cannot run
+    (ANTHROPIC_API_KEY / DEEPSEEK_API_KEY / OPENAI_API_KEY not set) or bad options; 1: a
+    run stopped after repeated failed requests.
 
     With --batch (spec §6.3, the backfill): the same scope and inputs, sent as provider
     batches that survive interruption (classify_batches). Each run first stores the
@@ -1145,9 +1158,10 @@ def classify_cmd(
     waiting; failed requests are submitted again by the next run. With --task all, the
     Notifications T5 still has to decide join T1-T4 on a later run, once T5's results are
     stored. A dry run prints the requests and an estimated cost at Batch prices.
+    deepseek-flash has no Batch API: its backfill is a synchronous run with --concurrency.
     """
     from openfoodalerts.classify.prompts import PromptError, load_prompt
-    from openfoodalerts.classify.registry import MODELS
+    from openfoodalerts.classify.registry import MODELS, has_batch_api
     from openfoodalerts.classify.tasks import RUN_ORDER, make_task
     from openfoodalerts.eval.labelset import default_taxonomy_path, load_taxonomy
 
@@ -1170,6 +1184,13 @@ def classify_cmd(
             err=True,
         )
         raise typer.Exit(2)
+    if batch and not has_batch_api(model):
+        typer.echo(
+            f"error: {model} has no Batch API; run `ofa classify` without --batch"
+            " (--concurrency N for the backfill)",
+            err=True,
+        )
+        raise typer.Exit(2)
     for one, prompt in chosen:
         if batch:
             _classify_batch_one(
@@ -1177,12 +1198,20 @@ def classify_cmd(
             )
         else:
             _classify_one(
-                one, prompt, labels, model=model, source=source, limit=limit, dry_run=dry_run
+                one,
+                prompt,
+                labels,
+                model=model,
+                source=source,
+                limit=limit,
+                dry_run=dry_run,
+                concurrency=concurrency,
             )
 
 
-def _batch_cost_line(model: str, task: str, requests: int) -> str:
-    """The estimated cost of `requests` Batch requests of the task, from the token usage
+def _cost_line(model: str, task: str, requests: int, *, batch: bool) -> str:
+    """The estimated cost of `requests` requests of the task at Batch or standard prices
+    (for DeepSeek the peak price, with the off-peak one beside it), from the token usage
     measured on dev by `make eval-refresh`, else from a nominal request."""
     from openfoodalerts.classify.model import Usage
     from openfoodalerts.eval.cache import read_task_usage
@@ -1191,8 +1220,9 @@ def _batch_cost_line(model: str, task: str, requests: int) -> str:
 
     table = load_prices()
     prices = table.models.get(model)
-    if prices is None:
-        return f"no price for {model} in {table.path.name}"
+    rates = None if prices is None else prices.batch if batch else prices.standard
+    if prices is None or rates is None:
+        return f"no {'Batch ' if batch else ''}price for {model} in {table.path.name}"
     measured = read_task_usage(default_eval_dir() / "cache", model, "dev").get(task)
     if measured is not None and measured.requests:
         n = measured.requests
@@ -1207,9 +1237,16 @@ def _batch_cost_line(model: str, task: str, requests: int) -> str:
     else:
         per_request = NOMINAL_REQUEST
         basis = "a nominal request (no measured dev usage: run make eval-refresh first)"
-    total = requests * cost_usd(per_request, prices.batch)
+    total = f"${requests * cost_usd(per_request, rates):.2f}"
+    if batch:
+        tier = "Batch prices"
+    elif prices.off_peak is None:
+        tier = "standard prices"
+    else:
+        tier = "peak prices"
+        total += f" (off-peak: ${requests * cost_usd(per_request, prices.off_peak):.2f})"
     return (
-        f"estimated cost at Batch prices: ${total:.2f} for {requests} requests, from {basis};"
+        f"estimated cost at {tier}: {total} for {requests} requests, from {basis};"
         f" prices verified {table.verified_on}"
     )
 
@@ -1273,7 +1310,7 @@ def _classify_batch_one(
         f" ({result.bytes / 1e6:.1f} MB)"
     )
     if result.requests:
-        typer.echo(_batch_cost_line(model, task, result.requests))
+        typer.echo(_cost_line(model, task, result.requests, batch=True))
     if not dry_run and result.requests:
         typer.echo("collect the results with: ofa classify-batch-status [--wait]")
 
@@ -1354,6 +1391,7 @@ def _classify_one(
     source: list[str] | None,
     limit: int | None,
     dry_run: bool,
+    concurrency: int = 1,
 ) -> None:
     from openfoodalerts.classify.job import classify_notifications
     from openfoodalerts.classify.model import ClassifierUnavailable, ItemFailed
@@ -1374,6 +1412,7 @@ def _classify_one(
                         sources=source,
                         limit=limit,
                         dry_run=dry_run,
+                        concurrency=concurrency,
                     )
                 finally:
                     stats.extra = {"task": task, "model": model, "prompt_version": prompt.version}
@@ -1397,6 +1436,8 @@ def _classify_one(
         f" failed {result.failed}; derived rows written {result.written}"
         f" (no row to write: {result.unmapped})"
     )
+    if dry_run and result.to_call:
+        typer.echo(_cost_line(model, task, result.to_call, batch=False))
     u = result.usage
     if u.requests:
         typer.echo(

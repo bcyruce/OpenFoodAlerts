@@ -22,13 +22,19 @@ Per task (T1-T6; `--task all` runs them in `tasks.RUN_ORDER`, T5 first):
    of ticket 20): T1 the AI primary hazard, T2 the Product category, T3 the Hazard name,
    T4 the origin country, T5 the Product type (see `effective.WRITERS`).
 
+Concurrency (`--concurrency N`, default 1; for the synchronous backfill of a model without
+a Batch API): up to N distinct inputs are sent at once, in candidate order; results are
+still stored one by one in that order by this thread, so the rules above do not change.
+
 Failures: `ItemFailed` (one request failed after the SDK's retries) skips the Notification
-(nothing stored, next run retries it); after MAX_CONSECUTIVE_FAILURES in a row the run
-stops. `ClassifierUnavailable` (no key, wrong model) stops the run before anything is
-stored for that item.
+and its twins with the same input (nothing stored, next run retries them); after
+MAX_CONSECUTIVE_FAILURES in a row the run stops. `ClassifierUnavailable` (no key, wrong
+model) stops the run before anything is stored for that item.
 """
 
+from collections import deque
 from collections.abc import Callable, Sequence
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -240,7 +246,10 @@ def classify_notifications(
     sources: Sequence[str] | None = None,
     limit: int | None = None,
     dry_run: bool = False,
+    concurrency: int = 1,
 ) -> ClassifyRun:
+    if concurrency < 1:
+        raise ValueError("concurrency must be at least 1")
     run = ClassifyRun(task.name, model, prompt.version, dry_run=dry_run)
     todo = plan_items(conn, run, task=task, prompt=prompt, sources=sources)
     if limit is not None:
@@ -255,29 +264,53 @@ def classify_notifications(
     classifier = make_classifier() if run.to_call else None
     if classifier is not None and classifier.model != model:
         raise ValueError(f"classifier {classifier.model!r} is not model {model!r}")
+
+    def call(item: Item) -> tuple[Classification, Usage]:
+        assert classifier is not None
+        usage = Usage()
+        return classify(task, prompt, classifier, item.source, item.snapshot, usage=usage), usage
+
+    # the distinct inputs to send, in order; up to `concurrency` of them are in flight
+    queue: deque[Item] = deque()
+    queued: set[str] = set(known)
+    for i in todo:
+        if i.input_hash not in queued:
+            queued.add(i.input_hash)
+            queue.append(i)
+    calls: dict[str, Future[tuple[Classification, Usage]]] = {}
     derived = Derived()
     reused = 0
     consecutive_failures = 0
-    for item in todo:
-        result = known.get(item.input_hash)
-        if result is not None:
-            reused += 1
-        else:
-            assert classifier is not None
-            try:
-                result = classify(
-                    task, prompt, classifier, item.source, item.snapshot, usage=run.usage
-                )
-            except ItemFailed as exc:
-                run.failed += 1
-                run.errors.append(f"notification {item.notification_id}: {exc}")
-                consecutive_failures += 1
-                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
-                    raise
-                continue
-            consecutive_failures = 0
-            known[item.input_hash] = result
-            run.classified += 1
-        store_result(conn, task, item, result, derived, run)
+    failed: set[str] = set()
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        try:
+            for item in todo:
+                result = known.get(item.input_hash)
+                if result is not None:
+                    reused += 1
+                elif item.input_hash in failed:  # a twin of an input that failed this run
+                    run.failed += 1
+                    continue
+                else:
+                    while queue and len(calls) < concurrency:
+                        nxt = queue.popleft()
+                        calls[nxt.input_hash] = pool.submit(call, nxt)
+                    try:
+                        result, usage = calls.pop(item.input_hash).result()
+                    except ItemFailed as exc:
+                        run.failed += 1
+                        run.errors.append(f"notification {item.notification_id}: {exc}")
+                        failed.add(item.input_hash)
+                        consecutive_failures += 1
+                        if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                            raise
+                        continue
+                    run.usage.add(usage)
+                    consecutive_failures = 0
+                    known[item.input_hash] = result
+                    run.classified += 1
+                store_result(conn, task, item, result, derived, run)
+        finally:
+            pool.shutdown(cancel_futures=True)
     run.reused = reused
     return run

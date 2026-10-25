@@ -13,13 +13,14 @@ review queue only (results below it are queued, abstains always are); AI fields 
 shown at once either way (spec §6.5). Ties cannot happen: coverage grows with each level.
 
 **Model rule** (`select_model`, spec §6.4): T1 hazard_category, overall dev macro-F1 of
-each candidate's newest prompt version. The default is Claude Haiku 5.5; if GPT-5 mini's
-macro-F1 is at least Haiku's minus 2 points (a gap of exactly 2 points counts as within),
-the cheaper of the two is chosen. Cheaper = lower cost per request at standard prices
-(eval/model_prices.json) from the token usage measured by `make eval-refresh` on dev
-(eval/cache/{model}/usage.json, all tasks), or from a nominal profile
-(`prices.NOMINAL_REQUEST`) when either model has no measured usage. Without a dev run
-with n > 0 for both, the comparison is `pending` and the default stands. A challenger
+each candidate's newest prompt version. The default is Claude Haiku 5.5; if the
+challenger's (DeepSeek Flash, which replaced GPT-5 mini) macro-F1 is at least Haiku's minus
+2 points (a gap of exactly 2 points counts as within), the cheaper of the two is chosen.
+Cheaper = lower cost per request at standard prices (eval/model_prices.json; for DeepSeek
+the peak price, with the off-peak cost as a notice) from the token usage measured by
+`make eval-refresh` on dev (eval/cache/{model}/usage.json, all tasks), or from a nominal
+profile (`prices.NOMINAL_REQUEST`) when either model has no measured usage. Without a dev
+run with n > 0 for both, the comparison is `pending` and the default stands. A challenger
 that is more than 2 points *better* but dearer is not chosen by this rule; that case is
 flagged as a notice for the owner.
 """
@@ -38,7 +39,7 @@ MAX_GAP = 0.02
 SPLIT = "dev"
 SELECTION_TASK = "hazard_category"
 DEFAULT_MODEL = "claude-haiku-5-5"
-CHALLENGER = "gpt-5-mini"
+CHALLENGER = "deepseek-flash"
 # The tasks whose eval blocks have a coverage-accuracy curve (classification blocks).
 CURVE_TASKS = ("hazard_category", "product_category", "product_type")
 LEVELS = ("high", "medium", "low")
@@ -165,10 +166,14 @@ def select_model(
     split: str = SPLIT,
     task: str = SELECTION_TASK,
     shutdowns: Mapping[str, str] | None = None,
+    off_peak: Mapping[str, Rates] | None = None,
 ) -> dict[str, Any]:
-    """The `model_selection` block of latest.json (the model rule, module docstring)."""
+    """The `model_selection` block of latest.json (the model rule, module docstring).
+    `prices` are the standard (for DeepSeek: peak) rates; `off_peak` the cheaper rates of
+    models priced by the hour, reported beside them."""
     runs = _model_runs(report, task, split)
     notices: list[str] = []
+    cheaper_hours = off_peak or {}
     measured = all(usage.get(m) and usage[m].requests for m in (default, challenger))
     if not measured:
         notices.append(
@@ -202,6 +207,13 @@ def select_model(
                 ),
             }
         )
+        if model in cheaper_hours:
+            off = round(1000 * cost_usd(profile, cheaper_hours[model]), 6)
+            candidates[-1]["cost_per_1000_requests_off_peak_usd"] = off
+            notices.append(
+                f"{model} is compared at its peak price; off-peak it costs ${off:g}"
+                " per 1,000 requests (our timers do not keep to its off-peak hours)"
+            )
     base, other = candidates
     costs = [c["cost_per_1000_requests_usd"] for c in candidates]
     cheaper = None if None in costs else (default if costs[0] <= costs[1] else challenger)

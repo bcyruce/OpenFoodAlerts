@@ -1,9 +1,12 @@
 """The verified model price table (`eval/model_prices.json`, spec §16 V1) and token cost.
 
 `Rates` are USD per million tokens for the four kinds of tokens `classify.model.Usage`
-counts: uncached input, cache writes, cache reads and output (OpenAI usage is normalised
-to the same meaning in `classify.openai_model`). Each model has a standard and a Batch
-table.
+counts: uncached input, cache writes, cache reads and output (OpenAI and DeepSeek usage is
+normalised to the same meaning in `classify.openai_model` / `classify.deepseek_model`).
+Each model has a standard table and, where the provider has a Batch API, a Batch table.
+DeepSeek charges half outside its peak hours: its standard table is the **peak** price
+(our timers do not keep to off-peak hours, so comparisons and estimates are conservative)
+and `off_peak` the other one.
 """
 
 import json
@@ -41,10 +44,13 @@ class ModelPrices:
     model: str
     provider: str
     standard: Rates
-    batch: Rates
+    # None: the provider has no Batch API
+    batch: Rates | None
     sources: tuple[str, ...]
     # announced shutdown date (YYYY-MM-DD), if the provider deprecated the model
     shutdown: str | None = None
+    # the cheaper rates outside the provider's peak hours (DeepSeek), if any
+    off_peak: Rates | None = None
 
 
 @dataclass(frozen=True)
@@ -70,9 +76,10 @@ def load_prices(path: Path = PRICES_FILE) -> PriceTable:
             model=name,
             provider=m["provider"],
             standard=_rates(m["standard"]),
-            batch=_rates(m["batch"]),
+            batch=_rates(m["batch"]) if m.get("batch") else None,
             sources=tuple(m["sources"]),
             shutdown=(m.get("deprecation") or {}).get("shutdown"),
+            off_peak=_rates(m["off_peak"]) if m.get("off_peak") else None,
         )
         for name, m in data["models"].items()
     }

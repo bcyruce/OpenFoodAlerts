@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 from openfoodalerts.cli import app
 
 runner = CliRunner()
-HAIKU, GPT = "claude-haiku-5-5", "gpt-5-mini"
+HAIKU, DS = "claude-haiku-5-5", "deepseek-flash"
 
 
 def curve(acc_high: float, acc_medium: float, acc_low: float) -> list[dict[str, Any]]:
@@ -92,15 +92,15 @@ def test_eval_threshold_refuses_the_test_split_and_a_synthetic_report(tmp_path: 
 def test_eval_threshold_defaults_to_the_selected_model(tmp_path: Path) -> None:
     path = write(
         tmp_path,
-        {"runs": [run(HAIKU), run(GPT)], "model_selection": {"selected": GPT}},
+        {"runs": [run(HAIKU), run(DS)], "model_selection": {"selected": DS}},
     )
     result = runner.invoke(app, ["eval-threshold", "--report", str(path), "--no-db"])
     assert result.exit_code == 0, result.output
-    assert {t["model"] for t in read(path)["thresholds"]} == {GPT}
+    assert {t["model"] for t in read(path)["thresholds"]} == {DS}
 
 
 def test_eval_compare_writes_model_selection(tmp_path: Path) -> None:
-    path = write(tmp_path, {"runs": [run(HAIKU, macro_f1=0.80), run(GPT, macro_f1=0.70)]})
+    path = write(tmp_path, {"runs": [run(HAIKU, macro_f1=0.80), run(DS, macro_f1=0.70)]})
     result = runner.invoke(
         app, ["eval-compare", "--report", str(path), "--cache-dir", str(tmp_path / "cache")]
     )
@@ -131,15 +131,18 @@ def test_eval_compare_uses_the_measured_usage(tmp_path: Path) -> None:
     write_usage(
         cache, HAIKU, "dev", {"hazard_category": ("v1", Usage(10, 2000, 3000, 0, 40000))}, "t"
     )
-    write_usage(cache, GPT, "dev", {"hazard_category": ("v1", Usage(10, 2000, 1000, 0, 0))}, "t")
-    path = write(tmp_path, {"runs": [run(HAIKU, macro_f1=0.80), run(GPT, macro_f1=0.79)]})
+    write_usage(cache, DS, "dev", {"hazard_category": ("v1", Usage(10, 2000, 2000, 0, 0))}, "t")
+    path = write(tmp_path, {"runs": [run(HAIKU, macro_f1=0.80), run(DS, macro_f1=0.79)]})
     result = runner.invoke(app, ["eval-compare", "--report", str(path), "--cache-dir", str(cache)])
     assert result.exit_code == 0, result.output
     block = read(path)["model_selection"]
     assert {c["cost_basis"] for c in block["candidates"]} == {"measured"}
     # Haiku: (2000 x 0.10 + 3000 x 0.50 + 40000 x 0.01) / 1M / 10 = $0.00021 per request
-    # GPT-5 mini: (2000 x 0.25 + 1000 x 2.00) / 1M / 10 = $0.00025 per request
+    # DeepSeek at peak: (2000 x 0.30 + 2000 x 1.20) / 1M / 10 = $0.00030 per request
+    # (off-peak it would be $0.00015 and cheaper: reported, not used)
     assert block["cheaper"] == HAIKU and block["selected"] == HAIKU
+    assert block["candidates"][1]["cost_per_1000_requests_off_peak_usd"] == pytest.approx(0.15)
+    assert "compared at its peak price" in result.output
 
 
 @pytest.mark.parametrize("command", ["eval-threshold", "eval-compare"])

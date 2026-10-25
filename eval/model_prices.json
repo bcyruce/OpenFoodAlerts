@@ -1,5 +1,5 @@
 {
-  "about": "Prices of the spec §6.4 candidate models, USD per million tokens, copied from the providers' official pages on verified_on (spec §16 V1). Used by `ofa eval-compare` (which model is cheaper) and the Batch cost estimates of `ofa classify --batch`. Re-check the pages and update this file (and spec §16) when a provider changes prices.",
+  "about": "Prices of the spec §6.4 candidate models, USD per million tokens, copied from the providers' official pages on verified_on (spec §16 V1). Used by `ofa eval-compare` (which model is cheaper) and the cost estimates of `ofa classify --dry-run` (standard prices; for DeepSeek the peak price) and `ofa classify --batch --dry-run` (Batch prices). Re-check the pages and update this file (and spec §16) when a provider changes prices.",
   "verified_on": "2026-10-25",
   "currency": "USD",
   "unit": "per 1M tokens",
@@ -38,6 +38,24 @@
         "https://developers.openai.com/api/docs/pricing",
         "https://developers.openai.com/api/docs/models/gpt-5-mini",
         "https://developers.openai.com/api/docs/guides/batch"
+      ]
+    },
+    "deepseek-flash": {
+      "provider": "deepseek",
+      "standard": {"input": 0.30, "cache_write": 0.0, "cache_read": 0.006, "output": 1.20},
+      "off_peak": {"input": 0.15, "cache_write": 0.0, "cache_read": 0.003, "output": 0.60},
+      "batch": null,
+      "peak_hours": "01:00-04:00 and 06:00-10:00 UTC, Monday to Friday, except Chinese public holidays",
+      "notes": [
+        "standard is the PEAK price; off_peak (all other hours, weekends and Chinese public holidays) is half. Comparisons and estimates use the peak price because our timers do not keep to off-peak hours.",
+        "Model version DeepSeek-V4.1-Flash-1017 on 2026-10-25; the id deepseek-flash has no pinned snapshot and moves to each new version.",
+        "DeepSeek caches prompt prefixes automatically (best effort) and does not charge cache writes; cache_read is the 'input (cache hit)' price, input the 'input (cache miss)' price.",
+        "No Batch API (not in the official docs on 2026-10-25).",
+        "Output includes reasoning tokens when thinking is on (off in classify.deepseek_model)."
+      ],
+      "sources": [
+        "https://api-docs.deepseek.com/quick_start/pricing/",
+        "https://api-docs.deepseek.com/updates/"
       ]
     }
   }
