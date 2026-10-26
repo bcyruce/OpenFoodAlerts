@@ -30,8 +30,10 @@ from openfoodalerts.sources.rasff.client import (
 
 SOURCE = "rasff"
 # Some RASFF details answer HTTP 500 for good (e.g. 773733): such a detail is skipped and
-# retried next run. This many failures in a row means RASFF itself is down: stop.
-MAX_CONSECUTIVE_DETAIL_FAILURES = 5
+# retried next run. This many failures in a row on one list page means RASFF itself is
+# down: stop. A list page that loads resets the count (a rerun retries the known-bad
+# details with only archived ones in between).
+MAX_CONSECUTIVE_DETAIL_FAILURES = 20
 
 
 class RasffFetchError(RuntimeError):
@@ -160,6 +162,7 @@ def walk_list(
     started = time.monotonic()
     while max_pages is None or stats.extra["pages"] < max_pages:
         payload = fetch_list_page(conn, client, page, items_per_page, filters)
+        failures_in_a_row = 0
         stats.extra["pages"] += 1
         stats.extra["total_pages"] = payload.get("totalPages")
         stats.extra["total_elements"] = payload.get("totalElements")

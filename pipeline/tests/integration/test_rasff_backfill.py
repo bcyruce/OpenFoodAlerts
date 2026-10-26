@@ -8,11 +8,8 @@ from typer.testing import CliRunner
 from openfoodalerts.cli import app
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.parse.run import parse
-from openfoodalerts.sources.rasff.backfill import (
-    MAX_CONSECUTIVE_DETAIL_FAILURES,
-    RasffFetchError,
-    backfill_rasff,
-)
+from openfoodalerts.sources.rasff import backfill
+from openfoodalerts.sources.rasff.backfill import RasffFetchError, backfill_rasff
 from openfoodalerts.sources.rasff.client import RasffClient
 from tests.rasff_fake import FakeRasff
 
@@ -113,12 +110,32 @@ def test_a_detail_with_an_empty_body_is_skipped_not_archived(db: Connection) -> 
     assert "2026.9489" not in raw_keys(db, "detail")
 
 
-def test_many_failing_details_in_a_row_stop_the_run(db: Connection) -> None:
+def test_many_failing_details_in_a_row_stop_the_run(
+    db: Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(backfill, "MAX_CONSECUTIVE_DETAIL_FAILURES", 3)
     fake = FakeRasff()
     fake.broken = set(fake.details)  # RASFF is down, not one bad detail
     with pytest.raises(RasffFetchError):
         backfill_rasff(db, fake.client(), items_per_page=50)
-    assert len(set(fake.detail_requests)) == MAX_CONSECUTIVE_DETAIL_FAILURES  # each retried
+    assert len(set(fake.detail_requests)) == 3  # each retried by the HTTP layer
+
+
+def test_failures_on_different_list_pages_do_not_add_up(
+    db: Connection, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # a later run retries the known-bad details, with only archived ones in between;
+    # a list page that loads shows RASFF is up
+    monkeypatch.setattr(backfill, "MAX_CONSECUTIVE_DETAIL_FAILURES", 2)
+    fake = FakeRasff()
+    ids = list(fake.details)
+    fake.broken = {ids[0], ids[5], ids[10]}  # one on each of the first three pages
+    backfill_rasff(db, fake.client(), items_per_page=5)
+    assert len(raw_keys(db, "detail")) == 13
+    fake.detail_requests.clear()
+    stats = backfill_rasff(db, fake.client(), items_per_page=5)  # only the bad three left
+    assert stats.extra["failed"] == 3
+    assert set(fake.detail_requests) == fake.broken
 
 
 def test_cli_runs_a_bounded_backfill_and_resumes_after_ctrl_c(
