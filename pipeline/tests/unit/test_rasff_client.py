@@ -106,3 +106,22 @@ def test_429_that_persists_gives_up() -> None:
     with pytest.raises(RasffRateLimited):
         client(lambda r: httpx.Response(429), clock).detail(1)
     assert clock.sleeps == [900.0, 900.0, 900.0]
+
+
+def test_an_empty_ok_response_is_logged_and_retried_after_a_pause(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    clock = FakeClock()
+    responses = iter([httpx.Response(200, content=b""), ok(body={"id": 1})])
+    response = client(lambda r: next(responses), clock).detail(1)
+    assert response.json() == {"id": 1}
+    assert clock.sleeps == [30.0]
+    assert '"event": "rasff_body_not_json"' in capsys.readouterr().err
+
+
+def test_a_body_that_stays_empty_is_returned_after_the_retries() -> None:
+    clock = FakeClock()
+    response = client(lambda r: httpx.Response(200, content=b""), clock).detail(1)
+    assert response.status_code == 200
+    assert response.content == b""
+    assert clock.sleeps == [30.0, 30.0]

@@ -104,6 +104,15 @@ def test_a_detail_that_keeps_failing_is_skipped_and_retried_next_run(db: Connect
     assert fake.detail_requests == [881995]
 
 
+def test_a_detail_with_an_empty_body_is_skipped_not_archived(db: Connection) -> None:
+    fake = FakeRasff()
+    fake.empty = {881995}  # RASFF once answered 200 with no body (2026-10-26)
+    stats = backfill_rasff(db, fake.client(), items_per_page=50)
+    assert stats.extra["failed"] == 1
+    assert stats.errors == ["detail 881995: HTTP 200 with a body that is not JSON"]
+    assert "2026.9489" not in raw_keys(db, "detail")
+
+
 def test_many_failing_details_in_a_row_stop_the_run(db: Connection) -> None:
     fake = FakeRasff()
     fake.broken = set(fake.details)  # RASFF is down, not one bad detail

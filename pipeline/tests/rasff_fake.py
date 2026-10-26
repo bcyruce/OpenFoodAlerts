@@ -36,6 +36,7 @@ class FakeRasff:
         self.list_requests: list[dict[str, Any]] = []
         self.missing: set[int] = set()
         self.broken: set[int] = set()  # answer HTTP 500 every time
+        self.empty: set[int] = set()  # answer HTTP 200 with an empty body every time
         self.interrupt_after: int | None = None
 
     def serve(self, body: dict[str, Any]) -> None:
@@ -74,6 +75,8 @@ class FakeRasff:
             return httpx.Response(404, json={"status": "NOT_FOUND"})
         if notif_id in self.broken:
             return httpx.Response(500)
+        if notif_id in self.empty:
+            return httpx.Response(200, content=b"")
         return httpx.Response(
             200, json=self.details[notif_id], headers={"X-Rate-Limit-Remaining": "49"}
         )

@@ -23,6 +23,7 @@ from openfoodalerts.sources.rasff.client import (
     ITEMS_PER_PAGE,
     RasffClient,
     detail_url,
+    is_json,
     search_body,
     search_url,
 )
@@ -68,6 +69,8 @@ def fetch_list_page(
     response = client.search(page, items_per_page, filters)
     if response.status_code != 200:
         raise RasffFetchError(f"list page {page}: HTTP {response.status_code}")
+    if not is_json(response):
+        raise RasffFetchError(f"list page {page}: HTTP 200 with a body that is not JSON")
     archive(
         conn,
         source=SOURCE,
@@ -94,6 +97,8 @@ def fetch_detail(
         return False
     if response.status_code != 200:
         raise RasffFetchError(f"detail {notif_id}: HTTP {response.status_code}")
+    if not is_json(response):
+        raise RasffFetchError(f"detail {notif_id}: HTTP 200 with a body that is not JSON")
     key = str(response.json().get("reference") or reference)
     if key != reference:
         log_event("rasff_reference_mismatch", notif_id=notif_id, list=reference, detail=key)

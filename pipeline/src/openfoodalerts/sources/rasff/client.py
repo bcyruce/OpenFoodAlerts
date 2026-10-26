@@ -5,7 +5,10 @@ On top of `PoliteClient` (sequential requests, User-Agent, 5xx/network retries):
 - at least 3 s between requests;
 - a response with `X-Rate-Limit-Remaining` below 10 pauses 60 s before the next request;
 - HTTP 429 is logged, pauses 15 min and is retried (up to 3 times, then
-  `RasffRateLimited`).
+  `RasffRateLimited`);
+- HTTP 200 with a body that is not JSON (RASFF once answered a detail with an empty body)
+  is logged, pauses 30 s and is retried twice; after that the response is returned and the
+  caller decides.
 
 Used by `backfill-rasff`; `ingest-rasff` and `refresh-rasff` (ticket 07) reuse it.
 """
@@ -29,6 +32,16 @@ LOW_REMAINING = 10
 LOW_REMAINING_PAUSE = 60.0
 TOO_MANY_REQUESTS_PAUSE = 15 * 60.0
 MAX_429_RETRIES = 3
+NOT_JSON_PAUSE = 30.0
+MAX_NOT_JSON_RETRIES = 2
+
+
+def is_json(response: httpx.Response) -> bool:
+    try:
+        response.json()
+    except ValueError:
+        return False
+    return True
 
 
 class RasffRateLimited(RuntimeError):
@@ -79,6 +92,16 @@ class RasffClient:
         return self.http.request_count
 
     def _request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        for attempt in range(MAX_NOT_JSON_RETRIES + 1):
+            response = self._request_rate_limited(method, url, **kwargs)
+            if response.status_code != 200 or is_json(response):
+                return response
+            log_event("rasff_body_not_json", url=url, attempt=attempt + 1)
+            if attempt < MAX_NOT_JSON_RETRIES:
+                self.http.pause(NOT_JSON_PAUSE)
+        return response
+
+    def _request_rate_limited(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
         for attempt in range(MAX_429_RETRIES + 1):
             response = self.http.request(method, url, **kwargs)
             if response.status_code != 429:
