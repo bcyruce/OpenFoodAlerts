@@ -8,7 +8,11 @@ from typer.testing import CliRunner
 from openfoodalerts.cli import app
 from openfoodalerts.db.connection import Connection
 from openfoodalerts.parse.run import parse
-from openfoodalerts.sources.rasff.backfill import backfill_rasff
+from openfoodalerts.sources.rasff.backfill import (
+    MAX_CONSECUTIVE_DETAIL_FAILURES,
+    RasffFetchError,
+    backfill_rasff,
+)
 from openfoodalerts.sources.rasff.client import RasffClient
 from tests.rasff_fake import FakeRasff
 
@@ -85,6 +89,27 @@ def test_a_missing_detail_is_reported_and_retried_next_run(db: Connection) -> No
     fake.detail_requests.clear()
     backfill_rasff(db, fake.client(), items_per_page=50)
     assert fake.detail_requests == [881995]
+
+
+def test_a_detail_that_keeps_failing_is_skipped_and_retried_next_run(db: Connection) -> None:
+    fake = FakeRasff()
+    fake.broken = {881995}  # some RASFF details answer HTTP 500 for good
+    stats = backfill_rasff(db, fake.client(), items_per_page=50)
+    assert stats.extra["failed"] == 1
+    assert stats.errors == ["detail 881995: HTTP 500"]
+    assert len(raw_keys(db, "detail")) == 15
+    fake.broken.clear()
+    fake.detail_requests.clear()
+    backfill_rasff(db, fake.client(), items_per_page=50)
+    assert fake.detail_requests == [881995]
+
+
+def test_many_failing_details_in_a_row_stop_the_run(db: Connection) -> None:
+    fake = FakeRasff()
+    fake.broken = set(fake.details)  # RASFF is down, not one bad detail
+    with pytest.raises(RasffFetchError):
+        backfill_rasff(db, fake.client(), items_per_page=50)
+    assert len(set(fake.detail_requests)) == MAX_CONSECUTIVE_DETAIL_FAILURES  # each retried
 
 
 def test_cli_runs_a_bounded_backfill_and_resumes_after_ctrl_c(

@@ -28,6 +28,9 @@ from openfoodalerts.sources.rasff.client import (
 )
 
 SOURCE = "rasff"
+# Some RASFF details answer HTTP 500 for good (e.g. 773733): such a detail is skipped and
+# retried next run. This many failures in a row means RASFF itself is down: stop.
+MAX_CONSECUTIVE_DETAIL_FAILURES = 5
 
 
 class RasffFetchError(RuntimeError):
@@ -141,10 +144,12 @@ def walk_list(
     """Walk list pages from `start_page`; fetch the details not yet archived.
 
     Shared by `backfill-rasff` (whole list) and `ingest-rasff` (list filtered by date).
-    Counts pages, skipped and fetched details in `stats.extra`.
+    Counts pages, skipped, fetched and failed details in `stats.extra`; a failed detail is
+    left unarchived, so the next run tries it again.
     """
-    stats.extra.update(pages=0, skipped=0, fetched=0, missing=0)
+    stats.extra.update(pages=0, skipped=0, fetched=0, missing=0, failed=0)
     archived = archived_detail_keys(conn)
+    failures_in_a_row = 0
     page = start_page
     seen = (start_page - 1) * items_per_page
     started = time.monotonic()
@@ -164,7 +169,18 @@ def walk_list(
                 stats.extra["capped"] = True
                 return
             stats.extra["fetched"] += 1
-            if fetch_detail(conn, client, int(item["notifId"]), reference, stats):
+            try:
+                ok = fetch_detail(conn, client, int(item["notifId"]), reference, stats)
+            except RasffFetchError as exc:
+                failures_in_a_row += 1
+                if failures_in_a_row >= MAX_CONSECUTIVE_DETAIL_FAILURES:
+                    raise
+                log_event("rasff_detail_failed", reference=reference, error=str(exc))
+                stats.extra["failed"] += 1
+                stats.errors.append(str(exc))
+                continue
+            failures_in_a_row = 0
+            if ok:
                 archived.add(reference)
         seen += len(items)
         stats.extra["last_page"] = page
