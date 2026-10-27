@@ -2,7 +2,8 @@
 
 On top of `PoliteClient` (sequential requests, User-Agent, 5xx/network retries):
 
-- at least 3 s between requests;
+- at least 3 s between requests (`OFA_RASFF_INTERVAL` overrides it, e.g. 1.5 for the
+  one-off local backfill; the scheduled jobs keep 3 s);
 - a response with `X-Rate-Limit-Remaining` below 10 pauses 60 s before the next request;
 - HTTP 429 is logged, pauses 15 min and is retried (up to 3 times, then
   `RasffRateLimited`);
@@ -13,6 +14,7 @@ On top of `PoliteClient` (sequential requests, User-Agent, 5xx/network retries):
 Used by `backfill-rasff`; `ingest-rasff` and `refresh-rasff` (ticket 07) reuse it.
 """
 
+import os
 import time
 from collections.abc import Callable, Mapping
 from typing import Any
@@ -77,7 +79,10 @@ class RasffClient:
     ) -> "RasffClient":
         return cls(
             PoliteClient(
-                min_interval=REQUEST_INTERVAL, transport=transport, sleep=sleep, clock=clock
+                min_interval=float(os.environ.get("OFA_RASFF_INTERVAL") or REQUEST_INTERVAL),
+                transport=transport,
+                sleep=sleep,
+                clock=clock,
             )
         )
 

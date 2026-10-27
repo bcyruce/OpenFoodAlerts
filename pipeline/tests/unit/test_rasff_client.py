@@ -125,3 +125,12 @@ def test_a_body_that_stays_empty_is_returned_after_the_retries() -> None:
     assert response.status_code == 200
     assert response.content == b""
     assert clock.sleeps == [30.0, 30.0]
+
+
+def test_the_interval_can_be_set_for_a_local_backfill(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("OFA_RASFF_INTERVAL", "1.5")
+    clock = FakeClock()
+    c = client(lambda r: ok(), clock)
+    c.detail(1)
+    c.detail(2)
+    assert clock.sleeps == [1.5]
