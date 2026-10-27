@@ -139,6 +139,19 @@ def test_known_non_country_organisations_are_not_reported_as_unmapped() -> None:
     assert "unmapped_countries" not in n.source_fields
 
 
+def test_a_measure_by_a_non_country_organisation_has_no_country() -> None:
+    d = detail(881566)
+    d["product"]["measures"] = [
+        {
+            "takenBy": {"id": 5248, "isoCode": "UO", "organizationName": "unknown origin"},
+            "actionTaken": {"id": 1, "description": "recall from consumers"},
+        }
+    ]
+    n = parse_detail(d)
+    assert [m.country_iso2 for m in n.measures] == [None]
+    assert "unmapped_countries" not in n.source_fields
+
+
 def test_product_categories_include_related_products_once() -> None:
     various = parse_detail(detail(881566))
     assert [c.rasff_id for c in various.product_categories] == [

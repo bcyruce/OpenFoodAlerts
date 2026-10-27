@@ -3,6 +3,7 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from typer.testing import CliRunner
 
@@ -18,7 +19,7 @@ DETAILS = Path(__file__).parents[1] / "fixtures" / "rasff" / "details"
 SHOWN = {"food", "feed", "food contact material"}
 
 
-def load(db: Connection) -> list[dict]:
+def load(db: Connection) -> list[dict[str, Any]]:
     details = [json.loads(p.read_bytes()) for p in sorted(DETAILS.glob("*.json"))]
     for d in details:
         archive(
@@ -36,7 +37,7 @@ def load(db: Connection) -> list[dict]:
     return details
 
 
-def expected(details: list[dict], since: datetime) -> dict[int, int]:
+def expected(details: list[dict[str, Any]], since: datetime) -> dict[int, int]:
     """Count straight from the fixtures: once per Notification and category."""
     counts: dict[int, int] = {}
     for d in details:

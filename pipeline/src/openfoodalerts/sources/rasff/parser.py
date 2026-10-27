@@ -23,7 +23,7 @@ from openfoodalerts.parse.model import (
 from openfoodalerts.parse.run import SourceParser
 from openfoodalerts.sources.rasff.lookups import Dictionary, lookup
 
-PARSER_VERSION = "rasff-2"
+PARSER_VERSION = "rasff-3"
 NOTIFICATION_PAGE_URL = "https://webgate.ec.europa.eu/rasff-window/screen/notification/{notif_id}"
 
 # ecValidationDate and lastUpdate carry no time zone. Assumed to be Brussels local time
@@ -186,7 +186,7 @@ def _measures(products: list[dict[str, Any]], unmapped_countries: set[str]) -> l
         for m in product.get("measures") or []:
             code = _clean((m.get("takenBy") or {}).get("isoCode"))
             entry = known.get_by_code(code) if code else None
-            if code and entry is None:
+            if code and entry is None and code.upper() not in _NON_COUNTRY_ORGANISATIONS:
                 unmapped_countries.add(code.upper())
             action = m.get("actionTaken") or {}
             measures.append(
