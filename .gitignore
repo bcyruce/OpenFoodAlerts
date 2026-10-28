@@ -28,3 +28,9 @@ Thumbs.db
 
 # outputs of the stand-in model (`make eval-refresh MODEL=fake`); never committed
 eval/cache/fake/
+
+# docs/ stays local (working notes, partly in Chinese), except what the site reads or links
+docs/*
+!docs/data_card.md
+!docs/annotation_guidelines.md
+!docs/adr/
